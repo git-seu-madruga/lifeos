@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { diffDays, dueLabel, longToday } from "../lib/dates";
-import { PROJECTS } from "../lib/mockData";
 import TaskDetail from "./TaskDetail";
 
 const STATUS = [
@@ -34,7 +33,7 @@ function dateInfo(t) {
   return dueLabel(t.due);
 }
 
-export default function TasksView({ tasks, setTasks, context, sub, onOpenProject }) {
+export default function TasksView({ tasks, setTasks, projects, context, sub, onOpenProject }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("due");
   const [quick, setQuick] = useState(null);
@@ -43,6 +42,7 @@ export default function TasksView({ tasks, setTasks, context, sub, onOpenProject
   const [openId, setOpenId] = useState(null);
 
   const byProject = sub === "projeto";
+  const pn = (id) => projects.find((p) => p.id === id)?.name || "";
   const scoped = useMemo(() => tasks.filter((t) => context === "all" || t.context === context), [tasks, context]);
   const update = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
 
@@ -51,19 +51,19 @@ export default function TasksView({ tasks, setTasks, context, sub, onOpenProject
     const list = scoped
       .filter((t) => !quick || t.status === quick)
       .filter((t) => proj === "all" || (t.project || "") === proj)
-      .filter((t) => !q || t.title.toLowerCase().includes(q) || (t.project || "").toLowerCase().includes(q))
+      .filter((t) => !q || t.title.toLowerCase().includes(q) || pn(t.project).toLowerCase().includes(q))
       .sort((a, b) => ORDER[a.status] - ORDER[b.status] || SORTERS[sort](a, b));
 
     const map = new Map();
     for (const t of list) {
       const g = byProject
-        ? { key: "p:" + (t.project || ""), label: t.project || "Sem projeto", tone: "plain", order: t.project ? 0 : 1 }
+        ? { key: "p:" + (t.project || ""), label: pn(t.project) || "Sem projeto", tone: "plain", order: t.project ? 0 : 1 }
         : { ...STATUS[ORDER[t.status]], order: ORDER[t.status] };
       if (!map.has(g.key)) map.set(g.key, { ...g, items: [] });
       map.get(g.key).items.push(t);
     }
     return [...map.values()].sort((a, b) => a.order - b.order || a.label.localeCompare(b.label, "pt-BR"));
-  }, [scoped, quick, proj, query, sort, byProject]);
+  }, [scoped, projects, quick, proj, query, sort, byProject]);
 
   const count = (k) => scoped.filter((t) => t.status === k).length;
   const current = tasks.find((t) => t.id === openId);
@@ -96,7 +96,7 @@ export default function TasksView({ tasks, setTasks, context, sub, onOpenProject
         </select>
         <select value={proj} onChange={(e) => setProj(e.target.value)} aria-label="Filtrar por projeto">
           <option value="all">Todos os projetos</option>
-          {PROJECTS.map((p) => <option key={p.name} value={p.name}>{p.name}</option>)}
+          {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
       </div>
 
@@ -130,7 +130,7 @@ export default function TasksView({ tasks, setTasks, context, sub, onOpenProject
                       </button>
                       <span className="row-meta">
                         {t.links.length > 0 && <span className="muted small">🔗 {t.links.length}</span>}
-                        {t.project && <button className="proj" onClick={() => onOpenProject(t.project)} title="Abrir projeto">{t.project}</button>}
+                        {t.project && <button className="proj" onClick={() => onOpenProject(t.project)} title="Abrir projeto">{pn(t.project)}</button>}
                         <span className={`prio prio-${t.priority}`}>{PRIO_LABEL[t.priority]}</span>
                         <span className={`due due-${di.tone}`}>{di.text}</span>
                         <span className="chip">{CTX[t.context]}</span>
@@ -144,7 +144,7 @@ export default function TasksView({ tasks, setTasks, context, sub, onOpenProject
         );
       })}
 
-      {current && <TaskDetail task={current} update={update} onClose={() => setOpenId(null)} />}
+      {current && <TaskDetail task={current} projects={projects} update={update} onClose={() => setOpenId(null)} />}
     </section>
   );
 }

@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { PROJECTS, PAGES } from "../lib/mockData";
+import { PAGES } from "../lib/mockData";
 import { addDaysISO } from "../lib/dates";
 
 const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 const STATUS = [["todo", "Não iniciada"], ["doing", "Em andamento"], ["hold", "On hold"], ["done", "Concluída"]];
 
-export default function TaskDetail({ task, update, onClose }) {
+export default function TaskDetail({ task, projects, update, onClose }) {
   const [q, setQ] = useState("");
 
   useEffect(() => {
@@ -90,12 +90,23 @@ export default function TaskDetail({ task, update, onClose }) {
           </div>
         </div>
 
-        <div className="field">
-          <span className="label">Projeto</span>
-          <select value={task.project || ""} onChange={(e) => set({ project: e.target.value || null })}>
-            <option value="">Sem projeto</option>
-            {PROJECTS.map((p) => <option key={p.name} value={p.name}>{p.name}</option>)}
-          </select>
+        <div className="field-row">
+          <div className="field">
+            <span className="label">Projeto</span>
+            <select value={task.project || ""} onChange={(e) => set({ project: e.target.value || null, milestone: null })}>
+              <option value="">Sem projeto</option>
+              {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+            </select>
+          </div>
+          {task.project && (
+            <div className="field">
+              <span className="label">Marco</span>
+              <select value={task.milestone || ""} onChange={(e) => set({ milestone: e.target.value || null })}>
+                <option value="">Sem marco</option>
+                {(projects.find((p) => p.id === task.project)?.milestones || []).map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
+              </select>
+            </div>
+          )}
         </div>
 
         <div className="field">

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { NAV } from "../lib/nav";
-import { makeTasks, PROJECTS } from "../lib/mockData";
+import { makeTasks, makeProjects } from "../lib/mockData";
 import TasksView from "../components/TasksView";
 import ProjectsView from "../components/ProjectsView";
 import Placeholder from "../components/Placeholder";
@@ -19,12 +19,14 @@ export default function Home() {
   const [subs, setSubs] = useState({});
   const [selected, setSelected] = useState(null);
   const [tasks, setTasks] = useState(null);
+  const [projects, setProjects] = useState(null);
   const [refreshedAt, setRefreshedAt] = useState(null);
   const [spinning, setSpinning] = useState(false);
 
   // Os dados só nascem no navegador para evitar diferença de fuso horário entre servidor e cliente.
   useEffect(() => {
     setTasks(makeTasks());
+    setProjects(makeProjects());
     setRefreshedAt(new Date());
   }, []);
 
@@ -33,11 +35,11 @@ export default function Home() {
   const sub = tab.subs.find((s) => s.id === subId);
 
   const SUB_OF = { active: "ativos", paused: "pausados", done: "concluidos" };
-  function openProject(name) {
-    const p = PROJECTS.find((x) => x.name === name);
+  function openProject(id) {
+    const p = projects.find((x) => x.id === id);
     if (!p) return;
     setSubs((s) => ({ ...s, projetos: SUB_OF[p.status] }));
-    setSelected(name);
+    setSelected(id);
     setTabId("projetos");
   }
 
@@ -45,6 +47,7 @@ export default function Home() {
     setSpinning(true);
     setTimeout(() => {
       setTasks(makeTasks());
+    setProjects(makeProjects());
       setRefreshedAt(new Date());
       setSpinning(false);
     }, 600);
@@ -120,14 +123,14 @@ export default function Home() {
         </div>
 
         {tabId === "tarefas" ? (
-          tasks ? (
-            <TasksView tasks={tasks} setTasks={setTasks} context={context} sub={subId} onOpenProject={openProject} />
+          tasks && projects ? (
+            <TasksView tasks={tasks} setTasks={setTasks} projects={projects} context={context} sub={subId} onOpenProject={openProject} />
           ) : (
             <p className="empty">Carregando…</p>
           )
         ) : tabId === "projetos" ? (
-          tasks ? (
-            <ProjectsView tasks={tasks.filter((t) => context === "all" || t.context === context)} sub={subId} selected={selected} onSelect={setSelected} />
+          tasks && projects ? (
+            <ProjectsView tasks={tasks} setTasks={setTasks} projects={projects} setProjects={setProjects} context={context} sub={subId} selected={selected} onSelect={setSelected} />
           ) : (
             <p className="empty">Carregando…</p>
           )
