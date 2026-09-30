@@ -2,118 +2,76 @@
 
 import { useMemo, useState } from "react";
 import { diffDays, dueLabel, longToday } from "../lib/dates";
+import { PROJECTS } from "../lib/mockData";
+import TaskDetail from "./TaskDetail";
 
-const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
-const PRIORITY_LABEL = { high: "Alta", medium: "Média", low: "Baixa" };
-const CONTEXT_LABEL = { work: "Trabalho", personal: "Pessoal" };
-
-const WHEN = [
-  { key: "overdue", label: "Atrasadas", tone: "late" },
-  { key: "today", label: "Hoje", tone: "today" },
-  { key: "week", label: "Esta semana", tone: "plain" },
-  { key: "later", label: "Depois", tone: "muted" },
-  { key: "nodate", label: "Sem data", tone: "muted" },
+const STATUS = [
+  { key: "todo", label: "Não iniciadas", tone: "plain" },
+  { key: "doing", label: "Em andamento", tone: "blue" },
+  { key: "hold", label: "On hold", tone: "today" },
+  { key: "done", label: "Concluídas", tone: "muted" },
 ];
+const ORDER = { todo: 0, doing: 1, hold: 2, done: 3 };
+const PRIO = { high: 0, medium: 1, low: 2 };
+const PRIO_LABEL = { high: "Alta", medium: "Média", low: "Baixa" };
+const CTX = { work: "Trabalho", personal: "Pessoal" };
 
-function whenKey(t) {
-  if (!t.due) return "nodate";
-  const n = diffDays(t.due);
-  if (n < 0) return "overdue";
-  if (n === 0) return "today";
-  if (n <= 7) return "week";
-  return "later";
-}
-
-function groupOf(t, mode) {
-  if (mode === "when") {
-    const k = whenKey(t);
-    const i = WHEN.findIndex((w) => w.key === k);
-    return { key: k, label: WHEN[i].label, tone: WHEN[i].tone, order: i };
-  }
-  if (mode === "project") {
-    return { key: "p:" + (t.project || ""), label: t.project || "Sem projeto", tone: "plain", order: t.project ? 0 : 1 };
-  }
-  if (mode === "priority") {
-    return { key: t.priority, label: `Prioridade ${PRIORITY_LABEL[t.priority].toLowerCase()}`, tone: "plain", order: PRIORITY_ORDER[t.priority] };
-  }
-  return { key: "all", label: "Todas as tarefas", tone: "plain", order: 0 };
-}
-
-const dueKey = (t) => t.due || "9999-99-99";
+// Em hold a data que importa é a da cobrança; nas demais, o prazo.
+const keyDate = (t) => (t.status === "hold" ? t.followUp : t.due) || "9999-99-99";
 const SORTERS = {
-  due: (a, b) => dueKey(a).localeCompare(dueKey(b)) || PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority],
-  priority: (a, b) => PRIORITY_ORDER[a.priority] - PRIORITY_ORDER[b.priority] || dueKey(a).localeCompare(dueKey(b)),
+  due: (a, b) => keyDate(a).localeCompare(keyDate(b)),
+  priority: (a, b) => PRIO[a.priority] - PRIO[b.priority] || keyDate(a).localeCompare(keyDate(b)),
   title: (a, b) => a.title.localeCompare(b.title, "pt-BR"),
 };
+
+function dateInfo(t) {
+  if (t.status === "done") return { text: t.outcome === "cancelled" ? "Cancelada" : "Finalizada", tone: "muted" };
+  if (t.status === "hold") {
+    if (!t.followUp) return { text: "Sem cobrança", tone: "muted" };
+    const l = dueLabel(t.followUp);
+    return { text: `Cobrar · ${l.text}`, tone: l.tone };
+  }
+  return dueLabel(t.due);
+}
 
 export default function TasksView({ tasks, setTasks, context, sub }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("due");
-  const [group, setGroup] = useState("when");
-  const [quick, setQuick] = useState(null); // null | "today" | "overdue" | "starred"
-  const [showRoutines, setShowRoutines] = useState(false);
-  const [showDone, setShowDone] = useState(false);
-  const [collapsed, setCollapsed] = useState({});
+  const [quick, setQuick] = useState(null);
+  const [proj, setProj] = useState("all");
+  const [collapsed, setCollapsed] = useState({ done: true });
+  const [openId, setOpenId] = useState(null);
 
-  const scoped = useMemo(
-    () => tasks.filter((t) => context === "all" || t.context === context),
-    [tasks, context]
-  );
-
-  const stats = useMemo(() => {
-    const open = scoped.filter((t) => !t.done);
-    return {
-      open: open.length,
-      today: open.filter((t) => t.due && diffDays(t.due) === 0).length,
-      overdue: open.filter((t) => t.due && diffDays(t.due) < 0).length,
-      starred: open.filter((t) => t.starred).length,
-    };
-  }, [scoped]);
+  const byProject = sub === "projeto";
+  const scoped = useMemo(() => tasks.filter((t) => context === "all" || t.context === context), [tasks, context]);
+  const update = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
 
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
-    let list = scoped.filter((t) => {
-      if (sub === "concluidas") return t.done;
-      if (sub === "rotinas") return t.routine && (!t.done || showDone);
-      if (t.done && !showDone) return false;
-      if (t.routine && !showRoutines && !(t.due && diffDays(t.due) <= 0)) return false;
-      return true;
-    });
-
-    if (sub !== "concluidas") {
-      if (quick === "today") list = list.filter((t) => t.due && diffDays(t.due) === 0);
-      if (quick === "overdue") list = list.filter((t) => t.due && diffDays(t.due) < 0);
-      if (quick === "starred") list = list.filter((t) => t.starred);
-    }
-    if (q) {
-      list = list.filter((t) => t.title.toLowerCase().includes(q) || (t.project || "").toLowerCase().includes(q));
-    }
-
-    list = [...list].sort(SORTERS[sort]);
+    const list = scoped
+      .filter((t) => !quick || t.status === quick)
+      .filter((t) => proj === "all" || (t.project || "") === proj)
+      .filter((t) => !q || t.title.toLowerCase().includes(q) || (t.project || "").toLowerCase().includes(q))
+      .sort((a, b) => ORDER[a.status] - ORDER[b.status] || SORTERS[sort](a, b));
 
     const map = new Map();
     for (const t of list) {
-      const g = groupOf(t, group);
+      const g = byProject
+        ? { key: "p:" + (t.project || ""), label: t.project || "Sem projeto", tone: "plain", order: t.project ? 0 : 1 }
+        : { ...STATUS[ORDER[t.status]], order: ORDER[t.status] };
       if (!map.has(g.key)) map.set(g.key, { ...g, items: [] });
       map.get(g.key).items.push(t);
     }
     return [...map.values()].sort((a, b) => a.order - b.order || a.label.localeCompare(b.label, "pt-BR"));
-  }, [scoped, sub, quick, query, sort, group, showRoutines, showDone]);
+  }, [scoped, quick, proj, query, sort, byProject]);
 
-  function toggle(id, field) {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, [field]: !t[field] } : t)));
-  }
+  const count = (k) => scoped.filter((t) => t.status === k).length;
+  const current = tasks.find((t) => t.id === openId);
 
-  function pickQuick(key) {
+  function pickCard(key) {
     setQuick((cur) => (cur === key ? null : key));
+    if (key === "done") setCollapsed((c) => ({ ...c, done: false }));
   }
-
-  const cards = [
-    { key: null, label: "Abertas", value: stats.open, tone: "plain" },
-    { key: "today", label: "Hoje", value: stats.today, tone: "today" },
-    { key: "overdue", label: "Atrasadas", value: stats.overdue, tone: "late" },
-    { key: "starred", label: "Favoritas", value: stats.starred, tone: "blue" },
-  ];
 
   return (
     <section>
@@ -121,113 +79,61 @@ export default function TasksView({ tasks, setTasks, context, sub }) {
       <p className="section-date"><span className="dot-blue" />{longToday()}</p>
 
       <div className="cards">
-        {cards.map((c) => (
-          <button
-            key={c.label}
-            className={`card card-${c.tone}` + (quick === c.key ? " on" : "")}
-            aria-pressed={quick === c.key}
-            onClick={() => (c.key === null ? setQuick(null) : pickQuick(c.key))}
-          >
-            <span className="card-value">{c.value}</span>
-            <span className="card-label">{c.label}</span>
+        {STATUS.map((s) => (
+          <button key={s.key} className={`card card-${s.tone}` + (quick === s.key ? " on" : "")} aria-pressed={quick === s.key} onClick={() => pickCard(s.key)}>
+            <span className="card-value">{count(s.key)}</span>
+            <span className="card-label">{s.label}</span>
           </button>
         ))}
       </div>
 
       <div className="controls">
-        <input
-          className="search"
-          type="search"
-          placeholder="Buscar tarefas ou projetos…"
-          value={query}
-          onChange={(e) => setQuery(e.target.value)}
-          aria-label="Buscar tarefas ou projetos"
-        />
+        <input className="search" type="search" placeholder="Buscar tarefas ou projetos…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar" />
         <select value={sort} onChange={(e) => setSort(e.target.value)} aria-label="Ordenar por">
-          <option value="due">Ordenar: vencimento</option>
+          <option value="due">Ordenar: data</option>
           <option value="priority">Ordenar: prioridade</option>
           <option value="title">Ordenar: nome</option>
         </select>
-        <select value={group} onChange={(e) => { setGroup(e.target.value); setCollapsed({}); }} aria-label="Agrupar por">
-          <option value="when">Agrupar: quando vence</option>
-          <option value="project">Agrupar: projeto</option>
-          <option value="priority">Agrupar: prioridade</option>
-          <option value="none">Sem agrupamento</option>
+        <select value={proj} onChange={(e) => setProj(e.target.value)} aria-label="Filtrar por projeto">
+          <option value="all">Todos os projetos</option>
+          {PROJECTS.map((p) => <option key={p} value={p}>{p}</option>)}
         </select>
       </div>
 
       <div className="toggles">
-        <label className="toggle">
-          <input type="checkbox" checked={quick === "today"} onChange={() => pickQuick("today")} />
-          Só tarefas de hoje
-        </label>
-        <label className="toggle">
-          <input type="checkbox" checked={showRoutines} onChange={(e) => setShowRoutines(e.target.checked)} />
-          Mostrar rotinas ainda não vencidas
-        </label>
-        <label className="toggle">
-          <input type="checkbox" checked={showDone} onChange={(e) => setShowDone(e.target.checked)} />
-          Mostrar concluídas
-        </label>
         <button className="ghost" onClick={() => setCollapsed({})}>Expandir tudo</button>
-        <button
-          className="ghost"
-          onClick={() => setCollapsed(Object.fromEntries(groups.map((g) => [g.key, true])))}
-        >
-          Recolher tudo
-        </button>
+        <button className="ghost" onClick={() => setCollapsed(Object.fromEntries(groups.map((g) => [g.key, true])))}>Recolher tudo</button>
       </div>
 
-      {groups.length === 0 && (
-        <p className="empty">Nenhuma tarefa com esses filtros. Limpe a busca ou troque o filtro.</p>
-      )}
+      {groups.length === 0 && <p className="empty">Nenhuma tarefa com esses filtros.</p>}
 
       {groups.map((g) => {
-        const isCollapsed = Boolean(collapsed[g.key]);
+        const closed = Boolean(collapsed[g.key]);
         return (
           <div key={g.key} className={`group group-${g.tone}`}>
-            <button
-              className="group-head"
-              aria-expanded={!isCollapsed}
-              onClick={() => setCollapsed({ ...collapsed, [g.key]: !isCollapsed })}
-            >
-              <span className={"chev" + (isCollapsed ? "" : " open")} aria-hidden="true">›</span>
+            <button className="group-head" aria-expanded={!closed} onClick={() => setCollapsed({ ...collapsed, [g.key]: !closed })}>
+              <span className={"chev" + (closed ? "" : " open")} aria-hidden="true">›</span>
               <span className="group-label">{g.label}</span>
               <span className="group-count">{g.items.length}</span>
             </button>
-
-            {!isCollapsed && (
+            {!closed && (
               <ul className="rows">
                 {g.items.map((t) => {
-                  const due = dueLabel(t.due);
-                  const isToday = t.due && diffDays(t.due) === 0;
+                  const di = dateInfo(t);
                   return (
-                    <li key={t.id} className={"row" + (t.done ? " done" : "")}>
-                      <input
-                        type="checkbox"
-                        className="check"
-                        checked={t.done}
-                        onChange={() => toggle(t.id, "done")}
-                        aria-label={`Concluir: ${t.title}`}
-                      />
-                      <span className={"dot" + (isToday ? " dot-on" : "")} aria-hidden="true" />
-                      <span className="row-title">
+                    <li key={t.id} className={"row" + (t.status === "done" ? " done" : "")}>
+                      <input type="checkbox" className="check" checked={t.status === "done"} aria-label={`Concluir: ${t.title}`}
+                        onChange={() => update(t.id, t.status === "done" ? { status: "todo", outcome: null } : { status: "done", outcome: "finished" })} />
+                      <button className="row-title" onClick={() => setOpenId(t.id)}>
                         {t.title}
-                        {t.project && <span className="row-project">{t.project}</span>}
-                      </span>
+                        {t.status === "hold" && t.waitingOn && <span className="row-project">Aguardando: {t.waitingOn}</span>}
+                      </button>
                       <span className="row-meta">
-                        {t.routine && <span className="routine">Rotina</span>}
-                        <span className={`prio prio-${t.priority}`}>{PRIORITY_LABEL[t.priority]}</span>
-                        <span className={`due due-${due.tone}`}>{due.text}</span>
-                        <span className="chip">{CONTEXT_LABEL[t.context]}</span>
-                        <button
-                          className={"star" + (t.starred ? " on" : "")}
-                          onClick={() => toggle(t.id, "starred")}
-                          aria-pressed={t.starred}
-                          aria-label={t.starred ? "Remover dos favoritos" : "Favoritar"}
-                        >
-                          {t.starred ? "★" : "☆"}
-                        </button>
+                        {t.links.length > 0 && <span className="muted small">🔗 {t.links.length}</span>}
+                        {t.project && <button className="proj" onClick={() => setProj(t.project)} title="Filtrar por este projeto">{t.project}</button>}
+                        <span className={`prio prio-${t.priority}`}>{PRIO_LABEL[t.priority]}</span>
+                        <span className={`due due-${di.tone}`}>{di.text}</span>
+                        <span className="chip">{CTX[t.context]}</span>
                       </span>
                     </li>
                   );
@@ -237,6 +143,8 @@ export default function TasksView({ tasks, setTasks, context, sub }) {
           </div>
         );
       })}
+
+      {current && <TaskDetail task={current} update={update} onClose={() => setOpenId(null)} />}
     </section>
   );
 }
