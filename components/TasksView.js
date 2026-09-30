@@ -34,7 +34,7 @@ function dateInfo(t) {
   return dueLabel(t.due);
 }
 
-export default function TasksView({ tasks, setTasks, context, sub }) {
+export default function TasksView({ tasks, setTasks, context, sub, onOpenProject }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("due");
   const [quick, setQuick] = useState(null);
@@ -96,7 +96,7 @@ export default function TasksView({ tasks, setTasks, context, sub }) {
         </select>
         <select value={proj} onChange={(e) => setProj(e.target.value)} aria-label="Filtrar por projeto">
           <option value="all">Todos os projetos</option>
-          {PROJECTS.map((p) => <option key={p} value={p}>{p}</option>)}
+          {PROJECTS.map((p) => <option key={p.name} value={p.name}>{p.name}</option>)}
         </select>
       </div>
 
@@ -130,7 +130,7 @@ export default function TasksView({ tasks, setTasks, context, sub }) {
                       </button>
                       <span className="row-meta">
                         {t.links.length > 0 && <span className="muted small">🔗 {t.links.length}</span>}
-                        {t.project && <button className="proj" onClick={() => setProj(t.project)} title="Filtrar por este projeto">{t.project}</button>}
+                        {t.project && <button className="proj" onClick={() => onOpenProject(t.project)} title="Abrir projeto">{t.project}</button>}
                         <span className={`prio prio-${t.priority}`}>{PRIO_LABEL[t.priority]}</span>
                         <span className={`due due-${di.tone}`}>{di.text}</span>
                         <span className="chip">{CTX[t.context]}</span>

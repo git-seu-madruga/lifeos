@@ -94,7 +94,7 @@ export default function TaskDetail({ task, update, onClose }) {
           <span className="label">Projeto</span>
           <select value={task.project || ""} onChange={(e) => set({ project: e.target.value || null })}>
             <option value="">Sem projeto</option>
-            {PROJECTS.map((p) => <option key={p} value={p}>{p}</option>)}
+            {PROJECTS.map((p) => <option key={p.name} value={p.name}>{p.name}</option>)}
           </select>
         </div>
 

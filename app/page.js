@@ -2,8 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { NAV } from "../lib/nav";
-import { makeTasks } from "../lib/mockData";
+import { makeTasks, PROJECTS } from "../lib/mockData";
 import TasksView from "../components/TasksView";
+import ProjectsView from "../components/ProjectsView";
 import Placeholder from "../components/Placeholder";
 
 const CONTEXTS = [
@@ -16,6 +17,7 @@ export default function Home() {
   const [context, setContext] = useState("all");
   const [tabId, setTabId] = useState("tarefas");
   const [subs, setSubs] = useState({});
+  const [selected, setSelected] = useState(null);
   const [tasks, setTasks] = useState(null);
   const [refreshedAt, setRefreshedAt] = useState(null);
   const [spinning, setSpinning] = useState(false);
@@ -29,6 +31,15 @@ export default function Home() {
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
   const sub = tab.subs.find((s) => s.id === subId);
+
+  const SUB_OF = { active: "ativos", paused: "pausados", done: "concluidos" };
+  function openProject(name) {
+    const p = PROJECTS.find((x) => x.name === name);
+    if (!p) return;
+    setSubs((s) => ({ ...s, projetos: SUB_OF[p.status] }));
+    setSelected(name);
+    setTabId("projetos");
+  }
 
   function refresh() {
     setSpinning(true);
@@ -85,7 +96,7 @@ export default function Home() {
             <button
               className={"tab" + (t.id === tabId ? " on" : "")}
               aria-current={t.id === tabId ? "page" : undefined}
-              onClick={() => setTabId(t.id)}
+              onClick={() => { setTabId(t.id); setSelected(null); }}
             >
               {t.label}
             </button>
@@ -101,7 +112,7 @@ export default function Home() {
               role="tab"
               aria-selected={s.id === subId}
               className={"subtab" + (s.id === subId ? " on" : "")}
-              onClick={() => setSubs({ ...subs, [tabId]: s.id })}
+              onClick={() => { setSubs({ ...subs, [tabId]: s.id }); setSelected(null); }}
             >
               {s.label}
             </button>
@@ -110,7 +121,13 @@ export default function Home() {
 
         {tabId === "tarefas" ? (
           tasks ? (
-            <TasksView tasks={tasks} setTasks={setTasks} context={context} sub={subId} />
+            <TasksView tasks={tasks} setTasks={setTasks} context={context} sub={subId} onOpenProject={openProject} />
+          ) : (
+            <p className="empty">Carregando…</p>
+          )
+        ) : tabId === "projetos" ? (
+          tasks ? (
+            <ProjectsView tasks={tasks.filter((t) => context === "all" || t.context === context)} sub={subId} selected={selected} onSelect={setSelected} />
           ) : (
             <p className="empty">Carregando…</p>
           )

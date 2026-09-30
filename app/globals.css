@@ -207,3 +207,14 @@ select { padding-right: 8px; }
 .results button:hover { background: var(--panel-2); }
 .linked li { display: flex; align-items: center; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--line); }
 .linked li span:first-child { flex: 1; min-width: 0; }
+
+/* Projetos */
+.pcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.pcard { display: flex; flex-direction: column; gap: 8px; text-align: left; padding: 14px; background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius); }
+.pcard:hover { border-color: var(--blue); }
+.pcard-name { font-weight: 700; font-size: 16px; }
+.bar { height: 6px; border-radius: 999px; background: var(--line); overflow: hidden; }
+.bar span { display: block; height: 100%; background: var(--blue); }
+.pd-title { margin-top: 18px; }
+.pd-progress { display: flex; flex-direction: column; gap: 6px; margin: 16px 0 26px; }
+.pd-h { font-size: 15px; }
