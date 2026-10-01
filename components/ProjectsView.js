@@ -30,19 +30,24 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   const [view, setView] = useState("lista");
   const [nt, setNt] = useState({ title: "", ms: "", ctx: null });
 
-  const project = projects.find((p) => p.id === selected);
+  const project = projects.find((p) => p.id === selected && (context === "all" || p.context === context));
   const updateProject = (id, patch) => setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
   const updateTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
 
   function addProject() {
     const id = uid("pr");
-    setProjects((prev) => [...prev, { id, name: "Novo projeto", status: "active", area: "", due: null, description: "", milestones: [] }]);
+    setProjects((prev) => [...prev, { id, name: "Novo projeto", status: "active", area: "", context: context === "all" ? "work" : context, due: null, description: "", milestones: [] }]);
     onSelect(id);
+  }
+
+  function setProjectContext(v) {
+    updateProject(project.id, { context: v });
+    setTasks((prev) => prev.map((t) => (t.project === project.id ? { ...t, context: v } : t)));
   }
 
   // ---------- Lista de projetos ----------
   if (!project) {
-    const shown = projects.filter((p) => p.status === SUB_STATUS[sub]);
+    const shown = projects.filter((p) => p.status === SUB_STATUS[sub] && (context === "all" || p.context === context));
     return (
       <section>
         <div className="head-row">
@@ -61,6 +66,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
             return (
               <button key={p.id} className="pcard" onClick={() => onSelect(p.id)}>
                 <span className="pcard-name">{p.name}</span>
+                {context === "all" && <span className="chip">{CTX[p.context]}</span>}
                 <span className="muted small">{p.area || "Sem área"}{due && ` · ${due.text}`}</span>
                 <Bar pct={s.pct} />
                 <span className="muted small">{s.done}/{s.total} tarefas · {msDone}/{p.milestones.length} marcos</span>
@@ -79,7 +85,6 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   const current = ms.find((m) => !m.done);
   const msDone = ms.filter((m) => m.done).length;
   const msPct = ms.length ? Math.round((msDone / ms.length) * 100) : 0;
-  const ctx = nt.ctx || (context === "all" ? "work" : context);
   const next = current?.due ? dueLabel(current.due) : null;
 
   const setMs = (mid, patch) => updateProject(project.id, { milestones: project.milestones.map((m) => (m.id === mid ? { ...m, ...patch } : m)) });
@@ -90,7 +95,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   function addTask() {
     if (!nt.title.trim()) return;
     setTasks((prev) => [...prev, {
-      id: uid("t"), title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: ctx,
+      id: uid("t"), title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
       project: project.id, milestone: nt.ms || null, links: [], notes: "", followUp: null, waitingOn: "", outcome: null,
     }]);
     setNt({ ...nt, title: "" });
@@ -102,7 +107,6 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
         onChange={() => updateTask(t.id, t.status === "done" ? { status: "todo", outcome: null } : { status: "done", outcome: "finished" })} />
       <button className="row-title" onClick={() => setOpenId(t.id)}>{t.title}</button>
       <span className="row-meta">
-        <span className="chip">{CTX[t.context]}</span>
         <span className="chip">{STATUS_LABEL[t.status]}</span>
       </span>
     </li>
@@ -117,6 +121,11 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
 
       <input className="panel-title pd-name" value={project.name} onChange={(e) => updateProject(project.id, { name: e.target.value })} aria-label="Nome do projeto" />
       <div className="field-row pd-fields">
+        <div className="field"><span className="label">Contexto</span>
+          <select value={project.context} onChange={(e) => setProjectContext(e.target.value)}>
+            <option value="work">Trabalho</option><option value="personal">Pessoal</option>
+          </select>
+        </div>
         <div className="field"><span className="label">Status</span>
           <select value={project.status} onChange={(e) => updateProject(project.id, { status: e.target.value })}>
             {P_STATUS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
@@ -187,12 +196,8 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
           <option value="">Sem marco</option>
           {ms.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
         </select>
-        <select value={ctx} onChange={(e) => setNt({ ...nt, ctx: e.target.value })} aria-label="Contexto da nova tarefa">
-          <option value="work">Trabalho</option><option value="personal">Pessoal</option>
-        </select>
         <button className="ghost" onClick={addTask}>+ Tarefa</button>
       </div>
-      <p className="muted small">A tarefa aparece na aba Tarefas conforme o contexto escolhido (Trabalho ou Pessoal).</p>
 
       {openTask && <TaskDetail task={openTask} projects={projects} update={updateTask} onClose={() => setOpenId(null)} />}
     </section>

@@ -17,6 +17,7 @@ export default function TaskDetail({ task, projects, update, onClose }) {
   }, [onClose]);
 
   const set = (patch) => update(task.id, patch);
+  const proj = projects.find((p) => p.id === task.project);
 
   function setStatus(s) {
     const p = { status: s, outcome: s === "done" ? task.outcome || "finished" : null };
@@ -88,16 +89,20 @@ export default function TaskDetail({ task, projects, update, onClose }) {
           </div>
           <div className="field">
             <span className="label">Contexto</span>
-            <select value={task.context} onChange={(e) => set({ context: e.target.value })}>
+            <select value={task.context} disabled={Boolean(proj)} onChange={(e) => set({ context: e.target.value })}>
               <option value="work">Trabalho</option><option value="personal">Pessoal</option>
             </select>
+            {proj && <span className="muted small">Definido pelo projeto “{proj.name}”</span>}
           </div>
         </div>
 
         <div className="field-row">
           <div className="field">
             <span className="label">Projeto</span>
-            <select value={task.project || ""} onChange={(e) => set({ project: e.target.value || null, milestone: null })}>
+            <select value={task.project || ""} onChange={(e) => {
+              const p = projects.find((x) => x.id === e.target.value);
+              set({ project: p ? p.id : null, milestone: null, ...(p ? { context: p.context } : {}) });
+            }}>
               <option value="">Sem projeto</option>
               {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>

@@ -289,3 +289,4 @@ select { padding-right: 8px; }
 .mv:disabled { opacity: .3; cursor: default; }
 .warn { flex-basis: 100%; color: var(--gold); padding-left: 64px; }
 @media (max-width: 640px) { .ms-title { flex-basis: 60%; } .warn { padding-left: 0; } }
+.pcard .chip { align-self: flex-start; }

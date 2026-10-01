@@ -46,11 +46,14 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
   const scoped = useMemo(() => tasks.filter((t) => context === "all" || t.context === context), [tasks, context]);
   const update = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
 
+  const visibleProjects = projects.filter((p) => context === "all" || p.context === context);
+  const projEff = visibleProjects.some((p) => p.id === proj) ? proj : "all";
+
   const groups = useMemo(() => {
     const q = query.trim().toLowerCase();
     const list = scoped
       .filter((t) => !quick || t.status === quick)
-      .filter((t) => proj === "all" || (t.project || "") === proj)
+      .filter((t) => projEff === "all" || (t.project || "") === projEff)
       .filter((t) => !q || t.title.toLowerCase().includes(q) || pn(t.project).toLowerCase().includes(q))
       .sort((a, b) => ORDER[a.status] - ORDER[b.status] || SORTERS[sort](a, b));
 
@@ -63,7 +66,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
       map.get(g.key).items.push(t);
     }
     return [...map.values()].sort((a, b) => a.order - b.order || a.label.localeCompare(b.label, "pt-BR"));
-  }, [scoped, projects, quick, proj, query, sort, byProject]);
+  }, [scoped, projects, quick, projEff, query, sort, byProject]);
 
   const count = (k) => scoped.filter((t) => t.status === k).length;
   const current = tasks.find((t) => t.id === openId);
@@ -94,9 +97,9 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
           <option value="priority">Ordenar: prioridade</option>
           <option value="title">Ordenar: nome</option>
         </select>
-        <select value={proj} onChange={(e) => setProj(e.target.value)} aria-label="Filtrar por projeto">
+        <select value={projEff} onChange={(e) => setProj(e.target.value)} aria-label="Filtrar por projeto">
           <option value="all">Todos os projetos</option>
-          {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+          {visibleProjects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
         </select>
       </div>
 
