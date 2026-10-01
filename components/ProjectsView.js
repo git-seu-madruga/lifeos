@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { dueLabel } from "../lib/dates";
 import TaskDetail from "./TaskDetail";
+import ProjectBoard from "./ProjectBoard";
+import ProjectGantt from "./ProjectGantt";
 
 const SUB_STATUS = { ativos: "active", pausados: "paused", concluidos: "done" };
 const P_STATUS = [["active", "Ativo"], ["paused", "Pausado"], ["done", "Concluído"]];
@@ -25,6 +27,7 @@ function Bar({ pct }) {
 export default function ProjectsView({ tasks, setTasks, projects, setProjects, context, sub, selected, onSelect }) {
   const [openId, setOpenId] = useState(null);
   const [nm, setNm] = useState("");
+  const [view, setView] = useState("lista");
   const [nt, setNt] = useState({ title: "", ms: "", ctx: null });
 
   const project = projects.find((p) => p.id === selected);
@@ -145,6 +148,14 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
       </div>
 
       <h2 className="group-head pd-h">Marcos e tarefas</h2>
+      <div className="seg-row view-toggle" role="tablist" aria-label="Visualização">
+        {[["lista", "Lista"], ["quadro", "Quadro"], ["cronograma", "Cronograma"]].map(([k, l]) => (
+          <button key={k} role="tab" aria-selected={view === k} className={"subtab" + (view === k ? " on" : "")} onClick={() => setView(k)}>{l}</button>
+        ))}
+      </div>
+      {view === "quadro" && <ProjectBoard milestones={ms} tasks={pts} onMove={(id, mid) => updateTask(id, { milestone: mid })} onOpen={setOpenId} />}
+      {view === "cronograma" && <ProjectGantt milestones={ms} tasks={pts} project={project} onOpen={setOpenId} />}
+      {view === "lista" && (
       <ol className="mslist">
         {ms.map((m) => {
           const mts = byMs(m.id);
@@ -170,6 +181,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
           </li>
         )}
       </ol>
+      )}
 
       <div className="addrow">
         <input className="search" value={nm} placeholder="Novo marco…" onChange={(e) => setNm(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addMs()} aria-label="Novo marco" />

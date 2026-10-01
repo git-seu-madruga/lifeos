@@ -73,6 +73,10 @@ export default function TaskDetail({ task, projects, update, onClose }) {
 
         <div className="field-row">
           <div className="field">
+            <span className="label">Início</span>
+            <input className="search" type="date" value={task.start || ""} onChange={(e) => set({ start: e.target.value || null })} />
+          </div>
+          <div className="field">
             <span className="label">Prazo</span>
             <input className="search" type="date" value={task.due || ""} onChange={(e) => set({ due: e.target.value || null })} />
           </div>
