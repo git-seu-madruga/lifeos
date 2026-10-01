@@ -5,6 +5,7 @@ import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { todayISO } from "../lib/dates";
 import { makeTasks, makeProjects, INBOX_SEED } from "../lib/mockData";
 import Inbox from "../components/Inbox";
+import TaskDetail from "../components/TaskDetail";
 import TasksView from "../components/TasksView";
 import ProjectsView from "../components/ProjectsView";
 import Placeholder from "../components/Placeholder";
@@ -25,6 +26,7 @@ export default function Home() {
   const [tasks, setTasks] = useState(null);
   const [projects, setProjects] = useState(null);
   const [inbox, setInbox] = useState(INBOX_SEED);
+  const [newTaskId, setNewTaskId] = useState(null);
   const [refreshedAt, setRefreshedAt] = useState(null);
   const [spinning, setSpinning] = useState(false);
 
@@ -48,6 +50,9 @@ export default function Home() {
     setTabId("projetos");
   }
 
+  const newTask = tasks && tasks.find((t) => t.id === newTaskId);
+  const updateNewTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+
   const addInbox = (text) => setInbox((prev) => [{ id: uid("i"), text }, ...prev]);
   const updateInbox = (id, text) => setInbox((prev) => prev.map((i) => (i.id === id ? { ...i, text } : i)));
   const deleteInbox = (id) => setInbox((prev) => prev.filter((i) => i.id !== id));
@@ -57,15 +62,18 @@ export default function Home() {
     const [first, ...rest] = item.text.trim().split("\n");
     const notes = rest.join("\n").trim();
     const ctx = context === "all" ? "work" : context;
+    const newId = uid(kind === "task" ? "t" : "pr");
     if (kind === "task") {
       setTasks((prev) => [...prev, {
-        id: uid("t"), title: first, status: "todo", due: tabId === "hoje" ? todayISO() : null, start: null,
+        id: newId, title: first, status: "todo", due: tabId === "hoje" ? todayISO() : null, start: null,
         priority: "medium", context: ctx, project: null, milestone: null, links: [], notes,
         followUp: null, waitingOn: "", outcome: null,
       }]);
+      setNewTaskId(newId); // abre o detalhe para completar os campos
     } else if (kind === "project") {
       const status = { ativos: "active", pausados: "paused", concluidos: "done" }[subId] || "active";
-      setProjects((prev) => [...prev, { id: uid("pr"), name: first, status, area: "", context: ctx, due: null, description: notes, milestones: [] }]);
+      setProjects((prev) => [...prev, { id: newId, name: first, status, area: "", context: ctx, due: null, description: notes, milestones: [] }]);
+      setSelected(newId); // abre o projeto para completar os campos
     } else {
       return;
     }
@@ -170,6 +178,7 @@ export default function Home() {
         )}
       </main>
     </div>
+    {newTask && projects && <TaskDetail task={newTask} projects={projects} update={updateNewTask} onClose={() => setNewTaskId(null)} />}
     </div>
   );
 }

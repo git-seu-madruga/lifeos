@@ -44,14 +44,21 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
       </div>
 
       <div className="inbox-body">
-        <input
-          className="search"
+        <textarea
+          className="search quick"
+          rows={3}
           value={text}
           placeholder="Anotar algo rápido…"
           onChange={(e) => setText(e.target.value)}
-          onKeyDown={(e) => e.key === "Enter" && add()}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey && !e.nativeEvent.isComposing) {
+              e.preventDefault();
+              add();
+            }
+          }}
           aria-label="Nova entrada no inbox"
         />
+        <p className="muted small quick-hint">Enter salva · Shift+Enter nova linha</p>
         {items.length === 0 && <p className="muted small inbox-empty">Inbox vazio.</p>}
         <ul className="inbox-list">
           {items.map((i) => (

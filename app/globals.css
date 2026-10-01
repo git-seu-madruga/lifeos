@@ -20,7 +20,7 @@ body {
   line-height: 1.4;
   -webkit-font-smoothing: antialiased;
 }
-button, select, input { font: inherit; color: inherit; }
+button, select, input, textarea { font: inherit; color: inherit; }
 button { cursor: pointer; background: none; border: 0; padding: 0; }
 :focus-visible { outline: 2px solid var(--blue); outline-offset: 2px; }
 .muted { color: var(--muted); }
@@ -314,10 +314,10 @@ input[type="date"] { min-width: 165px; }
 .danger { color: var(--red); border: 1px solid #5a2a27; padding: 9px 16px; border-radius: 8px; }
 .danger:hover { background: #2a1513; }
 
-@media (min-width: 1240px) {
-  .shell { display: grid; grid-template-columns: 300px minmax(0, 880px); gap: 24px; justify-content: center; padding: 0 20px; }
+@media (min-width: 1320px) {
+  .shell { display: grid; grid-template-columns: 340px minmax(0, 880px); gap: 24px; justify-content: center; padding: 0 20px; }
   .shell .app { margin: 0; max-width: none; padding: 0 0 80px; }
-  .inbox { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; border-bottom: 0; border-right: 1px solid var(--line); padding: 18px 18px 18px 0; }
+  .inbox { position: sticky; top: 0; align-self: start; max-height: 100vh; overflow-y: auto; border-bottom: 0; border-right: 1px solid var(--line); padding: 18px 18px 18px 6px; }
   .inbox-body { display: block; }
   .inbox-toggle { display: none; }
 }
@@ -325,3 +325,9 @@ input[type="date"] { min-width: 165px; }
   .cards { grid-template-columns: repeat(3, 1fr); }
   .card { flex-direction: column; gap: 4px; }
 }
+
+/* Campo de captura rápida */
+.quick { width: 100%; min-height: 88px; resize: vertical; line-height: 1.4; display: block; }
+.quick-hint { margin: 6px 0 0; }
+.inbox .search:focus-visible { outline-offset: 0; }
+.inbox-item { white-space: pre-line; }
