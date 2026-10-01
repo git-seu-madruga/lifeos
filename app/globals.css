@@ -272,3 +272,20 @@ select { padding-right: 8px; }
 .g-diamond { position: absolute; top: 11px; width: 12px; height: 12px; margin-left: -6px; transform: rotate(45deg); background: var(--bg); border: 2px solid var(--gold); }
 .g-diamond.on { background: var(--blue); border-color: var(--blue); }
 .g-nodate { position: absolute; left: 8px; top: 8px; }
+
+/* Marcos do projeto */
+.mgr { margin: 8px 0 30px; }
+.mgr-h { border-bottom: 0; padding-bottom: 0; }
+.mgr-hint { margin: 2px 0 12px; }
+.mgr-list { list-style: none; margin: 0; padding: 0; border: 1px solid var(--line); border-radius: var(--radius); background: var(--panel); }
+.mgr-row { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding: 8px 12px; border-bottom: 1px solid var(--line); }
+.mgr-row:last-child { border-bottom: 0; }
+.mgr-row.over { box-shadow: inset 0 2px 0 var(--blue); }
+.handle { cursor: grab; color: var(--muted); font-size: 18px; line-height: 1; padding: 2px 4px; user-select: none; }
+.num { width: 22px; height: 22px; display: grid; place-items: center; flex: none; border-radius: 50%; background: var(--blue-bg); color: var(--blue); font-size: 12px; font-weight: 700; }
+.mgr-count { white-space: nowrap; }
+.mv { color: var(--muted); font-size: 11px; padding: 6px; }
+.mv:hover:not(:disabled) { color: var(--blue); }
+.mv:disabled { opacity: .3; cursor: default; }
+.warn { flex-basis: 100%; color: var(--gold); padding-left: 64px; }
+@media (max-width: 640px) { .ms-title { flex-basis: 60%; } .warn { padding-left: 0; } }

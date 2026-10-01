@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { dueLabel } from "../lib/dates";
 import TaskDetail from "./TaskDetail";
+import MilestoneManager from "./MilestoneManager";
 import ProjectBoard from "./ProjectBoard";
 import ProjectGantt from "./ProjectGantt";
 
@@ -26,7 +27,6 @@ function Bar({ pct }) {
 
 export default function ProjectsView({ tasks, setTasks, projects, setProjects, context, sub, selected, onSelect }) {
   const [openId, setOpenId] = useState(null);
-  const [nm, setNm] = useState("");
   const [view, setView] = useState("lista");
   const [nt, setNt] = useState({ title: "", ms: "", ctx: null });
 
@@ -75,7 +75,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   // ---------- Detalhe editável ----------
   const pts = tasks.filter((t) => t.project === project.id);
   const all = progress(pts);
-  const ms = [...project.milestones].sort((a, b) => (a.due || "9999").localeCompare(b.due || "9999"));
+  const ms = project.milestones; // a ordem é a sequência definida em "Marcos do projeto"
   const current = ms.find((m) => !m.done);
   const msDone = ms.filter((m) => m.done).length;
   const msPct = ms.length ? Math.round((msDone / ms.length) * 100) : 0;
@@ -83,11 +83,6 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   const next = current?.due ? dueLabel(current.due) : null;
 
   const setMs = (mid, patch) => updateProject(project.id, { milestones: project.milestones.map((m) => (m.id === mid ? { ...m, ...patch } : m)) });
-  function addMs() {
-    if (!nm.trim()) return;
-    updateProject(project.id, { milestones: [...project.milestones, { id: uid("m"), title: nm.trim(), due: null, done: false }] });
-    setNm("");
-  }
   function delMs(mid) {
     updateProject(project.id, { milestones: project.milestones.filter((m) => m.id !== mid) });
     setTasks((prev) => prev.map((t) => (t.milestone === mid ? { ...t, milestone: null } : t)));
@@ -147,7 +142,9 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
         </div>
       </div>
 
-      <h2 className="group-head pd-h">Marcos e tarefas</h2>
+      <MilestoneManager milestones={project.milestones} tasks={pts} onChange={(list) => updateProject(project.id, { milestones: list })} onDelete={delMs} />
+
+      <h2 className="group-head pd-h">Tarefas por marco</h2>
       <div className="seg-row view-toggle" role="tablist" aria-label="Visualização">
         {[["lista", "Lista"], ["quadro", "Quadro"], ["cronograma", "Cronograma"]].map(([k, l]) => (
           <button key={k} role="tab" aria-selected={view === k} className={"subtab" + (view === k ? " on" : "")} onClick={() => setView(k)}>{l}</button>
@@ -164,9 +161,8 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
             <li key={m.id} className={"ms" + (m.done ? " ms-done" : "") + (current && m.id === current.id ? " ms-now" : "")}>
               <div className="ms-head">
                 <input type="checkbox" className="check" checked={m.done} onChange={() => setMs(m.id, { done: !m.done })} aria-label="Marco atingido" />
-                <input className="ms-title" value={m.title} onChange={(e) => setMs(m.id, { title: e.target.value })} aria-label="Nome do marco" />
-                <input className="search ms-date" type="date" value={m.due || ""} onChange={(e) => setMs(m.id, { due: e.target.value || null })} aria-label="Prazo do marco" />
-                <button className="star" aria-label="Remover marco" onClick={() => delMs(m.id)}>×</button>
+                <span className="ms-title">{m.title}</span>
+                {m.due && <span className="small muted">{dueLabel(m.due).text}</span>}
               </div>
               {current && m.id === current.id && <span className="ms-flag">Você está aqui</span>}
               <div className="ms-prog"><Bar pct={s.pct} /><span className="muted small">{s.total ? `${s.done}/${s.total} tarefas` : "sem tarefas"}</span></div>
@@ -183,10 +179,6 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
       </ol>
       )}
 
-      <div className="addrow">
-        <input className="search" value={nm} placeholder="Novo marco…" onChange={(e) => setNm(e.target.value)} onKeyDown={(e) => e.key === "Enter" && addMs()} aria-label="Novo marco" />
-        <button className="ghost" onClick={addMs}>+ Marco</button>
-      </div>
 
       <h2 className="group-head pd-h">Nova tarefa neste projeto</h2>
       <div className="addrow">
