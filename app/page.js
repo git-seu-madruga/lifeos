@@ -67,7 +67,7 @@ export default function Home() {
       setTasks((prev) => [...prev, {
         id: newId, title: first, status: "todo", due: tabId === "hoje" ? todayISO() : null, start: null,
         priority: "medium", context: ctx, project: null, milestone: null, links: [], notes,
-        followUp: null, waitingOn: "", outcome: null,
+        followUp: null, waitingOn: "",
       }]);
       setNewTaskId(newId); // abre o detalhe para completar os campos
     } else if (kind === "project") {

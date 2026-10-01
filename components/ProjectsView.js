@@ -9,14 +9,16 @@ import ProjectGantt from "./ProjectGantt";
 
 const SUB_STATUS = { ativos: "active", pausados: "paused", concluidos: "done" };
 const P_STATUS = [["active", "Ativo"], ["paused", "Pausado"], ["done", "Concluído"]];
-const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold", done: "Concluída" };
+const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold", done: "Concluída", cancelled: "Cancelada" };
 const CTX = { work: "Trabalho", personal: "Pessoal" };
-const ORDER = { doing: 0, hold: 1, todo: 2, done: 3 };
+const ORDER = { doing: 0, hold: 1, todo: 2, done: 3, cancelled: 4 };
 
 let seq = 0;
 const uid = (p) => `${p}${Date.now().toString(36)}${seq++}`;
 
-function progress(ts) {
+// Tarefas canceladas não contam no progresso: nem como feitas, nem como pendentes.
+function progress(all) {
+  const ts = all.filter((t) => t.status !== "cancelled");
   const done = ts.filter((t) => t.status === "done").length;
   return { done, total: ts.length, pct: ts.length ? Math.round((done / ts.length) * 100) : 0 };
 }
@@ -96,15 +98,15 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
     if (!nt.title.trim()) return;
     setTasks((prev) => [...prev, {
       id: uid("t"), title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
-      project: project.id, milestone: nt.ms || null, links: [], notes: "", followUp: null, waitingOn: "", outcome: null,
+      project: project.id, milestone: nt.ms || null, links: [], notes: "", followUp: null, waitingOn: "",
     }]);
     setNt({ ...nt, title: "" });
   }
 
   const renderTask = (t) => (
-    <li key={t.id} className={"row" + (t.status === "done" ? " done" : "")}>
+    <li key={t.id} className={"row" + (t.status === "done" || t.status === "cancelled" ? " done" : "")}>
       <input type="checkbox" className="check" checked={t.status === "done"} aria-label={`Concluir: ${t.title}`}
-        onChange={() => updateTask(t.id, t.status === "done" ? { status: "todo", outcome: null } : { status: "done", outcome: "finished" })} />
+        onChange={() => updateTask(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
       <button className="row-title" onClick={() => setOpenId(t.id)}>{t.title}</button>
       <span className="row-meta">
         <span className="chip">{STATUS_LABEL[t.status]}</span>

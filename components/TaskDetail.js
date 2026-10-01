@@ -5,7 +5,7 @@ import { PAGES } from "../lib/mockData";
 import { addDaysISO } from "../lib/dates";
 
 const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-const STATUS = [["todo", "Não iniciada"], ["doing", "Em andamento"], ["hold", "On hold"], ["done", "Concluída"]];
+const STATUS = [["todo", "Não iniciada"], ["doing", "Em andamento"], ["hold", "On hold"], ["done", "Concluída"], ["cancelled", "Cancelada"]];
 
 export default function TaskDetail({ task, projects, update, onClose }) {
   const [q, setQ] = useState("");
@@ -20,7 +20,7 @@ export default function TaskDetail({ task, projects, update, onClose }) {
   const proj = projects.find((p) => p.id === task.project);
 
   function setStatus(s) {
-    const p = { status: s, outcome: s === "done" ? task.outcome || "finished" : null };
+    const p = { status: s };
     if (s === "hold" && !task.followUp) p.followUp = addDaysISO(3);
     set(p);
   }
@@ -48,16 +48,6 @@ export default function TaskDetail({ task, projects, update, onClose }) {
             ))}
           </div>
         </div>
-
-        {task.status === "done" && (
-          <div className="field">
-            <span className="label">Motivo</span>
-            <select value={task.outcome || "finished"} onChange={(e) => set({ outcome: e.target.value })}>
-              <option value="finished">Finalizada</option>
-              <option value="cancelled">Cancelada</option>
-            </select>
-          </div>
-        )}
 
         {task.status === "hold" && (
           <div className="field-row">

@@ -10,7 +10,8 @@ const STATUS = [
   { key: "hold", label: "On hold", tone: "today" },
   { key: "done", label: "Concluídas", tone: "muted" },
 ];
-const ORDER = { todo: 0, doing: 1, hold: 2, done: 3 };
+const ORDER = { todo: 0, doing: 1, hold: 2, done: 3, cancelled: 4 };
+const isClosed = (t) => t.status === "done" || t.status === "cancelled"; // vão para a seção de registro
 const PRIO = { high: 0, medium: 1, low: 2 };
 const PRIO_LABEL = { high: "Alta", medium: "Média", low: "Baixa" };
 const CTX = { work: "Trabalho", personal: "Pessoal" };
@@ -24,7 +25,8 @@ const SORTERS = {
 };
 
 function dateInfo(t) {
-  if (t.status === "done") return { text: t.outcome === "cancelled" ? "Cancelada" : "Finalizada", tone: "muted" };
+  if (t.status === "done") return { text: "Concluída", tone: "muted" };
+  if (t.status === "cancelled") return { text: "Cancelada", tone: "muted" };
   if (t.status === "hold") {
     if (!t.followUp) return { text: "Sem cobrança", tone: "muted" };
     const l = dueLabel(t.followUp);
@@ -59,8 +61,8 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
 
     const map = new Map();
     for (const t of list) {
-      const g = t.status === "done"
-        ? { key: "done", label: "Concluídas · registro e busca", tone: "muted", order: 999 }
+      const g = isClosed(t)
+        ? { key: "done", label: "Concluídas e canceladas · registro e busca", tone: "muted", order: 999 }
         : byProject
         ? { key: "p:" + (t.project || ""), label: pn(t.project) || "Sem projeto", tone: "plain", order: t.project ? 0 : 1 }
         : { ...STATUS[ORDER[t.status]], order: ORDER[t.status] };
@@ -126,9 +128,9 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
                 {g.items.map((t) => {
                   const di = dateInfo(t);
                   return (
-                    <li key={t.id} className={"row" + (t.status === "done" ? " done" : "")}>
+                    <li key={t.id} className={"row" + (isClosed(t) ? " done" : "")}>
                       <input type="checkbox" className="check" checked={t.status === "done"} aria-label={`Concluir: ${t.title}`}
-                        onChange={() => update(t.id, t.status === "done" ? { status: "todo", outcome: null } : { status: "done", outcome: "finished" })} />
+                        onChange={() => update(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
                       <button className="row-title" onClick={() => setOpenId(t.id)}>
                         {t.title}
                         {t.status === "hold" && t.waitingOn && <span className="row-project">Aguardando: {t.waitingOn}</span>}

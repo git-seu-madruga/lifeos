@@ -331,3 +331,5 @@ input[type="date"] { min-width: 165px; }
 .quick-hint { margin: 6px 0 0; }
 .inbox .search:focus-visible { outline-offset: 0; }
 .inbox-item { white-space: pre-line; }
+
+.g-cancelled { background: #5a3a3a; opacity: .55; }
