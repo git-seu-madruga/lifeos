@@ -81,6 +81,8 @@ export default function TaskDetail({ task, projects, update, onClose }) {
             <span className="label">Prazo</span>
             <input className="search" type="date" value={task.due || ""} onChange={(e) => set({ due: e.target.value || null })} />
           </div>
+        </div>
+        <div className="field-row">
           <div className="field">
             <span className="label">Prioridade</span>
             <select value={task.priority} onChange={(e) => set({ priority: e.target.value })}>
@@ -92,7 +94,7 @@ export default function TaskDetail({ task, projects, update, onClose }) {
             <select value={task.context} disabled={Boolean(proj)} onChange={(e) => set({ context: e.target.value })}>
               <option value="work">Trabalho</option><option value="personal">Pessoal</option>
             </select>
-            {proj && <span className="muted small">Definido pelo projeto “{proj.name}”</span>}
+            {proj && <span className="muted small ctx-note">Definido pelo projeto “{proj.name}”</span>}
           </div>
         </div>
 

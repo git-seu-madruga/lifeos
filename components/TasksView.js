@@ -59,7 +59,9 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
 
     const map = new Map();
     for (const t of list) {
-      const g = byProject
+      const g = t.status === "done"
+        ? { key: "done", label: "Concluídas · registro e busca", tone: "muted", order: 999 }
+        : byProject
         ? { key: "p:" + (t.project || ""), label: pn(t.project) || "Sem projeto", tone: "plain", order: t.project ? 0 : 1 }
         : { ...STATUS[ORDER[t.status]], order: ORDER[t.status] };
       if (!map.has(g.key)) map.set(g.key, { ...g, items: [] });
@@ -82,7 +84,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
       <p className="section-date"><span className="dot-blue" />{longToday()}</p>
 
       <div className="cards">
-        {STATUS.map((s) => (
+        {STATUS.filter((s) => s.key !== "done").map((s) => (
           <button key={s.key} className={`card card-${s.tone}` + (quick === s.key ? " on" : "")} aria-pressed={quick === s.key} onClick={() => pickCard(s.key)}>
             <span className="card-value">{count(s.key)}</span>
             <span className="card-label">{s.label}</span>
@@ -111,7 +113,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
       {groups.length === 0 && <p className="empty">Nenhuma tarefa com esses filtros.</p>}
 
       {groups.map((g) => {
-        const closed = Boolean(collapsed[g.key]);
+        const closed = Boolean(collapsed[g.key]) && !(g.key === "done" && query.trim());
         return (
           <div key={g.key} className={`group group-${g.tone}`}>
             <button className="group-head" aria-expanded={!closed} onClick={() => setCollapsed({ ...collapsed, [g.key]: !closed })}>

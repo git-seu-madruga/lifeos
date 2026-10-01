@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { NAV } from "../lib/nav";
-import { makeTasks, makeProjects } from "../lib/mockData";
+import { NAV, INBOX_TARGETS } from "../lib/nav";
+import { todayISO } from "../lib/dates";
+import { makeTasks, makeProjects, INBOX_SEED } from "../lib/mockData";
+import Inbox from "../components/Inbox";
 import TasksView from "../components/TasksView";
 import ProjectsView from "../components/ProjectsView";
 import Placeholder from "../components/Placeholder";
@@ -13,6 +15,8 @@ const CONTEXTS = [
   { id: "personal", label: "Pessoal" },
 ];
 
+const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+
 export default function Home() {
   const [context, setContext] = useState("all");
   const [tabId, setTabId] = useState("tarefas");
@@ -20,6 +24,7 @@ export default function Home() {
   const [selected, setSelected] = useState(null);
   const [tasks, setTasks] = useState(null);
   const [projects, setProjects] = useState(null);
+  const [inbox, setInbox] = useState(INBOX_SEED);
   const [refreshedAt, setRefreshedAt] = useState(null);
   const [spinning, setSpinning] = useState(false);
 
@@ -43,6 +48,30 @@ export default function Home() {
     setTabId("projetos");
   }
 
+  const addInbox = (text) => setInbox((prev) => [{ id: uid("i"), text }, ...prev]);
+  const updateInbox = (id, text) => setInbox((prev) => prev.map((i) => (i.id === id ? { ...i, text } : i)));
+  const deleteInbox = (id) => setInbox((prev) => prev.filter((i) => i.id !== id));
+
+  // Cria o item na seção atual e tira a entrada do inbox.
+  function convertInbox(item, kind) {
+    const [first, ...rest] = item.text.trim().split("\n");
+    const notes = rest.join("\n").trim();
+    const ctx = context === "all" ? "work" : context;
+    if (kind === "task") {
+      setTasks((prev) => [...prev, {
+        id: uid("t"), title: first, status: "todo", due: tabId === "hoje" ? todayISO() : null, start: null,
+        priority: "medium", context: ctx, project: null, milestone: null, links: [], notes,
+        followUp: null, waitingOn: "", outcome: null,
+      }]);
+    } else if (kind === "project") {
+      const status = { ativos: "active", pausados: "paused", concluidos: "done" }[subId] || "active";
+      setProjects((prev) => [...prev, { id: uid("pr"), name: first, status, area: "", context: ctx, due: null, description: notes, milestones: [] }]);
+    } else {
+      return;
+    }
+    deleteInbox(item.id);
+  }
+
   function refresh() {
     setSpinning(true);
     setTimeout(() => {
@@ -58,6 +87,8 @@ export default function Home() {
     : "";
 
   return (
+    <div className="shell">
+      <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />
     <div className="app">
       <header className="topbar">
         <div className="brand">
@@ -138,6 +169,7 @@ export default function Home() {
           <Placeholder tab={tab} sub={sub} />
         )}
       </main>
+    </div>
     </div>
   );
 }
