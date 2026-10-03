@@ -1,4 +1,5 @@
 "use client";
+import DateInput from "./DateInput";
 
 import { useEffect, useState } from "react";
 import { PAGES } from "../lib/mockData";
@@ -57,7 +58,7 @@ export default function TaskDetail({ task, projects, update, onDelete, onClose }
             </div>
             <div className="field">
               <span className="label">Cobrar em</span>
-              <input className="search" type="date" value={task.followUp || ""} onChange={(e) => set({ followUp: e.target.value || null })} />
+              <DateInput className="search" value={task.followUp || ""} onChange={(e) => set({ followUp: e.target.value || null })} />
             </div>
           </div>
         )}
@@ -65,11 +66,11 @@ export default function TaskDetail({ task, projects, update, onDelete, onClose }
         <div className="field-row">
           <div className="field">
             <span className="label">Início</span>
-            <input className="search" type="date" value={task.start || ""} onChange={(e) => set({ start: e.target.value || null })} />
+            <DateInput className="search" value={task.start || ""} onChange={(e) => set({ start: e.target.value || null })} />
           </div>
           <div className="field">
             <span className="label">Prazo</span>
-            <input className="search" type="date" value={task.due || ""} onChange={(e) => set({ due: e.target.value || null })} />
+            <DateInput className="search" value={task.due || ""} onChange={(e) => set({ due: e.target.value || null })} />
           </div>
         </div>
         <div className="field-row">

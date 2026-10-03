@@ -334,3 +334,17 @@ input[type="date"] { min-width: 165px; }
 .quick-hint { margin: 6px 0 0; }
 .inbox .search:focus-visible { outline-offset: 0; }
 .inbox-item { white-space: pre-line; }
+
+/* Texto completo no Inbox e controles compartilhados */
+.inbox-item { display: block; -webkit-line-clamp: unset; overflow: visible; overflow-wrap: anywhere; }
+.date-control { display: flex; flex-direction: column; min-width: 0; gap: 4px; }
+.date-fields { display: flex; gap: 4px; align-items: center; min-width: 0; }
+.date-fields > input[type="text"] { flex: 1; width: 100%; min-width: 110px; }
+.date-fields > .date-picker { min-width: 32px; width: 32px; padding: 4px; background: var(--panel); border: 1px solid var(--line); border-radius: 6px; color-scheme: dark; }
+.date-picker::-webkit-datetime-edit { display: none; }
+.date-error { color: var(--red); font-size: 12px; }
+.ms-date.date-control { padding: 0; background: none; border: 0; width: 205px; }
+.attachments { margin: 24px 0; }
+.attachments input[type="file"] { max-width: 230px; font-size: 12px; }
+.attachment-row { flex-wrap: wrap; overflow-wrap: anywhere; }
+.attachment-row > a:first-child { flex: 1; min-width: 100px; color: var(--blue); }

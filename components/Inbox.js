@@ -1,4 +1,5 @@
 "use client";
+import AutoTextarea from "./AutoTextarea";
 
 import { useEffect, useState } from "react";
 import { INBOX_TARGETS } from "../lib/nav";
@@ -44,7 +45,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
       </div>
 
       <div className="inbox-body">
-        <textarea
+        <AutoTextarea
           className="search quick"
           rows={3}
           value={text}
@@ -76,7 +77,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
             </div>
             <div className="field">
               <span className="label">Conteúdo</span>
-              <textarea className="search notes" rows={6} value={item.text} onChange={(e) => onUpdate(item.id, e.target.value)} />
+              <AutoTextarea className="search notes" rows={6} value={item.text} onChange={(e) => onUpdate(item.id, e.target.value)} />
             </div>
             <p className="muted small">Ao transformar, a primeira linha vira o título e o restante vira anotação.</p>
             <div className="inbox-actions">

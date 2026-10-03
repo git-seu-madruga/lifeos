@@ -1,4 +1,6 @@
 "use client";
+import ProjectAttachments from "./ProjectAttachments";
+import DateInput from "./DateInput";
 
 import { patchTask, newestCompleted } from "../lib/tasks";
 
@@ -9,8 +11,8 @@ import MilestoneManager from "./MilestoneManager";
 import ProjectBoard from "./ProjectBoard";
 import ProjectGantt from "./ProjectGantt";
 
-const SUB_STATUS = { ativos: "active", pausados: "paused", concluidos: "done" };
-const P_STATUS = [["active", "Ativo"], ["paused", "Pausado"], ["done", "Concluído"]];
+const SUB_STATUS = { ativos: "active", pausados: "paused", concluidos: "done", cancelados: "cancelled" };
+const P_STATUS = [["active", "Ativo"], ["paused", "Pausado"], ["done", "Concluído"], ["cancelled", "Cancelado"]];
 const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold", done: "Concluída" };
 const CTX = { work: "Trabalho", personal: "Pessoal" };
 const ORDER = { doing: 0, hold: 1, todo: 2, done: 3 };
@@ -34,13 +36,32 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   const [view, setView] = useState("lista");
   const [nt, setNt] = useState({ title: "", ms: "", ctx: null });
 
+  const [projectError, setProjectError] = useState("");
+
   const project = projects.find((p) => p.id === selected && (context === "all" || p.context === context));
-  const updateProject = (id, patch) => setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
+  function updateProject(id, patch) {
+    const current = projects.find(p => p.id === id);
+    const next = { ...current, ...patch };
+    if (next.due && next.milestones.some(m => m.due && m.due > next.due)) {
+      setProjectError("Um marco ultrapassa o prazo final do projeto. Ajuste o marco antes de antecipar o prazo final.");
+      return;
+    }
+    setProjectError("");
+    setProjects(prev => prev.map(p => p.id === id ? next : p));
+  }
+  function deleteProject() {
+    const count = tasks.filter(t => t.project === project.id).length;
+    if (!window.confirm(`Excluir “${project.name}” e seus anexos? Não dá para desfazer. ${count} tarefa(s) serão mantidas sem projeto e sem marco.`)) return;
+    setProjects(prev => prev.filter(p => p.id !== project.id));
+    setTasks(prev => prev.map(t => t.project === project.id ? { ...t, project: null, milestone: null } : t));
+    setProjectError("");
+    onSelect(null);
+  }
   const updateTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch) : t)));
 
   function addProject() {
     const id = uid("pr");
-    setProjects((prev) => [...prev, { id, name: "Novo projeto", status: "active", area: "", context: context === "all" ? "work" : context, due: null, description: "", milestones: [] }]);
+    setProjects((prev) => [...prev, { id, name: "Novo projeto", status: SUB_STATUS[sub] || "active", area: "", context: context === "all" ? "work" : context, due: null, description: "", milestones: [] }]);
     onSelect(id);
   }
 
@@ -139,12 +160,14 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
           <input className="search" value={project.area} onChange={(e) => updateProject(project.id, { area: e.target.value })} />
         </div>
         <div className="field"><span className="label">Prazo final</span>
-          <input className="search" type="date" value={project.due || ""} onChange={(e) => updateProject(project.id, { due: e.target.value || null })} />
+          <DateInput className="search" min={project.milestones.map(m => m.due).filter(Boolean).sort().at(-1)} value={project.due || ""} onChange={(e) => updateProject(project.id, { due: e.target.value || null })} />
         </div>
       </div>
       <div className="field"><span className="label">Descrição</span>
         <textarea className="search notes" rows={2} value={project.description} onChange={(e) => updateProject(project.id, { description: e.target.value })} />
       </div>
+
+      {projectError && <p className="date-error" role="alert">{projectError}</p>}
 
       <div className="overview">
         <div><span className="label">Tarefas</span><Bar pct={all.pct} /><span className="muted small">{all.done}/{all.total} concluídas ({all.pct}%)</span></div>
@@ -155,7 +178,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
         </div>
       </div>
 
-      <MilestoneManager milestones={project.milestones} tasks={pts} onChange={(list) => updateProject(project.id, { milestones: list })} onDelete={delMs} />
+      <MilestoneManager maxDue={project.due} milestones={project.milestones} tasks={pts} onChange={(list) => updateProject(project.id, { milestones: list })} onDelete={delMs} />
 
       <h2 className="group-head pd-h">Tarefas por marco</h2>
       <div className="seg-row view-toggle" role="tablist" aria-label="Visualização">
@@ -202,6 +225,9 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
         </select>
         <button className="ghost" onClick={addTask}>+ Tarefa</button>
       </div>
+
+      <ProjectAttachments key={project.id} items={project.attachments || []} onChange={(attachments) => updateProject(project.id, { attachments })} />
+      <button className="danger" onClick={deleteProject}>Excluir projeto</button>
 
       {openTask && <TaskDetail task={openTask} projects={projects} update={updateTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setOpenId(null)} />}
     </section>

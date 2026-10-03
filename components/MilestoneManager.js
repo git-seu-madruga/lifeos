@@ -1,4 +1,5 @@
 "use client";
+import DateInput from "./DateInput";
 
 import { useState } from "react";
 
@@ -6,7 +7,7 @@ let seq = 0;
 const uid = () => `m${Date.now().toString(36)}${seq++}`;
 
 // Marcos deste projeto. A ordem da lista é a sequência oficial usada na lista, no quadro e no cronograma.
-export default function MilestoneManager({ milestones, tasks, onChange, onDelete }) {
+export default function MilestoneManager({ milestones, tasks, onChange, onDelete, maxDue }) {
   const [title, setTitle] = useState("");
   const [dragFrom, setDragFrom] = useState(null);
   const [over, setOver] = useState(null);
@@ -75,7 +76,7 @@ export default function MilestoneManager({ milestones, tasks, onChange, onDelete
               <span className="num">{i + 1}</span>
               <input type="checkbox" className="check" checked={m.done} onChange={() => set(m.id, { done: !m.done })} aria-label={`Marco atingido: ${m.title}`} />
               <input className="ms-title" value={m.title} onChange={(e) => set(m.id, { title: e.target.value })} aria-label="Nome do marco" />
-              <input className="search ms-date" type="date" value={m.due || ""} onChange={(e) => set(m.id, { due: e.target.value || null })} aria-label="Prazo do marco" />
+              <DateInput className="search ms-date" max={maxDue || undefined} value={m.due || ""} onChange={(e) => set(m.id, { due: e.target.value || null })} aria-label="Prazo do marco" />
               <span className="muted small mgr-count">{n} {n === 1 ? "tarefa" : "tarefas"}</span>
               <button className="mv" onClick={() => move(i, i - 1)} disabled={i === 0} aria-label="Subir marco">▲</button>
               <button className="mv" onClick={() => move(i, i + 1)} disabled={i === milestones.length - 1} aria-label="Descer marco">▼</button>

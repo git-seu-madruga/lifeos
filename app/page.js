@@ -2,7 +2,8 @@
 
 import { patchTask } from "../lib/tasks";
 
-import { useEffect, useState } from "react";
+import { readState, saveState } from "../lib/storage";
+import { useEffect, useRef, useState } from "react";
 import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { todayISO } from "../lib/dates";
 import { makeTasks, makeProjects, INBOX_SEED } from "../lib/mockData";
@@ -32,18 +33,51 @@ export default function Home() {
   const [refreshedAt, setRefreshedAt] = useState(null);
   const [spinning, setSpinning] = useState(false);
 
+  const [ready, setReady] = useState(false);
+  const [saveError, setSaveError] = useState("");
+  const [saving, setSaving] = useState(false);
+  const saveQueue = useRef(Promise.resolve());
+
   // Os dados só nascem no navegador para evitar diferença de fuso horário entre servidor e cliente.
   useEffect(() => {
-    setTasks(makeTasks());
-    setProjects(makeProjects());
-    setRefreshedAt(new Date());
+    let alive = true;
+    readState().then(saved => {
+      if (!alive) return;
+      setTasks(saved?.tasks || makeTasks());
+      setProjects(saved?.projects || makeProjects());
+      setInbox(saved?.inbox || INBOX_SEED);
+      setRefreshedAt(new Date());
+      setReady(true);
+    }).catch(() => {
+      if (alive) setSaveError("Não foi possível abrir os dados salvos. Recarregue a página para tentar novamente.");
+    });
+    return () => { alive = false; };
   }, []);
+
+  useEffect(() => {
+    if (!ready) return;
+    setSaving(true);
+    saveQueue.current = saveQueue.current.catch(() => {}).then(() => saveState({ tasks, projects, inbox }));
+    const pending = saveQueue.current;
+    pending.then(() => {
+      if (saveQueue.current === pending) { setSaving(false); setSaveError(""); }
+    }).catch(() => {
+      if (saveQueue.current === pending) { setSaving(false); setSaveError("Não foi possível salvar. Verifique o espaço disponível e as permissões do navegador antes de fechar a página."); }
+    });
+  }, [ready, tasks, projects, inbox]);
+
+  useEffect(() => {
+    if (!saving && !saveError) return;
+    const warn = e => { e.preventDefault(); e.returnValue = ""; };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, [saving, saveError]);
 
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
   const sub = tab.subs.find((s) => s.id === subId);
 
-  const SUB_OF = { active: "ativos", paused: "pausados", done: "concluidos" };
+  const SUB_OF = { active: "ativos", paused: "pausados", done: "concluidos", cancelled: "cancelados" };
   function openProject(id) {
     const p = projects.find((x) => x.id === id);
     if (!p) return;
@@ -73,7 +107,7 @@ export default function Home() {
       }]);
       setNewTaskId(newId); // abre o detalhe para completar os campos
     } else if (kind === "project") {
-      const status = { ativos: "active", pausados: "paused", concluidos: "done" }[subId] || "active";
+      const status = { ativos: "active", pausados: "paused", concluidos: "done", cancelados: "cancelled" }[subId] || "active";
       setProjects((prev) => [...prev, { id: newId, name: first, status, area: "", context: ctx, due: null, description: notes, milestones: [] }]);
       setSelected(newId); // abre o projeto para completar os campos
     } else {
@@ -85,8 +119,7 @@ export default function Home() {
   function refresh() {
     setSpinning(true);
     setTimeout(() => {
-      setTasks(makeTasks());
-    setProjects(makeProjects());
+      // Atualizar a interface não apaga os dados locais.
       setRefreshedAt(new Date());
       setSpinning(false);
     }, 600);
@@ -98,7 +131,7 @@ export default function Home() {
 
   return (
     <div className="shell">
-      <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />
+      {ready && <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />}
     <div className="app">
       <header className="topbar">
         <div className="brand">
@@ -149,6 +182,8 @@ export default function Home() {
       </nav>
 
       <main className="content">
+        {saveError && <p className="date-error" role="alert">{saveError}</p>}
+        {ready && <p className="muted small" role="status">{saving ? "Salvando…" : saveError ? "Alterações não salvas" : "Salvo neste navegador"}</p>}
         <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button
