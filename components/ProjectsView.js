@@ -1,5 +1,7 @@
 "use client";
 
+import { patchTask, newestCompleted } from "../lib/tasks";
+
 import { useState } from "react";
 import { dueLabel } from "../lib/dates";
 import TaskDetail from "./TaskDetail";
@@ -9,16 +11,16 @@ import ProjectGantt from "./ProjectGantt";
 
 const SUB_STATUS = { ativos: "active", pausados: "paused", concluidos: "done" };
 const P_STATUS = [["active", "Ativo"], ["paused", "Pausado"], ["done", "Concluído"]];
-const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold", done: "Concluída", cancelled: "Cancelada" };
+const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold", done: "Concluída" };
 const CTX = { work: "Trabalho", personal: "Pessoal" };
-const ORDER = { doing: 0, hold: 1, todo: 2, done: 3, cancelled: 4 };
+const ORDER = { doing: 0, hold: 1, todo: 2, done: 3 };
 
 let seq = 0;
 const uid = (p) => `${p}${Date.now().toString(36)}${seq++}`;
 
-// Tarefas canceladas não contam no progresso: nem como feitas, nem como pendentes.
+// Progresso das tarefas do projeto.
 function progress(all) {
-  const ts = all.filter((t) => t.status !== "cancelled");
+  const ts = all;
   const done = ts.filter((t) => t.status === "done").length;
   return { done, total: ts.length, pct: ts.length ? Math.round((done / ts.length) * 100) : 0 };
 }
@@ -34,7 +36,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
 
   const project = projects.find((p) => p.id === selected && (context === "all" || p.context === context));
   const updateProject = (id, patch) => setProjects((prev) => prev.map((p) => (p.id === id ? { ...p, ...patch } : p)));
-  const updateTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+  const updateTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch) : t)));
 
   function addProject() {
     const id = uid("pr");
@@ -104,7 +106,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   }
 
   const renderTask = (t) => (
-    <li key={t.id} className={"row" + (t.status === "done" || t.status === "cancelled" ? " done" : "")}>
+    <li key={t.id} className={"row" + (t.status === "done" ? " done" : "")}>
       <input type="checkbox" className="check" checked={t.status === "done"} aria-label={`Concluir: ${t.title}`}
         onChange={() => updateTask(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
       <button className="row-title" onClick={() => setOpenId(t.id)}>{t.title}</button>
@@ -113,7 +115,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
       </span>
     </li>
   );
-  const byMs = (mid) => pts.filter((t) => (t.milestone || null) === mid).sort((a, b) => ORDER[a.status] - ORDER[b.status]);
+  const byMs = (mid) => pts.filter((t) => (t.milestone || null) === mid).sort((a, b) => ORDER[a.status] - ORDER[b.status] || (a.status === "done" ? newestCompleted(a, b) : 0));
   const loose = byMs(null);
   const openTask = tasks.find((t) => t.id === openId);
 
@@ -201,7 +203,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
         <button className="ghost" onClick={addTask}>+ Tarefa</button>
       </div>
 
-      {openTask && <TaskDetail task={openTask} projects={projects} update={updateTask} onClose={() => setOpenId(null)} />}
+      {openTask && <TaskDetail task={openTask} projects={projects} update={updateTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setOpenId(null)} />}
     </section>
   );
 }

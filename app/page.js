@@ -1,5 +1,7 @@
 "use client";
 
+import { patchTask } from "../lib/tasks";
+
 import { useEffect, useState } from "react";
 import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { todayISO } from "../lib/dates";
@@ -51,7 +53,7 @@ export default function Home() {
   }
 
   const newTask = tasks && tasks.find((t) => t.id === newTaskId);
-  const updateNewTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+  const updateNewTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch) : t)));
 
   const addInbox = (text) => setInbox((prev) => [{ id: uid("i"), text }, ...prev]);
   const updateInbox = (id, text) => setInbox((prev) => prev.map((i) => (i.id === id ? { ...i, text } : i)));
@@ -178,7 +180,7 @@ export default function Home() {
         )}
       </main>
     </div>
-    {newTask && projects && <TaskDetail task={newTask} projects={projects} update={updateNewTask} onClose={() => setNewTaskId(null)} />}
+    {newTask && projects && <TaskDetail task={newTask} projects={projects} update={updateNewTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setNewTaskId(null)} />}
     </div>
   );
 }

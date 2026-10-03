@@ -94,10 +94,13 @@ button { cursor: pointer; background: none; border: 0; padding: 0; }
 .card-today { border-top-color: var(--gold); } .card-today .card-value { color: var(--gold); }
 .card-late { border-top-color: var(--red); } .card-late .card-value { color: var(--red); }
 .card-blue { border-top-color: var(--blue); } .card-blue .card-value { color: var(--blue); }
-.card.on { background: var(--panel-2); border-color: #3a4050; }
+.card { opacity: .45; border-color: var(--line); }
+.card.on { opacity: 1; background: var(--panel-2); border-color: var(--blue); }
+.card-today.on { border-color: var(--gold); }
+.card-plain.on { border-color: var(--text); }
 
 /* Controles */
-.controls { display: grid; grid-template-columns: 1fr auto auto; gap: 10px; margin-bottom: 12px; }
+.controls { display: grid; grid-template-columns: minmax(0, 1fr) 180px 210px; gap: 10px; margin-bottom: 12px; }
 .search, select {
   background: var(--panel); border: 1px solid var(--line); border-radius: var(--radius);
   padding: 10px 12px; min-width: 0;
@@ -331,5 +334,3 @@ input[type="date"] { min-width: 165px; }
 .quick-hint { margin: 6px 0 0; }
 .inbox .search:focus-visible { outline-offset: 0; }
 .inbox-item { white-space: pre-line; }
-
-.g-cancelled { background: #5a3a3a; opacity: .55; }

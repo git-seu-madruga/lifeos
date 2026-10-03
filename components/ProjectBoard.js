@@ -3,7 +3,7 @@
 import { useState } from "react";
 import { dueLabel } from "../lib/dates";
 
-const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold", done: "Concluída", cancelled: "Cancelada" };
+const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold", done: "Concluída" };
 
 // Colunas = marcos em ordem cronológica. Arraste o cartão para outra coluna (ou use o seletor, que também funciona no celular).
 export default function ProjectBoard({ milestones, tasks, onMove, onOpen }) {

@@ -5,9 +5,9 @@ import { PAGES } from "../lib/mockData";
 import { addDaysISO } from "../lib/dates";
 
 const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-const STATUS = [["todo", "Não iniciada"], ["doing", "Em andamento"], ["hold", "On hold"], ["done", "Concluída"], ["cancelled", "Cancelada"]];
+const STATUS = [["todo", "Não iniciada"], ["doing", "Em andamento"], ["hold", "On hold"], ["done", "Concluída"]];
 
-export default function TaskDetail({ task, projects, update, onClose }) {
+export default function TaskDetail({ task, projects, update, onDelete, onClose }) {
   const [q, setQ] = useState("");
 
   useEffect(() => {
@@ -139,6 +139,11 @@ export default function TaskDetail({ task, projects, update, onClose }) {
           <span className="label">Anotações</span>
           <textarea className="search notes" rows={4} value={task.notes} placeholder="Texto livre (na versão real, o conteúdo da página)" onChange={(e) => set({ notes: e.target.value })} />
         </div>
+        <button className="danger" onClick={() => {
+          if (!window.confirm("Excluir esta tarefa? Não dá para desfazer.")) return;
+          onDelete(task.id);
+          onClose();
+        }}>Excluir tarefa</button>
       </aside>
     </div>
   );

@@ -1,5 +1,7 @@
 "use client";
 
+import { patchTask, newestCompleted } from "../lib/tasks";
+
 import { useMemo, useState } from "react";
 import { diffDays, dueLabel, longToday } from "../lib/dates";
 import TaskDetail from "./TaskDetail";
@@ -10,8 +12,8 @@ const STATUS = [
   { key: "hold", label: "On hold", tone: "today" },
   { key: "done", label: "Concluídas", tone: "muted" },
 ];
-const ORDER = { todo: 0, doing: 1, hold: 2, done: 3, cancelled: 4 };
-const isClosed = (t) => t.status === "done" || t.status === "cancelled"; // vão para a seção de registro
+const ORDER = { todo: 0, doing: 1, hold: 2, done: 3 };
+const isClosed = (t) => t.status === "done"; // vão para a seção de registro
 const PRIO = { high: 0, medium: 1, low: 2 };
 const PRIO_LABEL = { high: "Alta", medium: "Média", low: "Baixa" };
 const CTX = { work: "Trabalho", personal: "Pessoal" };
@@ -26,7 +28,6 @@ const SORTERS = {
 
 function dateInfo(t) {
   if (t.status === "done") return { text: "Concluída", tone: "muted" };
-  if (t.status === "cancelled") return { text: "Cancelada", tone: "muted" };
   if (t.status === "hold") {
     if (!t.followUp) return { text: "Sem cobrança", tone: "muted" };
     const l = dueLabel(t.followUp);
@@ -46,23 +47,26 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
   const byProject = sub === "projeto";
   const pn = (id) => projects.find((p) => p.id === id)?.name || "";
   const scoped = useMemo(() => tasks.filter((t) => context === "all" || t.context === context), [tasks, context]);
-  const update = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
+  const update = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch) : t)));
 
   const visibleProjects = projects.filter((p) => context === "all" || p.context === context);
   const projEff = visibleProjects.some((p) => p.id === proj) ? proj : "all";
 
-  const groups = useMemo(() => {
+  const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
-    const list = scoped
-      .filter((t) => !quick || t.status === quick)
+    return scoped
       .filter((t) => projEff === "all" || (t.project || "") === projEff)
-      .filter((t) => !q || t.title.toLowerCase().includes(q) || pn(t.project).toLowerCase().includes(q))
-      .sort((a, b) => ORDER[a.status] - ORDER[b.status] || SORTERS[sort](a, b));
+      .filter((t) => !q || t.title.toLowerCase().includes(q) || pn(t.project).toLowerCase().includes(q));
+  }, [scoped, projects, projEff, query]);
+
+  const groups = useMemo(() => {
+    const list = filtered.filter((t) => !quick || t.status === quick)
+      .sort((a, b) => ORDER[a.status] - ORDER[b.status] || (isClosed(a) ? newestCompleted(a, b) : SORTERS[sort](a, b)));
 
     const map = new Map();
     for (const t of list) {
       const g = isClosed(t)
-        ? { key: "done", label: "Concluídas e canceladas · registro e busca", tone: "muted", order: 999 }
+        ? { key: "done", label: "Concluídas · registro e busca", tone: "muted", order: 999 }
         : byProject
         ? { key: "p:" + (t.project || ""), label: pn(t.project) || "Sem projeto", tone: "plain", order: t.project ? 0 : 1 }
         : { ...STATUS[ORDER[t.status]], order: ORDER[t.status] };
@@ -70,10 +74,17 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
       map.get(g.key).items.push(t);
     }
     return [...map.values()].sort((a, b) => a.order - b.order || a.label.localeCompare(b.label, "pt-BR"));
-  }, [scoped, projects, quick, projEff, query, sort, byProject]);
+  }, [filtered, projects, quick, sort, byProject]);
 
-  const count = (k) => scoped.filter((t) => t.status === k).length;
+  const count = (k) => filtered.filter((t) => t.status === k).length;
   const current = tasks.find((t) => t.id === openId);
+
+  function addTask() {
+    const id = `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
+    const project = projects.find((p) => p.id === projEff);
+    setTasks((prev) => [...prev, { id, title: "Nova tarefa", status: "todo", due: null, start: null, completedAt: null, priority: "medium", context: project?.context || (context === "all" ? "work" : context), project: project?.id || null, milestone: null, links: [], notes: "", followUp: null, waitingOn: "" }]);
+    setOpenId(id);
+  }
 
   function pickCard(key) {
     setQuick((cur) => (cur === key ? null : key));
@@ -82,12 +93,15 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
 
   return (
     <section>
-      <h1 className="section-title">Tarefas</h1>
-      <p className="section-date"><span className="dot-blue" />{longToday()}</p>
+      <div className="head-row">
+        <div><h1 className="section-title">Tarefas</h1>
+        <p className="section-date"><span className="dot-blue" />{longToday()}</p></div>
+        <button className="ghost" onClick={addTask}>+ Nova tarefa</button>
+      </div>
 
       <div className="cards">
         {STATUS.filter((s) => s.key !== "done").map((s) => (
-          <button key={s.key} className={`card card-${s.tone}` + (quick === s.key ? " on" : "")} aria-pressed={quick === s.key} onClick={() => pickCard(s.key)}>
+          <button key={s.key} className={`card card-${s.tone}` + (!quick || quick === s.key ? " on" : "")} aria-pressed={!quick || quick === s.key} onClick={() => pickCard(s.key)}>
             <span className="card-value">{count(s.key)}</span>
             <span className="card-label">{s.label}</span>
           </button>
@@ -151,7 +165,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
         );
       })}
 
-      {current && <TaskDetail task={current} projects={projects} update={update} onClose={() => setOpenId(null)} />}
+      {current && <TaskDetail task={current} projects={projects} update={update} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setOpenId(null)} />}
     </section>
   );
 }
