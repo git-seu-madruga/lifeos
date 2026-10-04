@@ -1,5 +1,5 @@
 "use client";
-import {useRef,useState} from 'react';
+import {useState} from 'react';
 import {money,currentMonth,formatMonth,parseMoney,consolidate,sankeyLayout,maskReal,completeReal,startOfMonth,endOfMonth,normalizeTransaction,sortedCategories} from '../lib/finance';
 import DateInput from './DateInput';
 import {dateKey} from '../lib/diary';
@@ -15,23 +15,19 @@ function editMoney(event,setValue) {
 }
 const uid=prefix=>prefix+Date.now().toString(36)+Math.random().toString(36).slice(2);
 function Sankey({summary,onSelect}){
- const [offsets,setOffsets]=useState({}),drag=useRef(null),svg=useRef(null),moved=useRef(false);
- const layout=sankeyLayout(summary,offsets);
+ const layout=sankeyLayout(summary);
  const color=node=>node.flow==='deficit'?'#f26d64':node.flow==='balance'?'#59ce9b':node.flow==='in'?'#6ea8fe':'#e6a07d';
- function start(e,node){if(node.system)return;drag.current={id:node.id,y:e.clientY,offset:offsets[node.id]||0};moved.current=false;e.currentTarget.setPointerCapture(e.pointerId);}
- function move(e){if(!drag.current)return;const delta=(e.clientY-drag.current.y)*layout.height/svg.current.getBoundingClientRect().height;if(Math.abs(delta)>5){moved.current=true;setOffsets(old=>({...old,[drag.current.id]:drag.current.offset+delta}));}}
- function end(){drag.current=null;setTimeout(()=>{moved.current=false;},0);}
  if(!summary.total)return <p className="finance-empty">Crie suas categorias e adicione valores para montar o fluxo do período.</p>;
  const ribbon=(x1,y1,x2,y2,h)=>`M${x1},${y1} C${(x1+x2)/2},${y1} ${(x1+x2)/2},${y2} ${x2},${y2} L${x2},${y2+h} C${(x1+x2)/2},${y2+h} ${(x1+x2)/2},${y1+h} ${x1},${y1+h} Z`;
- return <div className="finance-graph-scroll"><svg ref={svg} className="finance-graph" viewBox={`0 0 1100 ${layout.height}`} role="group" aria-label="Fluxo financeiro do período">
+ return <div className="finance-graph-scroll"><svg className="finance-graph" viewBox={`0 0 1100 ${layout.height}`} role="group" aria-label="Fluxo financeiro do período">
   <text x="550" y="22" textAnchor="middle" fill="#a8caff">Entradas do período</text><text x="550" y="44" textAnchor="middle" fill="#a8caff">{money(summary.income)}</text>
   <rect x="540" y={layout.centerY} width="20" height={layout.centralHeight} rx="5" fill="#6ea8fe"/>
   {['left','right'].flatMap(side=>layout[side].map(node=>{
    const left=side==='left',x=left?200:900,c=color(node),path=left?ribbon(216,node.y,540,node.center,node.h):ribbon(560,node.center,900,node.y,node.h);
-   return <g key={node.id} role={node.system?undefined:'button'} tabIndex={node.system?undefined:0} aria-label={`${node.name}: ${money(node.flow==='deficit'?-node.value:node.value)}${node.system?'':'. Editar lançamentos'}`} onClick={()=>{if(!node.system&&!moved.current)onSelect(node.id);}} onKeyDown={e=>{if(!node.system&&['Enter',' '].includes(e.key)){e.preventDefault();onSelect(node.id);}}} className={node.system?'finance-system':'finance-node'}>
+   return <g key={node.id} role={node.system?undefined:'button'} tabIndex={node.system?undefined:0} aria-label={`${node.name}: ${money(node.flow==='deficit'?-node.value:node.value)}${node.system?'':'. Editar lançamentos'}`} onClick={()=>{if(!node.system)onSelect(node.id);}} onKeyDown={e=>{if(!node.system&&['Enter',' '].includes(e.key)){e.preventDefault();onSelect(node.id);}}} className={node.system?'finance-system':'finance-node'}>
     <title>{`${node.name}: ${money(node.flow==='deficit'?-node.value:node.value)}${node.system?' · Cálculo automático':' · Clique para editar ou excluir lançamentos'}`}</title>
     <path d={path} fill={c} opacity=".35"/>
-    <rect x={x} y={node.y} width="16" height={Math.max(2,node.h)} rx="4" fill={c} onPointerDown={e=>start(e,node)} onPointerMove={move} onPointerUp={end} onPointerCancel={end}/>
+    <rect x={x} y={node.y} width="16" height={Math.max(2,node.h)} rx="4" fill={c}/>
     <text x={left?185:930} y={node.y+node.h/2-3} textAnchor={left?'end':'start'} fill="#e8eaef">{node.name.length>22?node.name.slice(0,21)+'…':node.name}</text>
     <text x={left?185:930} y={node.y+node.h/2+19} textAnchor={left?'end':'start'} fill={c}>{money(node.flow==='deficit'?-node.value:node.value)}</text>
    </g>;
@@ -67,7 +63,7 @@ export default function FinanceView({categories=[],transactions=[],setFinance,co
   <button className="ghost" onClick={()=>{setMode('month');setMonth(currentMonth());setSelected(null);setEditing(null);}}>Hoje</button></div>
   {!valid?<p className="date-error" role="alert">O início do período deve ser anterior ou igual ao fim.</p>:<>
    <div className="finance-summary"><div><span>Entradas</span><strong className="finance-income">{money(summary.income)}</strong></div><div><span>Saídas</span><strong className="finance-expense">{money(summary.expense)}</strong></div><div><span>Saldo {mode==='month'?'do mês':'do período'}</span><strong className={summary.balance<0?'finance-expense':'finance-balance'}>{money(summary.balance)}</strong><small>Entradas − saídas</small></div></div>
-   <div className="finance-card"><div className="finance-heading"><h2>Fluxo {mode==='month'?'do mês':'do período'}</h2><span className="muted small">Clique no nome para editar · Arraste os blocos para organizar</span></div><Sankey summary={summary} onSelect={id=>{setSelected(id);setEditing(null);setError('');}}/><p className="muted small">Saldo restante e saldo faltante são cálculos automáticos.</p></div>
+   <div className="finance-card"><div className="finance-heading"><h2>Fluxo {mode==='month'?'do mês':'do período'}</h2><span className="muted small">Clique no nome para editar ou excluir lançamentos</span></div><Sankey summary={summary} onSelect={id=>{setSelected(id);setEditing(null);setError('');}}/><p className="muted small">Saldo restante e saldo faltante são cálculos automáticos.</p></div>
   </>}
   <div className="finance-card"><h2>Adicionar valor</h2><div className="finance-form">
    <label>Tipo<select className="search" value={flow} onChange={e=>{setFlow(e.target.value);setCategory('');}}><option value="in">Entrada</option><option value="out">Saída</option></select></label>

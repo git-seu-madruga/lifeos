@@ -411,7 +411,7 @@ button:disabled { opacity: .5; cursor: default; }
 .finance-card h2 { margin:0 0 16px;font-size:18px; }
 .finance-graph-scroll { overflow-x:auto; }
 .finance-graph { display:block;width:100%;min-width:700px;margin:12px 0;font-size:15px; }
-.finance-node { cursor:pointer; }.finance-node:hover path,.finance-node:focus path { opacity:.6; }.finance-node rect { cursor:grab;touch-action:none; }
+.finance-node { cursor:pointer; }.finance-node:hover path,.finance-node:focus path { opacity:.6; }.finance-node rect { cursor:pointer; }
 .finance-system { cursor:default; }
 .finance-form { display:flex;align-items:flex-end;gap:12px;flex-wrap:wrap; }
 .finance-form label { display:flex;flex-direction:column;gap:6px;min-width:120px;flex:1;color:var(--muted);font-size:12px; }

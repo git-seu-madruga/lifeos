@@ -19,7 +19,7 @@ try{
  const byDay=[{category:'a',date:'2026-10-01',amount:100},{category:'a',date:'2026-10-10',amount:200},{category:'b',date:'2026-10-20',amount:50},{category:'a',date:'2026-10-31',amount:300}];
  const specific=consolidate(categories,byDay,'2026-10-10','2026-10-20');assert.equal(specific.income,200);assert.equal(specific.expense,50);assert.equal(consolidate(categories,byDay,'2026-10-01','2026-10-31').income,600);assert.equal(consolidate(categories,byDay,'2026-01-01','2026-12-31').expense,50);
  const {parseDateInput}=require(path.join(folder,'lib/dateInput'));assert.equal(parseDateInput('14/10',2026).value,'2026-10-14');
- const layout=sankeyLayout(positive);assert.ok(Math.abs(layout.left.reduce((s,n)=>s+n.h,0)-layout.right.reduce((s,n)=>s+n.h,0))<0.001);assert.ok(sankeyLayout(positive,{a:20}).left[0].y!==layout.left[0].y);
+ const layout=sankeyLayout(positive);assert.ok(Math.abs(layout.left.reduce((s,n)=>s+n.h,0)-layout.right.reduce((s,n)=>s+n.h,0))<0.001);
  const FinanceView=require(path.join(folder,'components/FinanceView')).default;
  const html=renderToStaticMarkup(React.createElement(FinanceView,{categories,transactions:tx,configured:true,setFinance(){}}));assert.match(html,/Saldo restante/);assert.match(html,/Gerenciar categorias/);assert.match(html,/R\$ 400,00/);assert.match(html,/role="button"/);assert.match(html,/Adicionar valor/);
  const deficitHtml=renderToStaticMarkup(React.createElement(FinanceView,{categories,transactions:[{category:'b',amount:60000,month}],configured:true,setFinance(){}}));assert.match(deficitHtml,/Saldo faltante/);assert.match(deficitHtml,/#f26d64/);assert.match(deficitHtml,/-R\$ 600,00/);assert.doesNotMatch(deficitHtml,/Entradas \+ saldo faltante/);
