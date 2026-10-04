@@ -121,7 +121,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
     if (!nt.title.trim()) return;
     setTasks((prev) => [...prev, {
       id: uid("t"), title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
-      project: project.id, milestone: nt.ms || null, links: [], notes: "", followUp: null, waitingOn: "",
+      project: project.id, milestone: nt.ms || null, attachments: [], notes: "", followUp: null, waitingOn: "",
     }]);
     setNt({ ...nt, title: "" });
   }

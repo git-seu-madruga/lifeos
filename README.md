@@ -31,3 +31,9 @@ Os anexos podem ser incluídos, abertos, baixados e excluídos com confirmação
 - `app/globals.css`: visual e responsividade.
 
 A navegação contém apenas Projetos, Tarefas, Diário e Finanças. Diário e Finanças ainda mostram a indicação de tela não construída. Anexos arquivados em versões anteriores aparecem na lista única e podem ser excluídos.
+
+## Anexos em tarefas
+
+Esta versão parte da v3, sem painel de configurações. O campo Páginas relacionadas foi removido das tarefas. Agora tarefas e projetos permitem incluir, abrir, baixar e excluir anexos com confirmação. Os arquivos permanecem salvos no navegador; a integração com Notion ainda não foi implementada.
+
+No banco Tarefas do Notion, adicione a propriedade Anexos, do tipo Arquivos e mídia. Tarefas locais antigas sem essa propriedade continuam compatíveis e começam com a lista de anexos vazia.

@@ -101,7 +101,7 @@ export default function Home() {
     if (kind === "task") {
       setTasks((prev) => [...prev, {
         id: newId, title: first, status: "todo", due: null, start: null,
-        priority: "medium", context: ctx, project: null, milestone: null, links: [], notes,
+        priority: "medium", context: ctx, project: null, milestone: null, attachments: [], notes,
         followUp: null, waitingOn: "",
       }]);
       setNewTaskId(newId); // abre o detalhe para completar os campos

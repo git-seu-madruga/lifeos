@@ -82,7 +82,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
   function addTask() {
     const id = `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
     const project = projects.find((p) => p.id === projEff);
-    setTasks((prev) => [...prev, { id, title: "Nova tarefa", status: "todo", due: null, start: null, completedAt: null, priority: "medium", context: project?.context || (context === "all" ? "work" : context), project: project?.id || null, milestone: null, links: [], notes: "", followUp: null, waitingOn: "" }]);
+    setTasks((prev) => [...prev, { id, title: "Nova tarefa", status: "todo", due: null, start: null, completedAt: null, priority: "medium", context: project?.context || (context === "all" ? "work" : context), project: project?.id || null, milestone: null, attachments: [], notes: "", followUp: null, waitingOn: "" }]);
     setOpenId(id);
   }
 
@@ -150,7 +150,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
                         {t.status === "hold" && t.waitingOn && <span className="row-project">Aguardando: {t.waitingOn}</span>}
                       </button>
                       <span className="row-meta">
-                        {t.links.length > 0 && <span className="muted small">🔗 {t.links.length}</span>}
+                        {(t.attachments || []).length > 0 && <span className="muted small" title="Anexos">📎 {t.attachments.length}</span>}
                         {t.project && <button className="proj" onClick={() => onOpenProject(t.project)} title="Abrir projeto">{pn(t.project)}</button>}
                         <span className={`prio prio-${t.priority}`}>{PRIO_LABEL[t.priority]}</span>
                         <span className={`due due-${di.tone}`}>{di.text}</span>

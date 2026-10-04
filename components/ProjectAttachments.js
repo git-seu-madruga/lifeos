@@ -14,14 +14,14 @@ function Reference({ item, onDelete }) {
     <button className="danger" onClick={onDelete}>Excluir anexo</button>
   </li>;
 }
-export default function ProjectAttachments({ items = [], onChange }) {
+export default function ProjectAttachments({ items = [], onChange, entity = "projeto" }) {
   function add(e) {
     const files = Array.from(e.target.files || []);
     onChange([...items, ...files.map(file => ({ id: `a${Date.now()}${Math.random().toString(36).slice(2)}`, name: file.name, file }))]);
     e.target.value = '';
   }
   function remove(item) {
-    if (!window.confirm(`Excluir o anexo “${item.name}” deste projeto? Não dá para desfazer.`)) return;
+    if (!window.confirm(`Excluir o anexo “${item.name}” ${entity === "tarefa" ? "desta tarefa" : "deste projeto"}? Não dá para desfazer.`)) return;
     onChange(items.filter(a => a.id !== item.id));
   }
   return <section className="attachments">
@@ -31,6 +31,6 @@ export default function ProjectAttachments({ items = [], onChange }) {
     </div>
     <p className="muted small">Salvos neste navegador.</p>
     <ul className="linked">{items.map(item => <Reference key={item.id} item={item} onDelete={() => remove(item)} />)}</ul>
-    {!items.length && <p className="muted">Nenhum anexo neste projeto.</p>}
+    {!items.length && <p className="muted">Nenhum anexo {entity === "tarefa" ? "nesta tarefa" : "neste projeto"}.</p>}
   </section>;
 }
