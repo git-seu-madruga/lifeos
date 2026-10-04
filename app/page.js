@@ -12,7 +12,7 @@ import TaskDetail from "../components/TaskDetail";
 import TasksView from "../components/TasksView";
 import ProjectsView from "../components/ProjectsView";
 import DiaryView from "../components/DiaryView";
-import { normalizeTabOrder, moveTab } from "../lib/diary";
+import { normalizeTabOrder, moveTab, dateKey, appendInboxToDiary } from "../lib/diary";
 import Placeholder from "../components/Placeholder";
 
 const CONTEXTS = [
@@ -45,6 +45,7 @@ export default function Home() {
   const remote = useNotionState();
   const { tasks, projects, inbox, setInbox, setTasks, setProjects, ready, saving, refreshedAt } = remote;
   const [legacyInbox, setLegacyInbox] = useState([]);
+  const [diaryOpen,setDiaryOpen] = useState(null);
   const [newTaskId, setNewTaskId] = useState(null);
 
 
@@ -92,6 +93,20 @@ export default function Home() {
 
   // Cria o item na seção atual e tira a entrada do inbox.
   function convertInbox(item, kind) {
+    if (kind === "diary") {
+      if (!remote.diaryConfigured) { window.alert("Configure o banco Diário no Notion antes de mover esta entrada. O texto continua no Inbox."); return false; }
+      const date=dateKey(new Date());
+      let result;
+      try { result=appendInboxToDiary(remote.diary || [],item,date); }
+      catch(error) { window.alert(error.message);return false; }
+      const existing=(remote.diary || []).find(entry=>entry.date===date);
+      if (existing && !window.confirm("Já existe uma entrada no Diário de hoje. Reabrir para edição e acrescentar o texto do Inbox ao final, com uma quebra de linha antes?")) return false;
+      remote.setDiary(result.entries);
+      deleteInbox(item.id);
+      setDiaryOpen({date,token:uid("open")});
+      setTabId("diario");
+      return true;
+    }
     const [first, ...rest] = item.text.trim().split("\n");
     const notes = rest.join("\n").trim();
     const ctx = context === "all" ? "work" : context;
@@ -228,7 +243,7 @@ export default function Home() {
             <p className="empty">Carregando…</p>
           )
         ) : tabId === "diario" ? (
-          <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured}/>
+          <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
         ) : (
           <Placeholder tab={tab} sub={sub} />
         )}

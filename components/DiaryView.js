@@ -1,5 +1,5 @@
 "use client";
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { calendarDays, dateKey } from '../lib/diary';
 import { formatDateInput } from '../lib/dateInput';
 import DateInput from './DateInput';
@@ -22,9 +22,10 @@ function ReadText({text}) {
   }
   return <div className="diary-read">{blocks}</div>;
 }
-export function DiaryEntry({date,entry,onChange,onClose}) {
-  const [editing,setEditing]=useState(!entry);
+export function DiaryEntry({date,entry,onChange,onClose,initialEditing=false}) {
+  const [editing,setEditing]=useState(initialEditing || !entry);
   const editor=useRef(null);
+  useEffect(()=>{if(initialEditing && editor.current){editor.current.focus();editor.current.setSelectionRange(editor.current.value.length,editor.current.value.length);editor.current.scrollIntoView?.({block:'center',behavior:'smooth'});}},[]);
   const value=entry || {id:`d${date}`,date,text:'',attachments:[]};
   function update(patch){onChange({...value,...patch});}
   function format(before,after='') {
@@ -53,14 +54,20 @@ export function DiaryEntry({date,entry,onChange,onClose}) {
     <ProjectAttachments entity="diário" readOnly={!editing} items={value.attachments} onChange={attachments=>update({attachments})}/>
   </section>;
 }
-export default function DiaryView({entries=[],setEntries,configured}) {
+export default function DiaryView({entries=[],setEntries,configured,openRequest,onOpenHandled}) {
   const today=dateKey(new Date());
   const [view,setView]=useState(today);
   const [selected,setSelected]=useState(null);
+  const [editingRequest,setEditingRequest]=useState(null);
+  useEffect(()=>{
+    if(!openRequest)return;
+    setView(openRequest.date);setSelected(openRequest.date);setEditingRequest(openRequest);
+    onOpenHandled?.();
+  },[openRequest]);
   const year=Number(view.slice(0,4)),month=Number(view.slice(5,7))-1;
   const days=calendarDays(year,month);
   const entryByDate=new Map(entries.map(entry=>[entry.date,entry]));
-  function navigate(value,openEntry=false){if(!value)return;setView(value);setSelected(openEntry?value:null);}
+  function navigate(value,openEntry=false){if(!value)return;setView(value);setSelected(openEntry?value:null);setEditingRequest(null);}
   function shift(months){const date=new Date(year,month+months,1,12);if(date.getFullYear()<1000||date.getFullYear()>9999)return;navigate(dateKey(date));}
   function update(entry){setEntries(previous=>{const existing=previous.find(item=>item.date===entry.date);return existing?previous.map(item=>item.id===existing.id?entry:item):[...previous,entry];});}
   if(!configured)return <section className="diary-setup"><h2>Configure o Diário no Notion</h2><p>Crie o banco Diário com Nome (Título), Data (Data), Conteúdo (Texto) e Anexos (Arquivos e mídia).</p><p>Na Vercel, adicione <code>NOTION_DIARY_DATABASE_ID</code> com o ID desse banco e faça um novo deploy.</p></section>;
@@ -73,8 +80,8 @@ export default function DiaryView({entries=[],setEntries,configured}) {
     <div className="diary-jump"><label>Ir para a data <DateInput className="search" value={view} onChange={e=>navigate(e.target.value,true)} aria-label="Ir para a data"/></label><button className="ghost" onClick={()=>navigate(today,true)}>Hoje</button><span className="muted small">● Dia com entrada</span></div>
     <div className="diary-calendar" role="group" aria-label="Calendário do diário">
       {['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day=><div key={day} className="diary-weekday">{day}</div>)}
-      {days.map(day=><button key={day.date} className={`diary-day${day.outside?' outside':''}${day.date===today?' today':''}${day.date===selected?' selected':''}`} aria-current={day.date===today?'date':undefined} aria-pressed={day.date===selected} aria-label={`${formatDateInput(day.date)}${day.date===today?', hoje':''}${entryByDate.has(day.date)?', com entrada':''}`} onClick={()=>{setSelected(day.date);if(day.outside)setView(day.date);}}><span>{day.day}</span>{entryByDate.has(day.date)&&<span className="diary-dot" aria-hidden="true">●</span>}</button>)}
+      {days.map(day=><button key={day.date} className={`diary-day${day.outside?' outside':''}${day.date===today?' today':''}${day.date===selected?' selected':''}`} aria-current={day.date===today?'date':undefined} aria-pressed={day.date===selected} aria-label={`${formatDateInput(day.date)}${day.date===today?', hoje':''}${entryByDate.has(day.date)?', com entrada':''}`} onClick={()=>{setEditingRequest(null);setSelected(day.date);if(day.outside)setView(day.date);}}><span>{day.day}</span>{entryByDate.has(day.date)&&<span className="diary-dot" aria-hidden="true">●</span>}</button>)}
     </div>
-    {selected&&<DiaryEntry key={selected} date={selected} entry={entryByDate.get(selected)} onChange={update} onClose={()=>setSelected(null)}/>}
+    {selected&&<DiaryEntry key={`${selected}:${editingRequest?.token || "read"}`} initialEditing={editingRequest?.date===selected} date={selected} entry={entryByDate.get(selected)} onChange={update} onClose={()=>{setSelected(null);setEditingRequest(null);}}/>}
   </div>;
 }

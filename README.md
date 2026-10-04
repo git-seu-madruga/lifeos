@@ -62,6 +62,12 @@ O app adiciona LifeOS ID automaticamente na primeira gravação. O Diário aceit
 - Anexos podem ser vistos e baixados em leitura. Incluir e excluir exige desbloquear a edição; excluir pede confirmação. O limite de envio é 4 MB por arquivo. Texto limitado a 10.000 caracteres por dia.
 - Alterações no app salvam automaticamente; alterações em outro dispositivo ou diretamente no Notion aparecem ao clicar Atualizar.
 
+### Inbox para Diário
+
+Na aba Diário, abra uma entrada do Inbox e clique em Transformar em nota do diário. O texto completo é incluído na data de hoje, conforme o horário local do navegador. Se já houver entrada, uma confirmação permite reabri-la e acrescentar o texto ao final, precedido por uma quebra de linha, preservando o texto e os anexos existentes. Cancelar mantém o Inbox e o Diário intactos, com o painel do Inbox aberto.
+
+Ao confirmar, a data de hoje fica selecionada e a entrada abre em edição, com o cursor no final do texto. Você pode continuar escrevendo; fechar, mudar de data ou sair do Diário bloqueia novamente a edição. O salvamento é automático e a remoção do Inbox no Notion só ocorre depois de salvar o Diário. Em caso de falha, use Tentar salvar novamente. Se o banco Diário não estiver configurado ou o texto ultrapassar o limite de 10.000 caracteres, a entrada permanece no Inbox.
+
 ### Ordem das abas
 
 Arraste os botões das abas para a posição desejada. No teclado, foque a aba e use Alt + seta esquerda/direita. Em telas de toque, arraste horizontalmente. A ordem é salva neste navegador; a primeira aba da esquerda abre como visualização padrão no próximo acesso. Cada navegador/dispositivo guarda sua própria ordem. Na primeira abertura, a ordem começa por Projetos.

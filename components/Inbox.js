@@ -32,7 +32,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
   }
 
   function convert() {
-    onConvert(item, target.kind);
+    if (onConvert(item, target.kind) === false) return;
     setOpenId(null);
   }
 
