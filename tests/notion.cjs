@@ -152,9 +152,10 @@ global.fetch=async(url,options={})=>{
  const withFinance={...state,categories:[{id:'cat-in',name:'Salário',flow:'in'},{id:'cat-out',name:'Aluguel',flow:'out'}],transactions:[{id:'tx-one',name:'Salário',category:'cat-in',month:'2026-10',amount:12345}]};
  await synchronize(state,withFinance);const countFinance=creates;await synchronize(state,withFinance);assert.equal(creates,countFinance,'Finanças não deve duplicar após reenvio');
  ({state}=await notionLib.readSnapshot());assert.equal(state.transactions[0].amount,12345);assert.equal(state.transactions[0].date,'2026-10-01');assert.equal(state.categories.length,2);assert.equal(rows.get(state.transactions[0].id).properties['Valor'].number,123.45);
- const editFinance=structuredClone(state);editFinance.transactions[0].amount=30000;editFinance.transactions[0].date='2026-11-18';await synchronize(state,editFinance);
- ({state}=await notionLib.readSnapshot());assert.equal(state.transactions[0].amount,30000);assert.equal(state.transactions[0].date,'2026-11-18');
+ const editFinance=structuredClone(state);editFinance.transactions[0].amount=30000;editFinance.transactions[0].notes='Observação financeira\nCom duas linhas';editFinance.transactions[0].date='2026-11-18';await synchronize(state,editFinance);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.transactions[0].amount,30000);assert.equal(state.transactions[0].notes,'Observação financeira\nCom duas linhas');assert.equal(sources.transactions.properties['Observação'].type,'rich_text');assert.equal(state.transactions[0].date,'2026-11-18');
  assert.equal(rows.get(state.transactions[0].id).properties['Mês'].date.start,'2026-11-18');
+ const clearedNote=structuredClone(state);clearedNote.transactions[0].notes='';await synchronize(state,clearedNote);({state}=await notionLib.readSnapshot());assert.equal(state.transactions[0].notes,'');
  const invalidDateFinance=structuredClone(state);invalidDateFinance.transactions[0].date='2026-02-30';await assert.rejects(()=>synchronize(state,invalidDateFinance),/Data inválida/);
  const invalidFinance=structuredClone(state);invalidFinance.transactions[0].amount=-1;await assert.rejects(()=>synchronize(state,invalidFinance),/valor positivo/);
  const missingCategory=structuredClone(state);missingCategory.categories=[];await assert.rejects(()=>synchronize(state,missingCategory),/categoria/);
