@@ -1,4 +1,6 @@
 "use client";
+import { useSettings } from "./SettingsContext";
+import { statusBehavior } from "../lib/settings";
 
 import { diffDays, shiftISO, todayISO } from "../lib/dates";
 
@@ -6,6 +8,7 @@ const sd = (iso) => iso.split("-").reverse().slice(0, 2).join("/");
 
 // Cronograma: marcos como losangos, tarefas como barras de início a prazo.
 export default function ProjectGantt({ milestones, tasks, project, onOpen }) {
+  const settings = useSettings();
   const dates = [project.due, ...milestones.map((m) => m.due), ...tasks.flatMap((t) => [t.start, t.due])].filter(Boolean).sort();
   if (!dates.length) return <p className="empty">Defina datas nas tarefas e nos marcos para ver o cronograma.</p>;
 
@@ -56,7 +59,7 @@ export default function ProjectGantt({ milestones, tasks, project, onOpen }) {
                     <Track>
                       {s ? (
                         <button
-                          className={`g-bar g-${t.status}`}
+                          className={`g-bar g-${statusBehavior(settings.taskStatuses, t.status)}`}
                           style={{ left: `${pos(s)}%`, width: `${Math.max(((diffDays(e, s) + 1) / span) * 100, 1.2)}%` }}
                           onClick={() => onOpen(t.id)}
                           title={`${t.title} (${sd(s)} → ${sd(e)})`}

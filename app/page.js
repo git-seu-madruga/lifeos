@@ -1,5 +1,8 @@
 "use client";
 
+import SettingsPanel from "../components/SettingsPanel";
+import { SettingsContext } from "../components/SettingsContext";
+import { DEFAULT_SETTINGS, loadSettings, statusBehavior } from "../lib/settings";
 import { patchTask } from "../lib/tasks";
 
 import { readState, saveState } from "../lib/storage";
@@ -12,15 +15,11 @@ import TasksView from "../components/TasksView";
 import ProjectsView from "../components/ProjectsView";
 import Placeholder from "../components/Placeholder";
 
-const CONTEXTS = [
-  { id: "all", label: "Todos" },
-  { id: "work", label: "Trabalho" },
-  { id: "personal", label: "Pessoal" },
-];
-
 const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
 export default function Home() {
+  const [settings, setSettings] = useState(DEFAULT_SETTINGS);
+  const [settingsOpen, setSettingsOpen] = useState(false);
   const [context, setContext] = useState("all");
   const [tabId, setTabId] = useState("tarefas");
   const [subs, setSubs] = useState({});
@@ -45,6 +44,7 @@ export default function Home() {
       setTasks(saved?.tasks || makeTasks());
       setProjects(saved?.projects || makeProjects());
       setInbox(saved?.inbox || INBOX_SEED);
+      setSettings(loadSettings(saved?.settings, saved?.tasks || makeTasks(), saved?.projects || makeProjects()));
       setRefreshedAt(new Date());
       setReady(true);
     }).catch(() => {
@@ -56,14 +56,14 @@ export default function Home() {
   useEffect(() => {
     if (!ready) return;
     setSaving(true);
-    saveQueue.current = saveQueue.current.catch(() => {}).then(() => saveState({ tasks, projects, inbox }));
+    saveQueue.current = saveQueue.current.catch(() => {}).then(() => saveState({ tasks, projects, inbox, settings }));
     const pending = saveQueue.current;
     pending.then(() => {
       if (saveQueue.current === pending) { setSaving(false); setSaveError(""); }
     }).catch(() => {
       if (saveQueue.current === pending) { setSaving(false); setSaveError("Não foi possível salvar. Verifique o espaço disponível e as permissões do navegador antes de fechar a página."); }
     });
-  }, [ready, tasks, projects, inbox]);
+  }, [ready, tasks, projects, inbox, settings]);
 
   useEffect(() => {
     if (!saving && !saveError) return;
@@ -72,21 +72,21 @@ export default function Home() {
     return () => window.removeEventListener("beforeunload", warn);
   }, [saving, saveError]);
 
-  const tab = NAV.find((t) => t.id === tabId);
+  const navigation = NAV.map(tab => tab.id === "projetos" ? { ...tab, subs: settings.projectStatuses.map(option => ({ id: option.id, label: option.label })) } : tab);
+  const tab = navigation.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
   const sub = tab.subs.find((s) => s.id === subId);
 
-  const SUB_OF = { active: "ativos", paused: "pausados", done: "concluidos", cancelled: "cancelados" };
   function openProject(id) {
     const p = projects.find((x) => x.id === id);
     if (!p) return;
-    setSubs((s) => ({ ...s, projetos: SUB_OF[p.status] }));
+    setSubs((s) => ({ ...s, projetos: p.status }));
     setSelected(id);
     setTabId("projetos");
   }
 
   const newTask = tasks && tasks.find((t) => t.id === newTaskId);
-  const updateNewTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch) : t)));
+  const updateNewTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch, settings.taskStatuses) : t)));
 
   const addInbox = (text) => setInbox((prev) => [{ id: uid("i"), text }, ...prev]);
   const updateInbox = (id, text) => setInbox((prev) => prev.map((i) => (i.id === id ? { ...i, text } : i)));
@@ -96,7 +96,7 @@ export default function Home() {
   function convertInbox(item, kind) {
     const [first, ...rest] = item.text.trim().split("\n");
     const notes = rest.join("\n").trim();
-    const ctx = context === "all" ? "work" : context;
+    const ctx = context === "all" ? settings.contexts[0].id : context;
     const newId = uid(kind === "task" ? "t" : "pr");
     if (kind === "task") {
       setTasks((prev) => [...prev, {
@@ -106,7 +106,7 @@ export default function Home() {
       }]);
       setNewTaskId(newId); // abre o detalhe para completar os campos
     } else if (kind === "project") {
-      const status = { ativos: "active", pausados: "paused", concluidos: "done", cancelados: "cancelled" }[subId] || "active";
+      const status = settings.projectStatuses.some(option => option.id === subId) ? subId : settings.projectStatuses[0].id;
       setProjects((prev) => [...prev, { id: newId, name: first, status, area: "", context: ctx, due: null, description: notes, milestones: [] }]);
       setSelected(newId); // abre o projeto para completar os campos
     } else {
@@ -124,11 +124,27 @@ export default function Home() {
     }, 600);
   }
 
+  function updateSettings(key, options) {
+    if (key === "areas") {
+      const renamed = new Map(settings.areas.map(old => [old.label, options.find(option => option.id === old.id)?.label || old.label]));
+      setProjects(prev => prev.map(project => ({ ...project, area: renamed.get(project.area) || project.area })));
+    }
+    if (key === "taskStatuses") {
+      setTasks(prev => prev.map(task => {
+        const wasDone = statusBehavior(settings.taskStatuses, task.status) === "done";
+        const isDone = statusBehavior(options, task.status) === "done";
+        return wasDone === isDone ? task : { ...task, completedAt: isDone ? Date.now() : null };
+      }));
+    }
+    setSettings(prev => ({ ...prev, [key]: options }));
+  }
+
   const time = refreshedAt
     ? refreshedAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
     : "";
 
   return (
+    <SettingsContext.Provider value={settings}>
     <div className="shell">
       {ready && <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />}
     <div className="app">
@@ -141,7 +157,7 @@ export default function Home() {
         </div>
 
         <div className="segmented" role="group" aria-label="Contexto">
-          {CONTEXTS.map((c) => (
+          {[{ id: "all", label: "Todos" }, ...settings.contexts].map((c) => (
             <button
               key={c.id}
               className={context === c.id ? "on" : ""}
@@ -160,13 +176,16 @@ export default function Home() {
               <path d="M21 3v6h-6" />
             </svg>
           </button>
+          <button className="icon-btn" onClick={() => setSettingsOpen(true)} disabled={!ready} aria-label="Configurações" title={`Configurações de ${tab.label}`}>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="M9 3h6l.7 3 2.6 1.5 3-.8 3 5.2-2.3 2.1v3l2.3 2.1-3 5.2-3-.8-2.6 1.5-.7 3H9l-.7-3-2.6-1.5-3 .8-3-5.2L2 17.1v-3L-.3 12l3-5.2 3 .8L8.3 6Z" transform="translate(2 0) scale(.8)"/><circle cx="12" cy="12" r="3" /></svg>
+          </button>
           <span className="refreshed">{time && `Atualizado às ${time}`}</span>
           <a className="signout" href="#">Sair</a>
         </div>
       </header>
 
       <nav className="tabs" aria-label="Seções">
-        {NAV.map((t) => (
+        {navigation.map((t) => (
           <span key={t.id} className="tab-wrap">
             {t.sep && <span className="tab-sep" aria-hidden="true" />}
             <button
@@ -215,6 +234,8 @@ export default function Home() {
       </main>
     </div>
     {newTask && projects && <TaskDetail task={newTask} projects={projects} update={updateNewTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setNewTaskId(null)} />}
+    {settingsOpen && <SettingsPanel tab={tab} settings={settings} onChange={updateSettings} onClose={() => setSettingsOpen(false)} />}
     </div>
+    </SettingsContext.Provider>
   );
 }

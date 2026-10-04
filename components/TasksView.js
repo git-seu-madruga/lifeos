@@ -1,34 +1,16 @@
 "use client";
+import { useSettings } from "./SettingsContext";
+import { optionLabel, statusBehavior, statusTone } from "../lib/settings";
 
 import { patchTask, newestCompleted } from "../lib/tasks";
 
-import { useMemo, useState } from "react";
-import { diffDays, dueLabel, longToday } from "../lib/dates";
+import { useEffect, useMemo, useState } from "react";
+import { dueLabel, longToday } from "../lib/dates";
 import TaskDetail from "./TaskDetail";
 
-const STATUS = [
-  { key: "todo", label: "Não iniciadas", tone: "plain" },
-  { key: "doing", label: "Em andamento", tone: "blue" },
-  { key: "hold", label: "On hold", tone: "today" },
-  { key: "done", label: "Concluídas", tone: "muted" },
-];
-const ORDER = { todo: 0, doing: 1, hold: 2, done: 3 };
-const isClosed = (t) => t.status === "done"; // vão para a seção de registro
-const PRIO = { high: 0, medium: 1, low: 2 };
-const PRIO_LABEL = { high: "Alta", medium: "Média", low: "Baixa" };
-const CTX = { work: "Trabalho", personal: "Pessoal" };
-
-// Em hold a data que importa é a da cobrança; nas demais, o prazo.
-const keyDate = (t) => (t.status === "hold" ? t.followUp : t.due) || "9999-99-99";
-const SORTERS = {
-  due: (a, b) => keyDate(a).localeCompare(keyDate(b)),
-  priority: (a, b) => PRIO[a.priority] - PRIO[b.priority] || keyDate(a).localeCompare(keyDate(b)),
-  title: (a, b) => a.title.localeCompare(b.title, "pt-BR"),
-};
-
-function dateInfo(t) {
-  if (t.status === "done") return { text: "Concluída", tone: "muted" };
-  if (t.status === "hold") {
+function dateInfo(t, statuses) {
+  if (statusBehavior(statuses, t.status) === "done") return { text: optionLabel(statuses, t.status), tone: "muted" };
+  if (statusBehavior(statuses, t.status) === "hold") {
     if (!t.followUp) return { text: "Sem cobrança", tone: "muted" };
     const l = dueLabel(t.followUp);
     return { text: `Cobrar · ${l.text}`, tone: l.tone };
@@ -37,9 +19,22 @@ function dateInfo(t) {
 }
 
 export default function TasksView({ tasks, setTasks, projects, context, sub, onOpenProject }) {
+  const settings = useSettings();
+  const STATUS = settings.taskStatuses.map(option => ({ ...option, key: option.id, tone: statusTone(option.behavior) }));
+  const ORDER = Object.fromEntries(STATUS.map((option, index) => [option.id, index]));
+  const isClosed = task => statusBehavior(settings.taskStatuses, task.status) === "done";
+  const keyDate = task => (statusBehavior(settings.taskStatuses, task.status) === "hold" ? task.followUp : task.due) || "9999-99-99";
+  const SORTERS = {
+    due: (a, b) => keyDate(a).localeCompare(keyDate(b)),
+    priority: (a, b) => settings.priorities.findIndex(option => option.id === a.priority) - settings.priorities.findIndex(option => option.id === b.priority) || keyDate(a).localeCompare(keyDate(b)),
+    title: (a, b) => a.title.localeCompare(b.title, "pt-BR"),
+  };
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("due");
   const [quick, setQuick] = useState(null);
+  useEffect(() => {
+    if (quick && statusBehavior(settings.taskStatuses, quick) === "done") setQuick(null);
+  }, [settings.taskStatuses, quick]);
   const [proj, setProj] = useState("all");
   const [collapsed, setCollapsed] = useState({ done: true });
   const [openId, setOpenId] = useState(null);
@@ -47,7 +42,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
   const byProject = sub === "projeto";
   const pn = (id) => projects.find((p) => p.id === id)?.name || "";
   const scoped = useMemo(() => tasks.filter((t) => context === "all" || t.context === context), [tasks, context]);
-  const update = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch) : t)));
+  const update = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch, settings.taskStatuses) : t)));
 
   const visibleProjects = projects.filter((p) => context === "all" || p.context === context);
   const projEff = visibleProjects.some((p) => p.id === proj) ? proj : "all";
@@ -61,20 +56,20 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
 
   const groups = useMemo(() => {
     const list = filtered.filter((t) => !quick || t.status === quick)
-      .sort((a, b) => ORDER[a.status] - ORDER[b.status] || (isClosed(a) ? newestCompleted(a, b) : SORTERS[sort](a, b)));
+      .sort((a, b) => (isClosed(a) - isClosed(b)) || (isClosed(a) ? newestCompleted(a, b) : ORDER[a.status] - ORDER[b.status] || SORTERS[sort](a, b)));
 
     const map = new Map();
     for (const t of list) {
       const g = isClosed(t)
-        ? { key: "done", label: "Concluídas · registro e busca", tone: "muted", order: 999 }
+        ? { key: "done", label: `${optionLabel(settings.taskStatuses, "done")} · registro e busca`, tone: "muted", order: 999 }
         : byProject
         ? { key: "p:" + (t.project || ""), label: pn(t.project) || "Sem projeto", tone: "plain", order: t.project ? 0 : 1 }
-        : { ...STATUS[ORDER[t.status]], order: ORDER[t.status] };
+        : { ...STATUS.find(option => option.id === t.status), order: ORDER[t.status] };
       if (!map.has(g.key)) map.set(g.key, { ...g, items: [] });
       map.get(g.key).items.push(t);
     }
     return [...map.values()].sort((a, b) => a.order - b.order || a.label.localeCompare(b.label, "pt-BR"));
-  }, [filtered, projects, quick, sort, byProject]);
+  }, [filtered, projects, quick, sort, byProject, settings]);
 
   const count = (k) => filtered.filter((t) => t.status === k).length;
   const current = tasks.find((t) => t.id === openId);
@@ -82,7 +77,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
   function addTask() {
     const id = `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
     const project = projects.find((p) => p.id === projEff);
-    setTasks((prev) => [...prev, { id, title: "Nova tarefa", status: "todo", due: null, start: null, completedAt: null, priority: "medium", context: project?.context || (context === "all" ? "work" : context), project: project?.id || null, milestone: null, links: [], notes: "", followUp: null, waitingOn: "" }]);
+    setTasks((prev) => [...prev, { id, title: "Nova tarefa", status: "todo", due: null, start: null, completedAt: null, priority: "medium", context: project?.context || (context === "all" ? settings.contexts[0].id : context), project: project?.id || null, milestone: null, links: [], notes: "", followUp: null, waitingOn: "" }]);
     setOpenId(id);
   }
 
@@ -100,7 +95,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
       </div>
 
       <div className="cards">
-        {STATUS.filter((s) => s.key !== "done").map((s) => (
+        {STATUS.filter((s) => s.behavior !== "done").map((s) => (
           <button key={s.key} className={`card card-${s.tone}` + (!quick || quick === s.key ? " on" : "")} aria-pressed={!quick || quick === s.key} onClick={() => pickCard(s.key)}>
             <span className="card-value">{count(s.key)}</span>
             <span className="card-label">{s.label}</span>
@@ -140,21 +135,21 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
             {!closed && (
               <ul className="rows">
                 {g.items.map((t) => {
-                  const di = dateInfo(t);
+                  const di = dateInfo(t, settings.taskStatuses);
                   return (
                     <li key={t.id} className={"row" + (isClosed(t) ? " done" : "")}>
-                      <input type="checkbox" className="check" checked={t.status === "done"} aria-label={`Concluir: ${t.title}`}
-                        onChange={() => update(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
+                      <input type="checkbox" className="check" checked={isClosed(t)} aria-label={`Concluir: ${t.title}`}
+                        onChange={() => update(t.id, isClosed(t) ? { status: "todo" } : { status: "done" })} />
                       <button className="row-title" onClick={() => setOpenId(t.id)}>
                         {t.title}
-                        {t.status === "hold" && t.waitingOn && <span className="row-project">Aguardando: {t.waitingOn}</span>}
+                        {statusBehavior(settings.taskStatuses, t.status) === "hold" && t.waitingOn && <span className="row-project">Aguardando: {t.waitingOn}</span>}
                       </button>
                       <span className="row-meta">
                         {t.links.length > 0 && <span className="muted small">🔗 {t.links.length}</span>}
                         {t.project && <button className="proj" onClick={() => onOpenProject(t.project)} title="Abrir projeto">{pn(t.project)}</button>}
-                        <span className={`prio prio-${t.priority}`}>{PRIO_LABEL[t.priority]}</span>
+                        <span className={`prio prio-${t.priority}`}>{optionLabel(settings.priorities, t.priority)}</span>
                         <span className={`due due-${di.tone}`}>{di.text}</span>
-                        <span className="chip">{CTX[t.context]}</span>
+                        <span className="chip">{optionLabel(settings.contexts, t.context)}</span>
                       </span>
                     </li>
                   );

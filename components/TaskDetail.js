@@ -1,4 +1,6 @@
 "use client";
+import { useSettings } from "./SettingsContext";
+import { statusBehavior } from "../lib/settings";
 import DateInput from "./DateInput";
 
 import { useEffect, useState } from "react";
@@ -6,9 +8,9 @@ import { PAGES } from "../lib/mockData";
 import { addDaysISO } from "../lib/dates";
 
 const norm = (s) => s.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
-const STATUS = [["todo", "Não iniciada"], ["doing", "Em andamento"], ["hold", "On hold"], ["done", "Concluída"]];
 
 export default function TaskDetail({ task, projects, update, onDelete, onClose }) {
+  const settings = useSettings();
   const [q, setQ] = useState("");
 
   useEffect(() => {
@@ -22,7 +24,7 @@ export default function TaskDetail({ task, projects, update, onDelete, onClose }
 
   function setStatus(s) {
     const p = { status: s };
-    if (s === "hold" && !task.followUp) p.followUp = addDaysISO(3);
+    if (statusBehavior(settings.taskStatuses, s) === "hold" && !task.followUp) p.followUp = addDaysISO(3);
     set(p);
   }
 
@@ -44,13 +46,13 @@ export default function TaskDetail({ task, projects, update, onDelete, onClose }
         <div className="field">
           <span className="label">Status</span>
           <div className="seg-row">
-            {STATUS.map(([k, l]) => (
+            {settings.taskStatuses.map(({ id: k, label: l }) => (
               <button key={k} className={"subtab" + (task.status === k ? " on" : "")} onClick={() => setStatus(k)}>{l}</button>
             ))}
           </div>
         </div>
 
-        {task.status === "hold" && (
+        {statusBehavior(settings.taskStatuses, task.status) === "hold" && (
           <div className="field-row">
             <div className="field">
               <span className="label">Aguardando</span>
@@ -77,13 +79,13 @@ export default function TaskDetail({ task, projects, update, onDelete, onClose }
           <div className="field">
             <span className="label">Prioridade</span>
             <select value={task.priority} onChange={(e) => set({ priority: e.target.value })}>
-              <option value="high">Alta</option><option value="medium">Média</option><option value="low">Baixa</option>
+              {settings.priorities.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
             </select>
           </div>
           <div className="field">
             <span className="label">Contexto</span>
             <select value={task.context} disabled={Boolean(proj)} onChange={(e) => set({ context: e.target.value })}>
-              <option value="work">Trabalho</option><option value="personal">Pessoal</option>
+              {settings.contexts.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
             </select>
             {proj && <span className="muted small ctx-note">Definido pelo projeto “{proj.name}”</span>}
           </div>

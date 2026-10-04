@@ -1,4 +1,6 @@
 "use client";
+import { useSettings } from "./SettingsContext";
+import { optionLabel, statusBehavior } from "../lib/settings";
 import ProjectAttachments from "./ProjectAttachments";
 import DateInput from "./DateInput";
 
@@ -11,19 +13,13 @@ import MilestoneManager from "./MilestoneManager";
 import ProjectBoard from "./ProjectBoard";
 import ProjectGantt from "./ProjectGantt";
 
-const SUB_STATUS = { ativos: "active", pausados: "paused", concluidos: "done", cancelados: "cancelled" };
-const P_STATUS = [["active", "Ativo"], ["paused", "Pausado"], ["done", "Concluído"], ["cancelled", "Cancelado"]];
-const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold", done: "Concluída" };
-const CTX = { work: "Trabalho", personal: "Pessoal" };
-const ORDER = { doing: 0, hold: 1, todo: 2, done: 3 };
-
 let seq = 0;
 const uid = (p) => `${p}${Date.now().toString(36)}${seq++}`;
 
 // Progresso das tarefas do projeto.
-function progress(all) {
+function progress(all, statuses) {
   const ts = all;
-  const done = ts.filter((t) => t.status === "done").length;
+  const done = ts.filter((t) => statusBehavior(statuses, t.status) === "done").length;
   return { done, total: ts.length, pct: ts.length ? Math.round((done / ts.length) * 100) : 0 };
 }
 
@@ -32,6 +28,9 @@ function Bar({ pct }) {
 }
 
 export default function ProjectsView({ tasks, setTasks, projects, setProjects, context, sub, selected, onSelect }) {
+  const settings = useSettings();
+  const ORDER = Object.fromEntries(settings.taskStatuses.map((option, index) => [option.id, index]));
+  const isDone = task => statusBehavior(settings.taskStatuses, task.status) === "done";
   const [openId, setOpenId] = useState(null);
   const [view, setView] = useState("lista");
   const [nt, setNt] = useState({ title: "", ms: "", ctx: null });
@@ -57,11 +56,11 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
     setProjectError("");
     onSelect(null);
   }
-  const updateTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch) : t)));
+  const updateTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch, settings.taskStatuses) : t)));
 
   function addProject() {
     const id = uid("pr");
-    setProjects((prev) => [...prev, { id, name: "Novo projeto", status: SUB_STATUS[sub] || "active", area: "", context: context === "all" ? "work" : context, due: null, description: "", milestones: [] }]);
+    setProjects((prev) => [...prev, { id, name: "Novo projeto", status: sub || "active", area: "", context: context === "all" ? settings.contexts[0].id : context, due: null, description: "", milestones: [] }]);
     onSelect(id);
   }
 
@@ -72,7 +71,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
 
   // ---------- Lista de projetos ----------
   if (!project) {
-    const shown = projects.filter((p) => p.status === SUB_STATUS[sub] && (context === "all" || p.context === context));
+    const shown = projects.filter((p) => p.status === sub && (context === "all" || p.context === context));
     return (
       <section>
         <div className="head-row">
@@ -85,13 +84,13 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
         {shown.length === 0 && <p className="empty">Nenhum projeto nesta guia.</p>}
         <div className="pcards">
           {shown.map((p) => {
-            const s = progress(tasks.filter((t) => t.project === p.id));
+            const s = progress(tasks.filter((t) => t.project === p.id), settings.taskStatuses);
             const due = p.due ? dueLabel(p.due) : null;
             const msDone = p.milestones.filter((m) => m.done).length;
             return (
               <button key={p.id} className="pcard" onClick={() => onSelect(p.id)}>
                 <span className="pcard-name">{p.name}</span>
-                {context === "all" && <span className="chip">{CTX[p.context]}</span>}
+                {context === "all" && <span className="chip">{optionLabel(settings.contexts, p.context)}</span>}
                 <span className="muted small">{p.area || "Sem área"}{due && ` · ${due.text}`}</span>
                 <Bar pct={s.pct} />
                 <span className="muted small">{s.done}/{s.total} tarefas · {msDone}/{p.milestones.length} marcos</span>
@@ -105,7 +104,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
 
   // ---------- Detalhe editável ----------
   const pts = tasks.filter((t) => t.project === project.id);
-  const all = progress(pts);
+  const all = progress(pts, settings.taskStatuses);
   const ms = project.milestones; // a ordem é a sequência definida em "Marcos do projeto"
   const current = ms.find((m) => !m.done);
   const msDone = ms.filter((m) => m.done).length;
@@ -127,16 +126,16 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   }
 
   const renderTask = (t) => (
-    <li key={t.id} className={"row" + (t.status === "done" ? " done" : "")}>
-      <input type="checkbox" className="check" checked={t.status === "done"} aria-label={`Concluir: ${t.title}`}
-        onChange={() => updateTask(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
+    <li key={t.id} className={"row" + (isDone(t) ? " done" : "")}>
+      <input type="checkbox" className="check" checked={isDone(t)} aria-label={`Concluir: ${t.title}`}
+        onChange={() => updateTask(t.id, isDone(t) ? { status: "todo" } : { status: "done" })} />
       <button className="row-title" onClick={() => setOpenId(t.id)}>{t.title}</button>
       <span className="row-meta">
-        <span className="chip">{STATUS_LABEL[t.status]}</span>
+        <span className="chip">{optionLabel(settings.taskStatuses, t.status)}</span>
       </span>
     </li>
   );
-  const byMs = (mid) => pts.filter((t) => (t.milestone || null) === mid).sort((a, b) => ORDER[a.status] - ORDER[b.status] || (a.status === "done" ? newestCompleted(a, b) : 0));
+  const byMs = (mid) => pts.filter((t) => (t.milestone || null) === mid).sort((a, b) => (isDone(a) - isDone(b)) || (isDone(a) ? newestCompleted(a, b) : ORDER[a.status] - ORDER[b.status]));
   const loose = byMs(null);
   const openTask = tasks.find((t) => t.id === openId);
 
@@ -148,16 +147,16 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
       <div className="field-row pd-fields">
         <div className="field"><span className="label">Contexto</span>
           <select value={project.context} onChange={(e) => setProjectContext(e.target.value)}>
-            <option value="work">Trabalho</option><option value="personal">Pessoal</option>
+            {settings.contexts.map(option => <option key={option.id} value={option.id}>{option.label}</option>)}
           </select>
         </div>
         <div className="field"><span className="label">Status</span>
           <select value={project.status} onChange={(e) => updateProject(project.id, { status: e.target.value })}>
-            {P_STATUS.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+            {settings.projectStatuses.map(({ id: k, label: l }) => <option key={k} value={k}>{l}</option>)}
           </select>
         </div>
         <div className="field"><span className="label">Área</span>
-          <input className="search" value={project.area} onChange={(e) => updateProject(project.id, { area: e.target.value })} />
+          <select value={project.area || ""} onChange={(e) => updateProject(project.id, { area: e.target.value })}><option value="">Sem área</option>{settings.areas.map(option => <option key={option.id} value={option.label}>{option.label}</option>)}</select>
         </div>
         <div className="field"><span className="label">Prazo final</span>
           <DateInput className="search" min={project.milestones.map(m => m.due).filter(Boolean).sort().at(-1)} value={project.due || ""} onChange={(e) => updateProject(project.id, { due: e.target.value || null })} />
@@ -192,7 +191,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
       <ol className="mslist">
         {ms.map((m) => {
           const mts = byMs(m.id);
-          const s = progress(mts);
+          const s = progress(mts, settings.taskStatuses);
           return (
             <li key={m.id} className={"ms" + (m.done ? " ms-done" : "") + (current && m.id === current.id ? " ms-now" : "")}>
               <div className="ms-head">

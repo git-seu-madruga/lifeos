@@ -1,12 +1,14 @@
 "use client";
+import { useSettings } from "./SettingsContext";
+import { optionLabel } from "../lib/settings";
 
 import { useState } from "react";
 import { dueLabel } from "../lib/dates";
 
-const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold", done: "Concluída" };
 
 // Colunas = marcos em ordem cronológica. Arraste o cartão para outra coluna (ou use o seletor, que também funciona no celular).
 export default function ProjectBoard({ milestones, tasks, onMove, onOpen }) {
+  const settings = useSettings();
   const [over, setOver] = useState(null);
   const cols = [...milestones, { id: "", title: "Sem marco", due: null, done: false }];
 
@@ -33,7 +35,7 @@ export default function ProjectBoard({ milestones, tasks, onMove, onOpen }) {
             {items.map((t) => (
               <div key={t.id} className="kcard" draggable onDragStart={(e) => e.dataTransfer.setData("text/plain", t.id)}>
                 <button className="kcard-title" onClick={() => onOpen(t.id)}>{t.title}</button>
-                <span className="chip">{STATUS_LABEL[t.status]}</span>
+                <span className="chip">{optionLabel(settings.taskStatuses, t.status)}</span>
                 <select value={t.milestone || ""} onChange={(e) => onMove(t.id, e.target.value || null)} aria-label={`Mover: ${t.title}`}>
                   <option value="">Sem marco</option>
                   {milestones.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
