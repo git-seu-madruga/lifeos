@@ -1,0 +1,56 @@
+// Exercita o hook com um runtime de hooks determinístico e IndexedDB simulado.
+const fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
+const swc=require('next/dist/build/swc'),React=require('react');
+const folder=path.resolve('.client-test');fs.mkdirSync(path.join(folder,'lib'),{recursive:true});
+for(const name of ['useNotionState.js','notionDiff.js','storage.js','api.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
+require('fake-indexeddb/auto');
+global.window={addEventListener(){},removeEventListener(){}};
+const original={useState:React.useState,useRef:React.useRef,useCallback:React.useCallback,useEffect:React.useEffect};
+const slots=[];let index=0,scheduled=false,effects=[],hook,active=true;
+const changed=(a,b)=>!a||!b||a.length!==b.length||a.some((value,i)=>!Object.is(value,b[i]));
+function schedule(){if(scheduled||!active)return;scheduled=true;queueMicrotask(()=>{scheduled=false;render();});}
+React.useState=initial=>{const i=index++;if(!slots[i])slots[i]={value:typeof initial==='function'?initial():initial};return [slots[i].value,update=>{const next=typeof update==='function'?update(slots[i].value):update;if(!Object.is(next,slots[i].value)){slots[i].value=next;schedule();}}];};
+React.useRef=value=>{const i=index++;if(!slots[i])slots[i]={current:value};return slots[i];};
+React.useCallback=(fn,deps)=>{const i=index++;if(!slots[i]||changed(slots[i].deps,deps))slots[i]={value:fn,deps};return slots[i].value;};
+React.useEffect=(fn,deps)=>{const i=index++;if(!slots[i]||changed(slots[i].deps,deps)){const old=slots[i];slots[i]={deps,cleanup:old?.cleanup};effects.push(()=>{slots[i].cleanup?.();slots[i].cleanup=fn();});}};
+const {useNotionState}=require(path.join(folder,'lib/useNotionState'));
+function render(){if(!active)return;index=0;effects=[];hook=useNotionState();const pending=effects;effects=[];pending.forEach(effect=>effect());}
+const {readState,saveState}=require(path.join(folder,'lib/storage'));
+let remote={projects:[],tasks:[],inbox:[]},syncCount=0,uploadCount=0,failure=false,gate=null;
+global.fetch=async(url,options={})=>{
+ if(url==='/api/session')return Response.json({authenticated:true,configured:true});
+ if(url==='/api/notion')return Response.json(remote);
+ if(url==='/api/notion/upload'){uploadCount++;return Response.json({uploadId:'uploaded-file',name:'ref.txt'});}
+ if(url==='/api/notion/sync'){
+  syncCount++;if(gate)await gate;
+  if(failure){failure=false;return Response.json({error:'Falha simulada'},{status:502});}
+  const {next}=JSON.parse(options.body),bindings={},files={};
+  for(const item of [...next.projects,...next.projects.flatMap(project=>project.milestones),...next.tasks,...next.inbox]){
+   bindings[item.id]=item._notionId||`remote-${item.id}`;
+   for(const file of item.attachments||[])if(file.uploadId)files[file.id]={id:file.id,name:file.name,notion:{type:'file',name:file.name,file:{url:'https://files.test/ref'}},pageId:bindings[item.id],index:0,kind:next.tasks.includes(item)?'tasks':'projects',url:'https://files.test/ref'};
+  }
+  remote=next;return Response.json({bindings,files});
+ }
+ throw new Error(`Rota inesperada ${url}`);
+};
+const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
+(async()=>{
+ await saveState({projects:[{id:'old-local'}],tasks:[{id:'old-local-task'}],inbox:[]});
+ render();for(let i=0;i<100&&!hook.ready;i++)await tick();assert.ok(hook.ready);assert.equal(hook.projects.length,0,'Dados locais antigos não devem ser enviados automaticamente');assert.equal(syncCount,0);
+ hook.setProjects([{id:'p',name:'Projeto',status:'active',context:'work',area:'',due:null,description:'',milestones:[],attachments:[]}]);
+ hook.setTasks([{id:'t',title:'Primeira versão',status:'todo',priority:'medium',context:'work',project:'p',milestone:null,due:null,start:null,followUp:null,waitingOn:'',notes:'',completedAt:null,attachments:[{id:'a',name:'ref.txt',file:new File(['test'],'ref.txt',{type:'text/plain'})}]}]);
+ await hook.flush();await tick();assert.equal(syncCount,1);assert.equal(uploadCount,1);assert.equal(hook.tasks[0]._notionId,'remote-t');assert.ok(hook.tasks[0].attachments[0].notion);assert.equal(hook.pending,false);
+ failure=true;hook.setTasks(previous=>previous.map(task=>({...task,title:'Após erro'})));
+ await assert.rejects(()=>hook.flush(),/Falha simulada/);await tick();assert.equal(hook.tasks[0].title,'Após erro');assert.ok(hook.pending);assert.ok((await readState('notion-draft')).next.tasks[0].title==='Após erro');
+ await hook.flush();await tick();assert.equal(hook.pending,false);assert.equal(uploadCount,1,'O arquivo já salvo não deve ser reenviado');
+ let release;gate=new Promise(resolve=>release=resolve);
+ hook.setTasks(previous=>previous.map(task=>({...task,title:'Em voo'})));
+ const saving=hook.flush();await tick();hook.setTasks(previous=>previous.map(task=>({...task,title:'Edição durante salvamento'})));release();gate=null;
+ await saving;await tick();assert.equal(hook.tasks[0].title,'Edição durante salvamento');assert.equal(remote.tasks[0].title,'Edição durante salvamento');assert.equal(hook.pending,false);
+ hook.setInbox([{id:'i',text:'Entrada\ncom duas linhas',createdAt:Date.now()}]);await hook.flush();await tick();assert.equal(remote.inbox[0].text,'Entrada\ncom duas linhas');assert.equal(hook.inbox[0]._notionId,'remote-i');
+ hook.setInbox([]);await hook.flush();await tick();assert.equal(remote.inbox.length,0);
+ const legacy=await readState();assert.equal(legacy.tasks[0].id,'old-local-task');
+ assert.equal((await readState('notion-draft')).next.tasks[0].title,'Edição durante salvamento');
+ active=false;for(const slot of slots)slot?.cleanup?.();Object.assign(React,original);fs.rmSync(folder,{recursive:true});
+ console.log('PASSOU: carga remota sem importar exemplos locais, upload, autosave, IDs, rascunho após falha, reenvio e edição durante salvamento.');
+})().catch(error=>{active=false;for(const slot of slots)slot?.cleanup?.();Object.assign(React,original);console.error(error);process.exitCode=1;});

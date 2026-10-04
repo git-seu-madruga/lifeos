@@ -3,9 +3,10 @@
 import { patchTask } from "../lib/tasks";
 
 import { readState, saveState } from "../lib/storage";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { NAV, INBOX_TARGETS } from "../lib/nav";
-import { makeTasks, makeProjects, INBOX_SEED } from "../lib/mockData";
+import { useNotionState } from "../lib/useNotionState";
+import Login from "../components/Login";
 import Inbox from "../components/Inbox";
 import TaskDetail from "../components/TaskDetail";
 import TasksView from "../components/TasksView";
@@ -25,52 +26,33 @@ export default function Home() {
   const [tabId, setTabId] = useState("tarefas");
   const [subs, setSubs] = useState({});
   const [selected, setSelected] = useState(null);
-  const [tasks, setTasks] = useState(null);
-  const [projects, setProjects] = useState(null);
-  const [inbox, setInbox] = useState(INBOX_SEED);
+  const remote = useNotionState();
+  const { tasks, projects, inbox, setInbox, setTasks, setProjects, ready, saving, refreshedAt } = remote;
+  const [legacyInbox, setLegacyInbox] = useState([]);
   const [newTaskId, setNewTaskId] = useState(null);
-  const [refreshedAt, setRefreshedAt] = useState(null);
-  const [spinning, setSpinning] = useState(false);
 
-  const [ready, setReady] = useState(false);
-  const [saveError, setSaveError] = useState("");
-  const [saving, setSaving] = useState(false);
-  const saveQueue = useRef(Promise.resolve());
 
-  // Os dados só nascem no navegador para evitar diferença de fuso horário entre servidor e cliente.
   useEffect(() => {
-    let alive = true;
-    readState().then(saved => {
-      if (!alive) return;
-      setTasks(saved?.tasks || makeTasks());
-      setProjects(saved?.projects || makeProjects());
-      setInbox(saved?.inbox || INBOX_SEED);
-      setRefreshedAt(new Date());
-      setReady(true);
-    }).catch(() => {
-      if (alive) setSaveError("Não foi possível abrir os dados salvos. Recarregue a página para tentar novamente.");
-    });
-    return () => { alive = false; };
+    let active = true;
+    (async () => {
+      const saved = await readState('notion-inbox');
+      const legacy = saved ? null : await readState();
+      const imported = await readState('notion-inbox-imported');
+      if (active) { setLegacyInbox((saved?.inbox || legacy?.inbox || []).filter(item => !imported?.ids?.includes(item.id))); }
+    })().catch(() => {  });
+    return () => { active=false; };
   }, []);
-
-  useEffect(() => {
-    if (!ready) return;
-    setSaving(true);
-    saveQueue.current = saveQueue.current.catch(() => {}).then(() => saveState({ tasks, projects, inbox }));
-    const pending = saveQueue.current;
-    pending.then(() => {
-      if (saveQueue.current === pending) { setSaving(false); setSaveError(""); }
-    }).catch(() => {
-      if (saveQueue.current === pending) { setSaving(false); setSaveError("Não foi possível salvar. Verifique o espaço disponível e as permissões do navegador antes de fechar a página."); }
-    });
-  }, [ready, tasks, projects, inbox]);
-
-  useEffect(() => {
-    if (!saving && !saveError) return;
-    const warn = e => { e.preventDefault(); e.returnValue = ""; };
-    window.addEventListener("beforeunload", warn);
-    return () => window.removeEventListener("beforeunload", warn);
-  }, [saving, saveError]);
+  const unimportedInbox = legacyInbox.filter(item => !inbox?.some(remoteItem => remoteItem.id === item.id || remoteItem.legacyId === item.id));
+  async function importInbox() {
+    if (!window.confirm(`Importar ${unimportedInbox.length} entrada(s) do navegador para o Notion?`)) return;
+    setInbox(previous => [...unimportedInbox.map(item => ({...item, createdAt:item.createdAt || Date.now()})), ...previous]);
+    try {
+      await remote.flush();
+      const imported = await readState('notion-inbox-imported');
+      await saveState({ids:[...new Set([...(imported?.ids || []), ...unimportedInbox.map(item => item.id)])]}, 'notion-inbox-imported');
+      setLegacyInbox([]);
+    } catch {}
+  }
 
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
@@ -88,7 +70,7 @@ export default function Home() {
   const newTask = tasks && tasks.find((t) => t.id === newTaskId);
   const updateNewTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch) : t)));
 
-  const addInbox = (text) => setInbox((prev) => [{ id: uid("i"), text }, ...prev]);
+  const addInbox = (text) => setInbox((prev) => [{ id: uid("i"), text, createdAt:Date.now() }, ...prev]);
   const updateInbox = (id, text) => setInbox((prev) => prev.map((i) => (i.id === id ? { ...i, text } : i)));
   const deleteInbox = (id) => setInbox((prev) => prev.filter((i) => i.id !== id));
 
@@ -115,14 +97,20 @@ export default function Home() {
     deleteInbox(item.id);
   }
 
-  function refresh() {
-    setSpinning(true);
-    setTimeout(() => {
-      // Atualizar a interface não apaga os dados locais.
-      setRefreshedAt(new Date());
-      setSpinning(false);
-    }, 600);
+  async function refresh() {
+    try { await remote.refresh(); setSelected(null); setNewTaskId(null); }
+    catch {
+      if (window.confirm("Não foi possível salvar antes de atualizar. Descartar as alterações locais pendentes e carregar a versão atual do Notion?")) {
+        try { await remote.refresh(true); setSelected(null); setNewTaskId(null); } catch {}
+      }
+    }
   }
+
+  if(remote.authenticated === null) return <p className="empty">Carregando LifeOS…</p>;
+  if(!remote.authenticated) return <Login onLogin={remote.login} configured={remote.configured} initialError={remote.error} />;
+  if(!ready) return <main className="login-shell"><div className="login-card"><h1>LifeOS</h1><p>{remote.loading ? "Conectando ao Notion…" : "Não foi possível carregar os bancos."}</p>{remote.error && <p className="date-error" role="alert">{remote.error}</p>}<button className="primary" onClick={remote.load} disabled={remote.loading}>Tentar novamente</button><button className="ghost" onClick={()=>remote.logout().catch(()=>{})}>Sair</button></div></main>;
+
+  if(remote.loading) return <p className="empty">Atualizando dados do Notion…</p>;
 
   const time = refreshedAt
     ? refreshedAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
@@ -130,7 +118,7 @@ export default function Home() {
 
   return (
     <div className="shell">
-      {ready && <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />}
+      {ready && inbox && <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />}
     <div className="app">
       <header className="topbar">
         <div className="brand">
@@ -154,14 +142,14 @@ export default function Home() {
         </div>
 
         <div className="topbar-right">
-          <button className={"icon-btn" + (spinning ? " spin" : "")} onClick={refresh} aria-label="Atualizar dados">
+          <button className={"icon-btn" + (remote.loading ? " spin" : "")} onClick={refresh} disabled={remote.loading || (saving && !remote.error)} aria-label="Atualizar dados">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M21 12a9 9 0 1 1-3-6.7" />
               <path d="M21 3v6h-6" />
             </svg>
           </button>
           <span className="refreshed">{time && `Atualizado às ${time}`}</span>
-          <a className="signout" href="#">Sair</a>
+          <button className="signout" onClick={() => remote.logout().catch(() => {})}>Sair</button>
         </div>
       </header>
 
@@ -181,8 +169,10 @@ export default function Home() {
       </nav>
 
       <main className="content">
-        {saveError && <p className="date-error" role="alert">{saveError}</p>}
-        {ready && <p className="muted small" role="status">{saving ? "Salvando…" : saveError ? "Alterações não salvas" : "Salvo neste navegador"}</p>}
+        {remote.error && <p className="date-error" role="alert">{remote.error}</p>}
+        {remote.error && <button className="ghost" onClick={() => remote.flush().catch(() => {})}>Tentar salvar novamente</button>}
+        {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}
+        {unimportedInbox.length > 0 && <button className="ghost" onClick={importInbox}>Importar Inbox deste navegador ({unimportedInbox.length})</button>}
         <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button

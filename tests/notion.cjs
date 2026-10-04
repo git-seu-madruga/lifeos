@@ -1,0 +1,135 @@
+// Contratos da integração, sem acessar o workspace real.
+const fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+const root=process.cwd(),temp=path.join(root,'.test-build');
+const swc=require('next/dist/build/swc');
+for(const folder of ['lib','app/api']) {
+ function compile(dir) {
+  for(const entry of fs.readdirSync(dir,{withFileTypes:true})) {
+   const filename=path.join(dir,entry.name);
+   if(entry.isDirectory()){compile(filename);continue;}
+   if(!filename.endsWith('.js'))continue;
+   const target=path.join(temp,filename);fs.mkdirSync(path.dirname(target),{recursive:true});
+   fs.writeFileSync(target,swc.transformSync(fs.readFileSync(filename,'utf8'),{filename,jsc:{parser:{syntax:'ecmascript',jsx:true},target:'es2022'},module:{type:'commonjs'}}).code);
+  }
+ }
+ compile(folder);
+}
+process.env.NOTION_TOKEN='test-notion-token';process.env.LIFEOS_PASSWORD='test-password-long';
+const auth=require(path.join(temp,'lib/server/auth'));
+const notionLib=require(path.join(temp,'lib/server/notion'));
+const {synchronize}=require(path.join(temp,'lib/server/sync'));
+const {diffState,hasChanges}=require(path.join(temp,'lib/notionDiff'));
+process.env.NOTION_INBOX_DATABASE_ID='inbox-test-db';
+const databases={inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
+const sourceIds=Object.fromEntries(Object.keys(databases).map(k=>[k,randomUUID()]));
+const specs={
+ inbox:{'Nome':'title','Conteúdo':'rich_text'},
+ projects:{'Nome':'title','Status':'select','Contexto':'select','Área':'select','Prazo final':'date','Descrição':'rich_text','Anexos':'files'},
+ milestones:{'Nome':'title','Projeto':'relation','Prazo':'date','Concluído':'checkbox','Ordem':'number'},
+ tasks:{'Nome':'title','Status':'status','Prioridade':'select','Contexto':'select','Projeto':'relation','Marco':'relation','Início':'date','Prazo':'date','Aguardando':'rich_text','Cobrar em':'date','Anotações':'rich_text','Concluída em':'date','Anexos':'files'},
+};
+const sources={};for(const [kind,spec] of Object.entries(specs))sources[kind]={id:sourceIds[kind],properties:Object.fromEntries(Object.entries(spec).map(([name,type])=>[name,{id:randomUUID(),name,type,...(type==='relation'?{relation:{data_source_id:sourceIds[name==='Marco'?'milestones':'projects'],database_id:databases[name==='Marco'?'milestones':'projects']}}:{})}]))};
+const rows=new Map(),calls=[];let creates=0,paginate=false;
+const kindBySource=id=>Object.keys(sourceIds).find(kind=>sourceIds[kind]===id);
+function normalizeProperties(kind,properties) {
+ return Object.fromEntries(Object.entries(properties).map(([name,value])=>{
+  const type=sources[kind].properties[name].type;
+  if(type==='files')value={files:value.files.map(file=>file.type==='file_upload'?{name:file.name,type:'file',file:{url:`https://files.notion.test/${file.file_upload.id}?signature=current`,expiry_time:'2099-01-01'}}:file)};
+  return [name,{...value,type}];
+ }));
+}
+global.fetch=async(url,options={})=>{
+ assert.equal(options.headers.Authorization,'Bearer test-notion-token');assert.equal(options.headers['Notion-Version'],'2025-09-03');
+ const uri=new URL(url),route=uri.pathname.slice(3),method=options.method||'GET';
+ const body=options.body instanceof FormData?options.body:options.body?JSON.parse(options.body):undefined;
+ calls.push({route,method,body});
+ const reply=value=>Response.json(value);
+ if(route.startsWith('/databases/')){const kind=Object.keys(databases).find(kind=>databases[kind]===route.split('/')[2]);assert.ok(kind);return reply({id:databases[kind],data_sources:[{id:sourceIds[kind]}]});}
+ if(route.startsWith('/data_sources/')){
+  const id=route.split('/')[2],kind=kindBySource(id);assert.ok(kind);
+  if(route.endsWith('/query')){
+   const list=[...rows.values()].filter(row=>row.parent.data_source_id===id&&!row.in_trash);
+   const start=body.start_cursor?Number(body.start_cursor):0,size=paginate?1:100,end=start+size;
+   return reply({results:list.slice(start,end),has_more:end<list.length,next_cursor:end<list.length?String(end):null});
+  }
+  if(method==='PATCH')for(const [name,property]of Object.entries(body.properties))sources[kind].properties[name]={id:randomUUID(),name,type:Object.keys(property)[0]};
+  return reply(sources[kind]);
+ }
+ if(route==='/pages'&&method==='POST'){
+  creates++;const kind=kindBySource(body.parent.data_source_id);assert.ok(kind);
+  const row={id:randomUUID(),parent:body.parent,last_edited_time:new Date().toISOString(),properties:normalizeProperties(kind,body.properties),in_trash:false};rows.set(row.id,row);return reply(row);
+ }
+ if(route.startsWith('/pages/')){
+  const row=rows.get(route.split('/')[2]);assert.ok(row);
+  if(method==='PATCH'){
+   if(body.properties)Object.assign(row.properties,normalizeProperties(kindBySource(row.parent.data_source_id),body.properties));
+   if(body.in_trash)row.in_trash=true;
+  }
+  return reply(row);
+ }
+ if(route==='/file_uploads'){return reply({id:randomUUID(),status:'pending'});}
+ if(route.startsWith('/file_uploads/')&&route.endsWith('/send')){assert.ok(body.get('file'));return reply({status:'uploaded'});}
+ throw new Error(`Rota inesperada ${method} ${route}`);
+};
+(async()=>{
+ const request=new Request('https://lifeos.test/api/session',{method:'POST',headers:{origin:'https://lifeos.test'}});
+ assert.throws(()=>auth.authorize(request),error=>error.status===401);
+ assert.throws(()=>auth.checkOrigin(new Request('https://lifeos.test/api',{headers:{origin:'https://evil.test'}})),error=>error.status===403);
+ assert.throws(()=>auth.login(request,'wrong'),error=>error.status===401);
+ const cookie=auth.login(request,'test-password-long').split(';')[0];
+ const logged=new Request('https://lifeos.test/api/notion',{headers:{cookie}});auth.authorize(logged);
+ assert.equal(auth.authenticated(new Request('https://lifeos.test/api',{headers:{cookie:cookie+'bad'}})),false);
+ let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{projects:[],tasks:[],inbox:[]});
+ const base=state;
+ const file=new File(['arquivo de teste'],'ref.txt',{type:'text/plain'});
+ const uploaded=await notionLib.uploadFile(file);
+ await assert.rejects(()=>notionLib.uploadFile(new File([new Uint8Array(4*1024*1024+1)],'large.pdf')),error=>error.status===413);
+ const next={inbox:[],projects:[{id:'local-project',name:'Projeto',status:'active',context:'personal',area:'Casa',due:'2026-12-31',description:'Teste',attachments:[],milestones:[{id:'local-milestone',title:'Etapa',due:'2026-12-01',done:false}]}],tasks:[{id:'local-task',title:'Tarefa',status:'todo',priority:'medium',context:'personal',project:'local-project',milestone:'local-milestone',due:'2026-11-30',start:null,notes:'',waitingOn:'',followUp:null,completedAt:null,attachments:[{id:'local-file',...uploaded}]}]};
+ assert.ok(hasChanges(base,next));
+ const result=await synchronize(base,next);assert.equal(creates,3);assert.ok(result.bindings['local-project']);assert.ok(result.files['local-file'].url);
+ await synchronize(base,next);assert.equal(creates,3,'Reenvio não deve criar duplicatas');
+ ({state}=await notionLib.readSnapshot());assert.equal(state.projects.length,1);assert.equal(state.projects[0].milestones.length,1);assert.equal(state.tasks[0].project,state.projects[0].id);assert.equal(state.tasks[0].attachments.length,1);
+ const edited=structuredClone(state);edited.tasks[0].notes='Nova anotação';
+ const beforeCalls=calls.length;await synchronize(state,edited);
+ const patches=calls.slice(beforeCalls).filter(call=>call.route.startsWith('/pages/')&&call.body.properties);
+ assert.equal(patches.length,1);assert.deepEqual(Object.keys(patches[0].body.properties),['Anotações'],'Edição parcial preserva campos não alterados');
+ ({state}=await notionLib.readSnapshot());
+ const completed=structuredClone(state);completed.tasks[0].status='done';completed.tasks[0].completedAt=Date.now();await synchronize(state,completed);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.tasks[0].status,'done');assert.equal(typeof state.tasks[0].completedAt,'number');
+ const invalid=structuredClone(state);invalid.projects[0].milestones[0].due='2027-01-01';
+ await assert.rejects(()=>synchronize(state,invalid),/ultrapassa/);
+ const conflicted=structuredClone(state);conflicted.tasks[0].notes='Edição no app';
+ rows.get(state.tasks[0].id).properties['Anotações']={type:'rich_text',rich_text:[{text:{content:'Edição externa'}}]};
+ await assert.rejects(()=>synchronize(state,conflicted),error=>error.status===409);
+ ({state}=await notionLib.readSnapshot());
+ const noFiles=structuredClone(state);noFiles.tasks[0].attachments=[];await synchronize(state,noFiles);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.tasks[0].attachments.length,0);
+ paginate=true;
+ const extra={...rows.get(state.tasks[0].id),id:randomUUID()};extra.properties=structuredClone(extra.properties);rows.set(extra.id,extra);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.tasks.length,2,'A consulta precisa seguir a paginação');
+ await assert.rejects(()=>notionLib.ownedPage('projects',state.tasks[0].id),error=>error.status===403);
+ const deleted={inbox:[],projects:[],tasks:state.tasks.map(task=>({...task,project:null,milestone:null}))};
+ await synchronize(state,deleted);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.projects.length,0);assert.equal(state.tasks.length,2);assert.equal(state.tasks[0].project,null);
+ const empty={projects:[],tasks:[],inbox:[]};await synchronize(state,empty);({state}=await notionLib.readSnapshot());assert.equal(state.tasks.length,0);
+
+ const inboxNext={...state,inbox:[{id:'inbox-local',text:'Primeira linha\nSegunda linha\nTerceira linha',createdAt:Date.now()}]};
+ await synchronize(state,inboxNext);await synchronize(state,inboxNext);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.inbox.length,1);assert.equal(state.inbox[0].text,inboxNext.inbox[0].text);assert.equal(state.inbox[0].name,'Primeira linha');assert.equal(state.inbox[0].legacyId,'inbox-local');
+ const inboxEdited=structuredClone(state);inboxEdited.inbox[0].text='Novo título\nNovo conteúdo';await synchronize(state,inboxEdited);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.inbox[0].name,'Novo título');assert.equal(state.inbox[0].text,'Novo título\nNovo conteúdo');
+ const inboxConflict=structuredClone(state);inboxConflict.inbox[0].text='Edição local';rows.get(state.inbox[0].id).properties['Conteúdo']={type:'rich_text',rich_text:[{text:{content:'Edição externa'}}]};
+ await assert.rejects(()=>synchronize(state,inboxConflict),error=>error.status===409);
+ ({state}=await notionLib.readSnapshot());
+ const converted={...state,inbox:[],tasks:[{id:'converted-task',title:'Edição externa',status:'todo',priority:'medium',context:'work',project:null,milestone:null,notes:'',attachments:[]}]};
+ const workingFetch=global.fetch;let interrupt=true;global.fetch=async(url,options)=>{const response=await workingFetch(url,options);if(interrupt&&options?.method==='POST'&&new URL(url).pathname==='/v1/pages'){interrupt=false;return Response.json({message:'Falha depois de criar o destino'},{status:502});}return response;};
+ const countBefore=creates;await assert.rejects(()=>synchronize(state,converted),/Falha depois/);global.fetch=workingFetch;assert.equal((await notionLib.readSnapshot()).state.inbox.length,1,'Uma falha na conversão deve manter o Inbox');
+ const conversionStart=calls.length;await synchronize(state,converted);assert.equal(creates,countBefore+1,'Reenvio da conversão não deve duplicar o destino');
+ const conversionCalls=calls.slice(conversionStart);const createIndex=conversionCalls.findIndex(call=>call.route.startsWith('/pages')&&call.body?.properties);const deleteIndex=conversionCalls.findIndex(call=>call.body?.in_trash);assert.ok(createIndex>=0&&deleteIndex>createIndex,'A conversão cria o destino antes de remover o Inbox');
+ ({state}=await notionLib.readSnapshot());assert.equal(state.inbox.length,0);assert.equal(state.tasks.length,1);
+ await synchronize(state,{projects:[],tasks:[],inbox:[]});
+ const get=require(path.join(temp,'app/api/notion/route')).GET;
+ const denied=await get(request);assert.equal(denied.status,401);assert.equal(calls.some(call=>call.route.includes('undefined')),false);
+ console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão preservando tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');
+ fs.rmSync(temp,{recursive:true});
+})().catch(error=>{console.error(error);process.exitCode=1;});
