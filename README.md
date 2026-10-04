@@ -1,15 +1,61 @@
-# LifeOS — integração inicial com Notion
+# LifeOS — atualização com Finanças
 
-Base: v3 com anexos em Projetos e Tarefas. Sem painel de configurações. Projetos, tarefas, marcos e Inbox agora vêm do Notion. Diário tem calendário, texto formatado e anexos. Finanças continua com a indicação de tela não construída.
+Base: v3 com anexos em Projetos e Tarefas. Sem painel de configurações. Projetos, tarefas, marcos e Inbox agora vêm do Notion. Diário tem calendário, texto formatado e anexos. Finanças agora tem categorias, lançamentos e um gráfico Sankey interativo.
 
-## Publicar na Vercel
+## Atualizar o aplicativo atual
 
-1. Envie os arquivos deste pacote ao repositório, mantendo a estrutura de pastas.
-2. Em Settings → Environment Variables, mantenha `NOTION_TOKEN` e adicione `LIFEOS_PASSWORD` com uma senha de acesso escolhida por você. Não use o token do Notion como senha.
-3. Mantenha `NOTION_INBOX_DATABASE_ID` e adicione `NOTION_DIARY_DATABASE_ID` com o ID do novo banco Diário, conforme as instruções abaixo. Se o Inbox ainda não estiver configurado, crie-o também.
-4. Configure os ambientes onde vai testar (Production e, se necessário, Preview).
-5. Faça uma nova implantação após alterar as variáveis.
-6. Abra o app e entre com a senha definida em `LIFEOS_PASSWORD`.
+1. Crie apenas os dois novos bancos financeiros abaixo, dentro da página LifeOS no Notion. Mantenha os bancos existentes de Projetos, Marcos, Tarefas, Inbox e Diário.
+2. Confira se a conexão interna LifeOS tem acesso aos dois bancos novos e permissões de ler, inserir e atualizar conteúdo.
+3. No projeto atual da Vercel, mantenha todas as variáveis existentes, incluindo NOTION_TOKEN, LIFEOS_PASSWORD e os IDs de Inbox e Diário. Acrescente apenas NOTION_FINANCE_CATEGORIES_DATABASE_ID e NOTION_FINANCE_TRANSACTIONS_DATABASE_ID com os IDs dos bancos financeiros.
+4. Envie o conteúdo deste ZIP ao repositório e à branch que já alimentam seu app na Vercel, preservando as pastas. Não é necessário criar outro fork nem outro projeto na Vercel.
+5. Faça um novo deploy após cadastrar as variáveis e enviar os arquivos. Acesse pelo endereço que já utiliza e entre com a mesma senha.
+6. Na aba Finanças, crie suas categorias em Gerenciar categorias e adicione os valores. Aguarde Salvo no Notion antes de fechar.
+
+O pacote mantém as funcionalidades atuais de Projetos, Tarefas, Inbox e Diário. A mudança global no cabeçalho centraliza os contextos. Finanças usa apenas os dois novos bancos financeiros e fica no contexto Pessoal. Os IDs padrão de Projetos, Marcos e Tarefas continuam os mesmos; não precisa cadastrá-los novamente na Vercel. Sem configurar os dois bancos novos, Finanças mostra as instruções de configuração e as demais telas continuam disponíveis.
+
+## Finanças: criar os bancos no Notion
+
+### Categorias financeiras
+
+| Propriedade | Tipo | Configuração |
+|---|---|---|
+| Nome | Título | Nome escolhido por você, como Salário ou Aluguel |
+| Tipo | Selecionar | Entrada, Saída |
+
+### Lançamentos financeiros
+
+| Propriedade | Tipo | Configuração |
+|---|---|---|
+| Nome | Título | O app preenche com o nome da categoria |
+| Categoria | Relação | Categorias financeiras; limite de uma página |
+| Mês | Data | Sem horário; o app salva o primeiro dia do mês |
+| Valor | Número | Formato Real/R$; valor positivo, por exemplo 123,45 |
+
+No Notion, Valor guarda reais. Internamente, o app calcula em centavos para evitar diferenças de arredondamento. Não crie uma categoria para a sobra ou para o déficit: os dois são gerados automaticamente pelo gráfico. Não existe campo Contexto nesses bancos; Finanças é sempre pessoal.
+
+No projeto atual da Vercel, adicione:
+
+```text
+NOTION_FINANCE_CATEGORIES_DATABASE_ID=ID_DO_BANCO_CATEGORIAS
+NOTION_FINANCE_TRANSACTIONS_DATABASE_ID=ID_DO_BANCO_LANCAMENTOS
+```
+
+Use o ID do banco, não o ID de visualização após `v=`. Confira o acesso da conexão. LifeOS ID é acrescentado automaticamente para evitar duplicatas em reenvios. Se um banco tiver várias fontes, use opcionalmente `NOTION_FINANCE_CATEGORIES_DATA_SOURCE_ID` e `NOTION_FINANCE_TRANSACTIONS_DATA_SOURCE_ID`. Sem os dois IDs financeiros, as demais telas continuam disponíveis e Finanças mostra as instruções de configuração.
+
+## Usar Finanças
+
+- Os contextos ficam centralizados no cabeçalho. Em Finanças, Pessoal fica selecionado e a mudança de contexto é bloqueada; ao sair, o contexto anterior continua disponível nas outras seções.
+- Crie nomes de entrada e saída em Gerenciar categorias. Depois, selecione tipo, categoria, mês e valor em Adicionar valor. Cada inclusão cria um lançamento e vários lançamentos podem compartilhar a mesma categoria e mês.
+- Use Mês, Ano ou Período para consolidar. O período inclui os dois meses das pontas. Campos de mês usam MM/AAAA; digitar apenas mês e pressionar Tab/Enter completa o ano corrente. No campo de valor, use o padrão brasileiro, como 1.250,50.
+- Entradas e saídas são somadas por categoria. Saldo restante positivo aparece à direita. Saldo faltante aparece à esquerda, em vermelho, para equilibrar o diagrama quando as saídas superam as entradas. Ele não é registrado como receita; o resumo continua mostrando o saldo negativo. Saldo zero não cria um bloco de saldo.
+- Clique no nome, faixa ou bloco de uma categoria para abrir os lançamentos do período. Edite valor, mês ou categoria, ou exclua com confirmação. Os blocos de saldo automático não podem ser editados ou excluídos.
+- Arraste verticalmente os blocos para ajustar a disposição; essa organização é temporária nesta sessão. Em telas pequenas, o gráfico pode ser rolado horizontalmente.
+- Renomear uma categoria altera seu nome no gráfico em todos os períodos. Trocar seu tipo, com confirmação quando já há valores, muda a classificação de todos os lançamentos vinculados. Excluir uma categoria pede confirmação e exclui seus lançamentos de todos os meses; o aviso informa a quantidade.
+- Tudo salva automaticamente no Notion. A exclusão usa a lixeira nativa do Notion. Alterações feitas no próprio Notion são carregadas pelo botão Atualizar.
+
+## Variáveis existentes
+
+Mantenha os valores que já funcionam no projeto atual. Não substitua o token, a senha ou os IDs atuais por campos vazios do arquivo .env.example. Esse arquivo é apenas um modelo para desenvolvimento local. Para publicar esta atualização, cadastre somente as duas novas variáveis financeiras e faça novo deploy.
 
 O token só é utilizado no servidor. Os endpoints de leitura, gravação e anexos exigem sessão autenticada. A sessão usa cookie HttpOnly, SameSite e validade de 7 dias. Trocar a senha invalida as sessões. As tentativas de login têm limitação por instância do servidor; para um produto com múltiplos usuários, substituir por autenticação dedicada.
 

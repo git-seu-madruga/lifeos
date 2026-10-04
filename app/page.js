@@ -11,6 +11,7 @@ import Inbox from "../components/Inbox";
 import TaskDetail from "../components/TaskDetail";
 import TasksView from "../components/TasksView";
 import ProjectsView from "../components/ProjectsView";
+import FinanceView from "../components/FinanceView";
 import DiaryView from "../components/DiaryView";
 import { normalizeTabOrder, moveTab, dateKey, appendInboxToDiary } from "../lib/diary";
 import Placeholder from "../components/Placeholder";
@@ -71,6 +72,7 @@ export default function Home() {
     } catch {}
   }
 
+  const effectiveContext = tabId === "financas" ? "personal" : context;
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
   const sub = tab.subs.find((s) => s.id === subId);
@@ -163,8 +165,10 @@ export default function Home() {
           {CONTEXTS.map((c) => (
             <button
               key={c.id}
-              className={context === c.id ? "on" : ""}
-              aria-pressed={context === c.id}
+              className={effectiveContext === c.id ? "on" : ""}
+              aria-pressed={effectiveContext === c.id}
+              disabled={tabId === "financas"}
+              title={tabId === "financas" ? "Finanças usa apenas o contexto Pessoal" : undefined}
               onClick={() => setContext(c.id)}
             >
               {c.label}
@@ -216,7 +220,7 @@ export default function Home() {
         {remote.error && <button className="ghost" onClick={() => remote.flush().catch(() => {})}>Tentar salvar novamente</button>}
         {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}
         {unimportedInbox.length > 0 && <button className="ghost" onClick={importInbox}>Importar Inbox deste navegador ({unimportedInbox.length})</button>}
-        {tabId !== "diario" && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
+        {!["diario","financas"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button
               key={s.id}
@@ -244,6 +248,8 @@ export default function Home() {
           )
         ) : tabId === "diario" ? (
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
+        ) : tabId === "financas" ? (
+          <FinanceView categories={remote.categories} transactions={remote.transactions} setFinance={remote.setFinance} configured={remote.financeConfigured}/>
         ) : (
           <Placeholder tab={tab} sub={sub} />
         )}

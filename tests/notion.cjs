@@ -21,16 +21,18 @@ const {synchronize}=require(path.join(temp,'lib/server/sync'));
 const {diffState,hasChanges}=require(path.join(temp,'lib/notionDiff'));
 process.env.NOTION_DIARY_DATABASE_ID='diary-test-db';
 process.env.NOTION_INBOX_DATABASE_ID='inbox-test-db';
-const databases={diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
+process.env.NOTION_FINANCE_CATEGORIES_DATABASE_ID='finance-categories-test';process.env.NOTION_FINANCE_TRANSACTIONS_DATABASE_ID='finance-transactions-test';
+const databases={categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
 const sourceIds=Object.fromEntries(Object.keys(databases).map(k=>[k,randomUUID()]));
 const specs={
+ categories:{'Nome':'title','Tipo':'select'},transactions:{'Nome':'title','Categoria':'relation','Mês':'date','Valor':'number'},
  diary:{'Nome':'title','Data':'date','Conteúdo':'rich_text','Anexos':'files'},
  inbox:{'Nome':'title','Conteúdo':'rich_text'},
  projects:{'Nome':'title','Status':'select','Contexto':'select','Área':'select','Prazo final':'date','Descrição':'rich_text','Anexos':'files'},
  milestones:{'Nome':'title','Projeto':'relation','Prazo':'date','Concluído':'checkbox','Ordem':'number'},
  tasks:{'Nome':'title','Status':'status','Prioridade':'select','Contexto':'select','Projeto':'relation','Marco':'relation','Início':'date','Prazo':'date','Aguardando':'rich_text','Cobrar em':'date','Anotações':'rich_text','Concluída em':'date','Anexos':'files'},
 };
-const sources={};for(const [kind,spec] of Object.entries(specs))sources[kind]={id:sourceIds[kind],properties:Object.fromEntries(Object.entries(spec).map(([name,type])=>[name,{id:randomUUID(),name,type,...(type==='relation'?{relation:{data_source_id:sourceIds[name==='Marco'?'milestones':'projects'],database_id:databases[name==='Marco'?'milestones':'projects']}}:{})}]))};
+const sources={};for(const [kind,spec] of Object.entries(specs))sources[kind]={id:sourceIds[kind],properties:Object.fromEntries(Object.entries(spec).map(([name,type])=>[name,{id:randomUUID(),name,type,...(type==='relation'?{relation:{data_source_id:sourceIds[name==='Categoria'?'categories':name==='Marco'?'milestones':'projects'],database_id:databases[name==='Categoria'?'categories':name==='Marco'?'milestones':'projects']}}:{})}]))};
 const rows=new Map(),calls=[];let creates=0,paginate=false;
 const kindBySource=id=>Object.keys(sourceIds).find(kind=>sourceIds[kind]===id);
 function normalizeProperties(kind,properties) {
@@ -81,7 +83,7 @@ global.fetch=async(url,options={})=>{
  const cookie=auth.login(request,'test-password-long').split(';')[0];
  const logged=new Request('https://lifeos.test/api/notion',{headers:{cookie}});auth.authorize(logged);
  assert.equal(auth.authenticated(new Request('https://lifeos.test/api',{headers:{cookie:cookie+'bad'}})),false);
- let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true});
+ let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true});
  const base=state;
  const file=new File(['arquivo de teste'],'ref.txt',{type:'text/plain'});
  const uploaded=await notionLib.uploadFile(file);
@@ -145,6 +147,17 @@ global.fetch=async(url,options={})=>{
  const withoutDiary=(await notionLib.readSnapshot()).state;assert.equal(withoutDiary.diaryConfigured,false);assert.deepEqual(withoutDiary.diary,[]);
  await assert.rejects(()=>synchronize(withoutDiary,{...withoutDiary,diary:[{id:'new-day',date:'2026-10-05',text:'Teste',attachments:[]}]}),/NOTION_DIARY_DATABASE_ID/);
  process.env.NOTION_DIARY_DATABASE_ID='diary-test-db';
+
+ ({state}=await notionLib.readSnapshot());
+ const withFinance={...state,categories:[{id:'cat-in',name:'Salário',flow:'in'},{id:'cat-out',name:'Aluguel',flow:'out'}],transactions:[{id:'tx-one',name:'Salário',category:'cat-in',month:'2026-10',amount:12345}]};
+ await synchronize(state,withFinance);const countFinance=creates;await synchronize(state,withFinance);assert.equal(creates,countFinance,'Finanças não deve duplicar após reenvio');
+ ({state}=await notionLib.readSnapshot());assert.equal(state.transactions[0].amount,12345);assert.equal(state.transactions[0].month,'2026-10');assert.equal(state.categories.length,2);assert.equal(rows.get(state.transactions[0].id).properties['Valor'].number,123.45);
+ const editFinance=structuredClone(state);editFinance.transactions[0].amount=30000;editFinance.transactions[0].month='2026-11';await synchronize(state,editFinance);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.transactions[0].amount,30000);assert.equal(state.transactions[0].month,'2026-11');
+ const invalidFinance=structuredClone(state);invalidFinance.transactions[0].amount=-1;await assert.rejects(()=>synchronize(state,invalidFinance),/valor positivo/);
+ const missingCategory=structuredClone(state);missingCategory.categories=[];await assert.rejects(()=>synchronize(state,missingCategory),/categoria/);
+ const financeDeleteStart=calls.length;await synchronize(state,{...state,categories:[],transactions:[]});const trashCalls=calls.slice(financeDeleteStart).filter(call=>call.body?.in_trash);assert.equal(trashCalls[0].route,`/pages/${state.transactions[0].id}`,'Lançamentos excluídos antes das categorias');
+ delete process.env.NOTION_FINANCE_CATEGORIES_DATABASE_ID;delete process.env.NOTION_FINANCE_TRANSACTIONS_DATABASE_ID;const optionalFinance=(await notionLib.readSnapshot()).state;assert.equal(optionalFinance.financeConfigured,false);assert.deepEqual(optionalFinance.categories,[]);assert.deepEqual(optionalFinance.transactions,[]);
  const get=require(path.join(temp,'app/api/notion/route')).GET;
  const denied=await get(request);assert.equal(denied.status,401);assert.equal(calls.some(call=>call.route.includes('undefined')),false);
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão preservando tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');
