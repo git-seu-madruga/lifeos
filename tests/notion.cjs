@@ -19,10 +19,12 @@ const auth=require(path.join(temp,'lib/server/auth'));
 const notionLib=require(path.join(temp,'lib/server/notion'));
 const {synchronize}=require(path.join(temp,'lib/server/sync'));
 const {diffState,hasChanges}=require(path.join(temp,'lib/notionDiff'));
+process.env.NOTION_DIARY_DATABASE_ID='diary-test-db';
 process.env.NOTION_INBOX_DATABASE_ID='inbox-test-db';
-const databases={inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
+const databases={diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
 const sourceIds=Object.fromEntries(Object.keys(databases).map(k=>[k,randomUUID()]));
 const specs={
+ diary:{'Nome':'title','Data':'date','Conteúdo':'rich_text','Anexos':'files'},
  inbox:{'Nome':'title','Conteúdo':'rich_text'},
  projects:{'Nome':'title','Status':'select','Contexto':'select','Área':'select','Prazo final':'date','Descrição':'rich_text','Anexos':'files'},
  milestones:{'Nome':'title','Projeto':'relation','Prazo':'date','Concluído':'checkbox','Ordem':'number'},
@@ -79,12 +81,12 @@ global.fetch=async(url,options={})=>{
  const cookie=auth.login(request,'test-password-long').split(';')[0];
  const logged=new Request('https://lifeos.test/api/notion',{headers:{cookie}});auth.authorize(logged);
  assert.equal(auth.authenticated(new Request('https://lifeos.test/api',{headers:{cookie:cookie+'bad'}})),false);
- let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{projects:[],tasks:[],inbox:[]});
+ let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true});
  const base=state;
  const file=new File(['arquivo de teste'],'ref.txt',{type:'text/plain'});
  const uploaded=await notionLib.uploadFile(file);
  await assert.rejects(()=>notionLib.uploadFile(new File([new Uint8Array(4*1024*1024+1)],'large.pdf')),error=>error.status===413);
- const next={inbox:[],projects:[{id:'local-project',name:'Projeto',status:'active',context:'personal',area:'Casa',due:'2026-12-31',description:'Teste',attachments:[],milestones:[{id:'local-milestone',title:'Etapa',due:'2026-12-01',done:false}]}],tasks:[{id:'local-task',title:'Tarefa',status:'todo',priority:'medium',context:'personal',project:'local-project',milestone:'local-milestone',due:'2026-11-30',start:null,notes:'',waitingOn:'',followUp:null,completedAt:null,attachments:[{id:'local-file',...uploaded}]}]};
+ const next={diary:[],inbox:[],projects:[{id:'local-project',name:'Projeto',status:'active',context:'personal',area:'Casa',due:'2026-12-31',description:'Teste',attachments:[],milestones:[{id:'local-milestone',title:'Etapa',due:'2026-12-01',done:false}]}],tasks:[{id:'local-task',title:'Tarefa',status:'todo',priority:'medium',context:'personal',project:'local-project',milestone:'local-milestone',due:'2026-11-30',start:null,notes:'',waitingOn:'',followUp:null,completedAt:null,attachments:[{id:'local-file',...uploaded}]}]};
  assert.ok(hasChanges(base,next));
  const result=await synchronize(base,next);assert.equal(creates,3);assert.ok(result.bindings['local-project']);assert.ok(result.files['local-file'].url);
  await synchronize(base,next);assert.equal(creates,3,'Reenvio não deve criar duplicatas');
@@ -108,10 +110,10 @@ global.fetch=async(url,options={})=>{
  const extra={...rows.get(state.tasks[0].id),id:randomUUID()};extra.properties=structuredClone(extra.properties);rows.set(extra.id,extra);
  ({state}=await notionLib.readSnapshot());assert.equal(state.tasks.length,2,'A consulta precisa seguir a paginação');
  await assert.rejects(()=>notionLib.ownedPage('projects',state.tasks[0].id),error=>error.status===403);
- const deleted={inbox:[],projects:[],tasks:state.tasks.map(task=>({...task,project:null,milestone:null}))};
+ const deleted={diary:[],inbox:[],projects:[],tasks:state.tasks.map(task=>({...task,project:null,milestone:null}))};
  await synchronize(state,deleted);
  ({state}=await notionLib.readSnapshot());assert.equal(state.projects.length,0);assert.equal(state.tasks.length,2);assert.equal(state.tasks[0].project,null);
- const empty={projects:[],tasks:[],inbox:[]};await synchronize(state,empty);({state}=await notionLib.readSnapshot());assert.equal(state.tasks.length,0);
+ const empty={projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true};await synchronize(state,empty);({state}=await notionLib.readSnapshot());assert.equal(state.tasks.length,0);
 
  const inboxNext={...state,inbox:[{id:'inbox-local',text:'Primeira linha\nSegunda linha\nTerceira linha',createdAt:Date.now()}]};
  await synchronize(state,inboxNext);await synchronize(state,inboxNext);
@@ -127,7 +129,22 @@ global.fetch=async(url,options={})=>{
  const conversionStart=calls.length;await synchronize(state,converted);assert.equal(creates,countBefore+1,'Reenvio da conversão não deve duplicar o destino');
  const conversionCalls=calls.slice(conversionStart);const createIndex=conversionCalls.findIndex(call=>call.route.startsWith('/pages')&&call.body?.properties);const deleteIndex=conversionCalls.findIndex(call=>call.body?.in_trash);assert.ok(createIndex>=0&&deleteIndex>createIndex,'A conversão cria o destino antes de remover o Inbox');
  ({state}=await notionLib.readSnapshot());assert.equal(state.inbox.length,0);assert.equal(state.tasks.length,1);
- await synchronize(state,{projects:[],tasks:[],inbox:[]});
+ await synchronize(state,{projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true});
+
+ ({state}=await notionLib.readSnapshot());
+ const daily={...state,diary:[{id:'d2026-10-04',date:'2026-10-04',text:'## Meu dia\n**Bom** e *tranquilo*\n- Caminhada',attachments:[{id:'diary-file',...uploaded}]}]};
+ await synchronize(state,daily);await synchronize(state,daily);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.diary.length,1);assert.equal(state.diary[0].date,'2026-10-04');assert.equal(state.diary[0].name,'04/10/2026');assert.equal(state.diary[0].text,daily.diary[0].text);assert.equal(state.diary[0].attachments[0].kind,'diary');
+ const duplicate={...state,diary:[...state.diary,{id:'different-id',date:'2026-10-04',text:'Outra',attachments:[]}]};await assert.rejects(()=>synchronize(state,duplicate),/uma entrada/);
+ const competing={...state,diary:[{id:'different-id',date:'2026-10-04',text:'Outra',attachments:[]}]};await assert.rejects(()=>synchronize(state,competing),/Já existe/);
+ const changedDiary=structuredClone(state);changedDiary.diary[0].text='Texto editado';await synchronize(state,changedDiary);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.diary[0].text,'Texto editado');
+ const emptyDiary=structuredClone(state);emptyDiary.diary[0].attachments=[];await synchronize(state,emptyDiary);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.diary[0].attachments.length,0);
+ delete process.env.NOTION_DIARY_DATABASE_ID;
+ const withoutDiary=(await notionLib.readSnapshot()).state;assert.equal(withoutDiary.diaryConfigured,false);assert.deepEqual(withoutDiary.diary,[]);
+ await assert.rejects(()=>synchronize(withoutDiary,{...withoutDiary,diary:[{id:'new-day',date:'2026-10-05',text:'Teste',attachments:[]}]}),/NOTION_DIARY_DATABASE_ID/);
+ process.env.NOTION_DIARY_DATABASE_ID='diary-test-db';
  const get=require(path.join(temp,'app/api/notion/route')).GET;
  const denied=await get(request);assert.equal(denied.status,401);assert.equal(calls.some(call=>call.route.includes('undefined')),false);
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão preservando tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');

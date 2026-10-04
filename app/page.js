@@ -3,7 +3,7 @@
 import { patchTask } from "../lib/tasks";
 
 import { readState, saveState } from "../lib/storage";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { useNotionState } from "../lib/useNotionState";
 import Login from "../components/Login";
@@ -11,6 +11,8 @@ import Inbox from "../components/Inbox";
 import TaskDetail from "../components/TaskDetail";
 import TasksView from "../components/TasksView";
 import ProjectsView from "../components/ProjectsView";
+import DiaryView from "../components/DiaryView";
+import { normalizeTabOrder, moveTab } from "../lib/diary";
 import Placeholder from "../components/Placeholder";
 
 const CONTEXTS = [
@@ -23,7 +25,21 @@ const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slic
 
 export default function Home() {
   const [context, setContext] = useState("all");
-  const [tabId, setTabId] = useState("tarefas");
+  const [tabId, setTabId] = useState(NAV[0].id);
+  const [tabOrder,setTabOrder] = useState(NAV.map(tab=>tab.id));
+  const [orderReady,setOrderReady] = useState(false);
+  const [dragged,setDragged] = useState(null);
+  const draggedTab = useRef(null);
+  const touchDrag = useRef(null);
+  const suppressClick = useRef(false);
+  useEffect(()=>{
+    let order=NAV.map(tab=>tab.id);
+    try { order=normalizeTabOrder(JSON.parse(localStorage.getItem('lifeos-tab-order')),order); } catch {}
+    setTabOrder(order);setTabId(order[0]);setOrderReady(true);
+  },[]);
+  useEffect(()=>{if(orderReady)try{localStorage.setItem('lifeos-tab-order',JSON.stringify(tabOrder));}catch{}},[tabOrder,orderReady]);
+  function reorderTab(from,to){setTabOrder(order=>moveTab(order,from,to));}
+  const orderedTabs=tabOrder.map(id=>NAV.find(tab=>tab.id===id));
   const [subs, setSubs] = useState({});
   const [selected, setSelected] = useState(null);
   const remote = useNotionState();
@@ -106,7 +122,7 @@ export default function Home() {
     }
   }
 
-  if(remote.authenticated === null) return <p className="empty">Carregando LifeOS…</p>;
+  if(!orderReady || remote.authenticated === null) return <p className="empty">Carregando LifeOS…</p>;
   if(!remote.authenticated) return <Login onLogin={remote.login} configured={remote.configured} initialError={remote.error} />;
   if(!ready) return <main className="login-shell"><div className="login-card"><h1>LifeOS</h1><p>{remote.loading ? "Conectando ao Notion…" : "Não foi possível carregar os bancos."}</p>{remote.error && <p className="date-error" role="alert">{remote.error}</p>}<button className="primary" onClick={remote.load} disabled={remote.loading}>Tentar novamente</button><button className="ghost" onClick={()=>remote.logout().catch(()=>{})}>Sair</button></div></main>;
 
@@ -154,13 +170,25 @@ export default function Home() {
       </header>
 
       <nav className="tabs" aria-label="Seções">
-        {NAV.map((t) => (
+        {orderedTabs.map((t) => (
           <span key={t.id} className="tab-wrap">
             {t.sep && <span className="tab-sep" aria-hidden="true" />}
             <button
-              className={"tab" + (t.id === tabId ? " on" : "")}
+              className={"tab" + (t.id === tabId ? " on" : "") + (dragged === t.id ? " dragging" : "")}
+              draggable
+              data-tab-id={t.id}
+              onPointerDown={e=>{if(e.pointerType==='touch'){touchDrag.current={id:t.id,x:e.clientX,y:e.clientY,moved:false,target:t.id};e.currentTarget.setPointerCapture(e.pointerId);}}}
+              onPointerMove={e=>{const drag=touchDrag.current;if(!drag)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>12){drag.moved=true;setDragged(drag.id);}if(drag.moved){const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-tab-id]')?.dataset.tabId;if(target)drag.target=target;}}}
+              onPointerUp={()=>{const drag=touchDrag.current;if(drag?.moved){reorderTab(drag.id,drag.target);suppressClick.current=true;setTimeout(()=>{suppressClick.current=false;},0);}touchDrag.current=null;setDragged(null);}}
+              onPointerCancel={()=>{touchDrag.current=null;setDragged(null);}}
+              title="Arraste para mudar a ordem · Alt + seta também move a aba"
+              onDragStart={e=>{draggedTab.current=t.id;setDragged(t.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',t.id);}}
+              onDragOver={e=>{if(draggedTab.current){e.preventDefault();e.dataTransfer.dropEffect='move';}}}
+              onDrop={e=>{e.preventDefault();if(draggedTab.current)reorderTab(draggedTab.current,t.id);draggedTab.current=null;setDragged(null);}}
+              onDragEnd={()=>{draggedTab.current=null;setDragged(null);}}
+              onKeyDown={e=>{if(e.altKey && ['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();const target=tabOrder[tabOrder.indexOf(t.id)+(e.key==='ArrowLeft'?-1:1)];if(target)reorderTab(t.id,target);}}}
               aria-current={t.id === tabId ? "page" : undefined}
-              onClick={() => { setTabId(t.id); setSelected(null); }}
+              onClick={() => { if(suppressClick.current)return;setTabId(t.id); setSelected(null); }}
             >
               {t.label}
             </button>
@@ -173,7 +201,7 @@ export default function Home() {
         {remote.error && <button className="ghost" onClick={() => remote.flush().catch(() => {})}>Tentar salvar novamente</button>}
         {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}
         {unimportedInbox.length > 0 && <button className="ghost" onClick={importInbox}>Importar Inbox deste navegador ({unimportedInbox.length})</button>}
-        <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
+        {tabId !== "diario" && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button
               key={s.id}
@@ -185,7 +213,7 @@ export default function Home() {
               {s.label}
             </button>
           ))}
-        </div>
+        </div>}
 
         {tabId === "tarefas" ? (
           tasks && projects ? (
@@ -199,6 +227,8 @@ export default function Home() {
           ) : (
             <p className="empty">Carregando…</p>
           )
+        ) : tabId === "diario" ? (
+          <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured}/>
         ) : (
           <Placeholder tab={tab} sub={sub} />
         )}

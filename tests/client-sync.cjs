@@ -16,7 +16,7 @@ React.useEffect=(fn,deps)=>{const i=index++;if(!slots[i]||changed(slots[i].deps,
 const {useNotionState}=require(path.join(folder,'lib/useNotionState'));
 function render(){if(!active)return;index=0;effects=[];hook=useNotionState();const pending=effects;effects=[];pending.forEach(effect=>effect());}
 const {readState,saveState}=require(path.join(folder,'lib/storage'));
-let remote={projects:[],tasks:[],inbox:[]},syncCount=0,uploadCount=0,failure=false,gate=null;
+let remote={projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true},syncCount=0,uploadCount=0,failure=false,gate=null;
 global.fetch=async(url,options={})=>{
  if(url==='/api/session')return Response.json({authenticated:true,configured:true});
  if(url==='/api/notion')return Response.json(remote);
@@ -25,9 +25,9 @@ global.fetch=async(url,options={})=>{
   syncCount++;if(gate)await gate;
   if(failure){failure=false;return Response.json({error:'Falha simulada'},{status:502});}
   const {next}=JSON.parse(options.body),bindings={},files={};
-  for(const item of [...next.projects,...next.projects.flatMap(project=>project.milestones),...next.tasks,...next.inbox]){
+  for(const item of [...next.projects,...next.projects.flatMap(project=>project.milestones),...next.tasks,...next.inbox,...next.diary]){
    bindings[item.id]=item._notionId||`remote-${item.id}`;
-   for(const file of item.attachments||[])if(file.uploadId)files[file.id]={id:file.id,name:file.name,notion:{type:'file',name:file.name,file:{url:'https://files.test/ref'}},pageId:bindings[item.id],index:0,kind:next.tasks.includes(item)?'tasks':'projects',url:'https://files.test/ref'};
+   for(const file of item.attachments||[])if(file.uploadId)files[file.id]={id:file.id,name:file.name,notion:{type:'file',name:file.name,file:{url:'https://files.test/ref'}},pageId:bindings[item.id],index:0,kind:next.diary.includes(item)?'diary':next.tasks.includes(item)?'tasks':'projects',url:'https://files.test/ref'};
   }
   remote=next;return Response.json({bindings,files});
  }
@@ -49,6 +49,7 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  await saving;await tick();assert.equal(hook.tasks[0].title,'Edição durante salvamento');assert.equal(remote.tasks[0].title,'Edição durante salvamento');assert.equal(hook.pending,false);
  hook.setInbox([{id:'i',text:'Entrada\ncom duas linhas',createdAt:Date.now()}]);await hook.flush();await tick();assert.equal(remote.inbox[0].text,'Entrada\ncom duas linhas');assert.equal(hook.inbox[0]._notionId,'remote-i');
  hook.setInbox([]);await hook.flush();await tick();assert.equal(remote.inbox.length,0);
+ hook.setDiary([{id:'d2026-10-04',date:'2026-10-04',text:'**Anotação**\nSegunda linha',attachments:[]}]);await hook.flush();await tick();assert.equal(remote.diary[0].date,'2026-10-04');assert.equal(hook.diary[0]._notionId,'remote-d2026-10-04');assert.equal(hook.pending,false);
  const legacy=await readState();assert.equal(legacy.tasks[0].id,'old-local-task');
  assert.equal((await readState('notion-draft')).next.tasks[0].title,'Edição durante salvamento');
  active=false;for(const slot of slots)slot?.cleanup?.();Object.assign(React,original);fs.rmSync(folder,{recursive:true});

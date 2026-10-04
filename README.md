@@ -1,12 +1,12 @@
 # LifeOS — integração inicial com Notion
 
-Base: v3 com anexos em Projetos e Tarefas. Sem painel de configurações. Projetos, tarefas, marcos e Inbox agora vêm do Notion. Diário e Finanças continuam com a indicação de tela não construída.
+Base: v3 com anexos em Projetos e Tarefas. Sem painel de configurações. Projetos, tarefas, marcos e Inbox agora vêm do Notion. Diário tem calendário, texto formatado e anexos. Finanças continua com a indicação de tela não construída.
 
 ## Publicar na Vercel
 
 1. Envie os arquivos deste pacote ao repositório, mantendo a estrutura de pastas.
 2. Em Settings → Environment Variables, mantenha `NOTION_TOKEN` e adicione `LIFEOS_PASSWORD` com uma senha de acesso escolhida por você. Não use o token do Notion como senha.
-3. Adicione `NOTION_INBOX_DATABASE_ID` com o ID do novo banco Inbox, conforme as instruções abaixo.
+3. Mantenha `NOTION_INBOX_DATABASE_ID` e adicione `NOTION_DIARY_DATABASE_ID` com o ID do novo banco Diário, conforme as instruções abaixo. Se o Inbox ainda não estiver configurado, crie-o também.
 4. Configure os ambientes onde vai testar (Production e, se necessário, Preview).
 5. Faça uma nova implantação após alterar as variáveis.
 6. Abra o app e entre com a senha definida em `LIFEOS_PASSWORD`.
@@ -19,7 +19,7 @@ O token só é utilizado no servidor. Os endpoints de leitura, gravação e anex
 - Marcos: `3ed530f0-f112-80e0-b1e5-f2a861954669`
 - Tarefas: `3ec530f0-f112-803b-a108-f7778cdee362`
 
-A conexão LifeOS deve ter acesso à página que contém os quatro bancos e capacidades de ler, inserir e atualizar conteúdo. O app descobre a fonte de dados de cada banco pela API. Se houver várias fontes no mesmo banco, defina `NOTION_PROJECTS_DATA_SOURCE_ID`, `NOTION_MILESTONES_DATA_SOURCE_ID` ou `NOTION_TASKS_DATA_SOURCE_ID`; para Inbox, `NOTION_INBOX_DATA_SOURCE_ID`.
+A conexão LifeOS deve ter acesso à página que contém os bancos configurados e capacidades de ler, inserir e atualizar conteúdo. O app descobre a fonte de dados de cada banco pela API. Se houver várias fontes no mesmo banco, defina `NOTION_PROJECTS_DATA_SOURCE_ID`, `NOTION_MILESTONES_DATA_SOURCE_ID` ou `NOTION_TASKS_DATA_SOURCE_ID`; para Inbox, `NOTION_INBOX_DATA_SOURCE_ID`, e para Diário, `NOTION_DIARY_DATA_SOURCE_ID`.
 
 ### Criar o banco Inbox
 
@@ -37,6 +37,34 @@ A conexão LifeOS deve ter acesso à página que contém os quatro bancos e capa
 Não precisa criar relações, status, contexto nem anexos no Inbox. A data de criação é lida do próprio registro do Notion para mostrar entradas recentes primeiro. Opcionalmente, crie uma propriedade do tipo Hora de criação para exibi-la no Notion; o app não exige essa coluna.
 
 Para criar uma entrada diretamente no Notion, preencha **Conteúdo**; esse é o texto que o aplicativo lê. Ao editar Conteúdo pelo app, Nome acompanha a primeira linha (até 200 caracteres). O limite por entrada é 10.000 caracteres.
+
+### Criar o banco Diário
+
+Dentro da página LifeOS, crie um banco em tabela chamado **Diário** com:
+
+| Propriedade | Tipo | Uso |
+|---|---|---|
+| Nome | Título | Data DD/MM/AAAA preenchida pelo app |
+| Data | Data | Dia da entrada, sem horário |
+| Conteúdo | Texto | Texto completo com formatação simples |
+| Anexos | Arquivos e mídia | Arquivos da entrada |
+
+Confira o acesso da conexão LifeOS. Na Vercel, configure `NOTION_DIARY_DATABASE_ID` com o ID desse banco e faça novo deploy. Não use o ID da visualização após `v=`. Os outros IDs e variáveis já configurados continuam iguais.
+
+O app adiciona LifeOS ID automaticamente na primeira gravação. O Diário aceita uma entrada por data; ao criar diretamente no Notion, preencha Data e Conteúdo e evite duas páginas para o mesmo dia. Conteúdo é uma propriedade Texto, não o corpo da página. Sem o ID do Diário, as demais seções continuam funcionando e a aba Diário mostra as instruções de configuração.
+
+### Calendário, leitura e edição
+
+- O calendário mostra um mês completo, destaca hoje e marca os dias com entrada. Há botões para avançar ou voltar um mês ou ano, botão Hoje e campo com máscara DD/MM/AAAA. Digitar só dia e mês completa o ano atual ao sair do campo.
+- Clique em um dia para abrir a entrada. Um dia sem registro abre para escrever; selecionar a data sozinha não cria uma página vazia.
+- Entradas existentes abrem para leitura. Clique em Editar entrada para alterar texto ou anexos. Concluir edição, Fechar, mudar de data/mês ou sair da aba bloqueia a edição novamente. O bloqueio é uma proteção da interface; o salvamento continua automático.
+- O texto aceita quebras de linha, negrito, itálico, títulos e listas pelos botões. A formatação simples usa `**negrito**`, `*itálico*`, `## Título` e linhas iniciadas por `- `. No Notion essas marcações ficam no campo Conteúdo; no LifeOS a leitura exibe a formatação.
+- Anexos podem ser vistos e baixados em leitura. Incluir e excluir exige desbloquear a edição; excluir pede confirmação. O limite de envio é 4 MB por arquivo. Texto limitado a 10.000 caracteres por dia.
+- Alterações no app salvam automaticamente; alterações em outro dispositivo ou diretamente no Notion aparecem ao clicar Atualizar.
+
+### Ordem das abas
+
+Arraste os botões das abas para a posição desejada. No teclado, foque a aba e use Alt + seta esquerda/direita. Em telas de toque, arraste horizontalmente. A ordem é salva neste navegador; a primeira aba da esquerda abre como visualização padrão no próximo acesso. Cada navegador/dispositivo guarda sua própria ordem. Na primeira abertura, a ordem começa por Projetos.
 
 ### Projetos
 
@@ -78,7 +106,7 @@ Para criar uma entrada diretamente no Notion, preencha **Conteúdo**; esse é o 
 | Concluída em | Data com horário | |
 | Anexos | Arquivos e mídia | |
 
-Na primeira gravação, o app acrescenta automaticamente a propriedade de texto `LifeOS ID` nos quatro bancos. Ela permite reconhecer uma criação já concluída caso a conexão falhe antes da resposta e evita duplicatas nas tentativas seguintes. Não altere essa propriedade; você pode ocultá-la nas visualizações do Notion.
+Na primeira gravação, o app acrescenta automaticamente a propriedade de texto `LifeOS ID` nos bancos configurados. Ela permite reconhecer uma criação já concluída caso a conexão falhe antes da resposta e evita duplicatas nas tentativas seguintes. Não altere essa propriedade; você pode ocultá-la nas visualizações do Notion.
 
 ## Uso
 
@@ -105,7 +133,7 @@ npm run build
 npm run dev
 ```
 
-Para desenvolvimento, copie `.env.example` para `.env.local` e preencha o token, a senha e o ID do banco Inbox. O arquivo `.env.local` está ignorado pelo Git.
+Para desenvolvimento, copie `.env.example` para `.env.local` e preencha o token, a senha e os IDs de Inbox e Diário. O arquivo `.env.local` está ignorado pelo Git.
 
 Os testes usam uma API e um IndexedDB simulados: cobrem autenticação, schemas, paginação, criação com relações, reenvio sem duplicação, edição parcial, conflitos, conclusão, datas, anexos, exclusão, rascunhos e edições durante salvamento. Não acessam seu workspace.
 
