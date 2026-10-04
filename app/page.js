@@ -72,7 +72,8 @@ export default function Home() {
     } catch {}
   }
 
-  const effectiveContext = tabId === "financas" ? "personal" : context;
+  const personalOnly = ["financas", "diario"].includes(tabId);
+  const effectiveContext = personalOnly ? "personal" : context;
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
   const sub = tab.subs.find((s) => s.id === subId);
@@ -167,8 +168,8 @@ export default function Home() {
               key={c.id}
               className={effectiveContext === c.id ? "on" : ""}
               aria-pressed={effectiveContext === c.id}
-              disabled={tabId === "financas"}
-              title={tabId === "financas" ? "Finanças usa apenas o contexto Pessoal" : undefined}
+              disabled={personalOnly}
+              title={personalOnly ? "Esta seção usa apenas o contexto Pessoal" : undefined}
               onClick={() => setContext(c.id)}
             >
               {c.label}

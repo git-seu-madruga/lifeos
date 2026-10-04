@@ -15,7 +15,8 @@ try{
  const layout=sankeyLayout(positive);assert.ok(Math.abs(layout.left.reduce((s,n)=>s+n.h,0)-layout.right.reduce((s,n)=>s+n.h,0))<0.001);assert.ok(sankeyLayout(positive,{a:20}).left[0].y!==layout.left[0].y);
  const FinanceView=require(path.join(folder,'components/FinanceView')).default;
  const html=renderToStaticMarkup(React.createElement(FinanceView,{categories,transactions:tx,configured:true,setFinance(){}}));assert.match(html,/Saldo restante/);assert.match(html,/Gerenciar categorias/);assert.match(html,/R\$ 400,00/);assert.match(html,/role="button"/);assert.match(html,/Adicionar valor/);
- const deficitHtml=renderToStaticMarkup(React.createElement(FinanceView,{categories,transactions:[{category:'b',amount:60000,month}],configured:true,setFinance(){}}));assert.match(deficitHtml,/Saldo faltante/);assert.match(deficitHtml,/#f26d64/);
+ const deficitHtml=renderToStaticMarkup(React.createElement(FinanceView,{categories,transactions:[{category:'b',amount:60000,month}],configured:true,setFinance(){}}));assert.match(deficitHtml,/Saldo faltante/);assert.match(deficitHtml,/#f26d64/);assert.match(deficitHtml,/-R\$ 600,00/);assert.doesNotMatch(deficitHtml,/Entradas \+ saldo faltante/);
+ const partialDeficit=renderToStaticMarkup(React.createElement(FinanceView,{categories,transactions:[{category:'a',amount:100000,month},{category:'b',amount:160000,month}],configured:true,setFinance(){}}));assert.match(partialDeficit,/<text x="550" y="44"[^>]*>R\$ 1.000,00<\/text>/);assert.match(partialDeficit,/Saldo faltante: -R\$ 600,00/);
  const setup=renderToStaticMarkup(React.createElement(FinanceView,{configured:false,setFinance(){}}));assert.match(setup,/NOTION_FINANCE_CATEGORIES_DATABASE_ID/);
 
  const oldRAF=global.requestAnimationFrame;global.requestAnimationFrame=()=>{};
