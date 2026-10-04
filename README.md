@@ -28,7 +28,7 @@ O pacote mantém as funcionalidades atuais de Projetos, Tarefas, Inbox e Diário
 |---|---|---|
 | Nome | Título | O app preenche com o nome da categoria |
 | Categoria | Relação | Categorias financeiras; limite de uma página |
-| Mês | Data | Sem horário; o app salva o primeiro dia do mês |
+| Data (ou a coluna existente Mês) | Data | Sem horário; guarda o dia completo do lançamento |
 | Valor | Número | Formato Real/R$; valor positivo, por exemplo 123,45 |
 
 No Notion, Valor guarda reais. Internamente, o app calcula em centavos para evitar diferenças de arredondamento. Não crie uma categoria para a sobra ou para o déficit: os dois são gerados automaticamente pelo gráfico. Não existe campo Contexto nesses bancos; Finanças é sempre pessoal.
@@ -42,13 +42,19 @@ NOTION_FINANCE_TRANSACTIONS_DATABASE_ID=ID_DO_BANCO_LANCAMENTOS
 
 Use o ID do banco, não o ID de visualização após `v=`. Confira o acesso da conexão. LifeOS ID é acrescentado automaticamente para evitar duplicatas em reenvios. Se um banco tiver várias fontes, use opcionalmente `NOTION_FINANCE_CATEGORIES_DATA_SOURCE_ID` e `NOTION_FINANCE_TRANSACTIONS_DATA_SOURCE_ID`. Sem os dois IDs financeiros, as demais telas continuam disponíveis e Finanças mostra as instruções de configuração.
 
+## Atualização para datas completas
+
+Não precisa criar novos bancos ou alterar variáveis na Vercel. A coluna existente Mês no banco Lançamentos financeiros já é do tipo Data e passa a guardar DD/MM/AAAA. Você pode mantê-la com esse nome ou renomeá-la para Data; o app aceita os dois nomes. Se criar o banco agora, prefira Data. Não converta essa propriedade para Texto.
+
+Registros existentes mantêm a data que já está no Notion; os criados pela versão mensal ficam no dia 01 do respectivo mês, pois antes o app não registrava o dia. Rascunhos antigos ainda pendentes também são compatíveis. Você pode editar as datas pelo LifeOS para informar o dia real. O filtro por período inclui ambos os dias de limite; as visualizações mensal e anual continuam incluindo todos os dias do mês/ano.
+
 ## Usar Finanças
 
 - Os contextos ficam centralizados no espaço livre entre o logo LifeOS e o botão redondo de atualizar. Em Finanças e Diário, Pessoal fica selecionado e a mudança de contexto é bloqueada; ao sair, o contexto anterior continua disponível nas outras seções.
-- Crie nomes de entrada e saída em Gerenciar categorias. Depois, selecione tipo, categoria, mês e valor em Adicionar valor. Cada inclusão cria um lançamento e vários lançamentos podem compartilhar a mesma categoria e mês.
-- Use Mês, Ano ou Período para consolidar. O período inclui os dois meses das pontas. Campos de mês usam MM/AAAA; digitar apenas mês e pressionar Tab/Enter completa o ano corrente. Nos campos de valor, a máscara exibe R$ e separadores de milhar durante a digitação. Tab ou sair do campo completa duas casas decimais: 1250 vira R$ 1.250,00 e 1250,5 vira R$ 1.250,50. A máscara vale também ao editar lançamentos.
+- Crie nomes de entrada e saída em Gerenciar categorias. Depois, selecione tipo, categoria, data e valor em Adicionar valor. Cada inclusão cria um lançamento e vários lançamentos podem compartilhar a mesma categoria e data.
+- Use Mês, Ano ou Período para consolidar. O período usa DD/MM/AAAA e inclui as duas datas das pontas. A data de criação/edição dos lançamentos também usa DD/MM/AAAA: digitar dia e mês e pressionar Tab/Enter completa o ano corrente. A visualização mensal continua com MM/AAAA e a anual continua por ano completo. Nos campos de valor, a máscara exibe R$ e separadores de milhar durante a digitação. Tab ou sair do campo completa duas casas decimais: 1250 vira R$ 1.250,00 e 1250,5 vira R$ 1.250,50. A máscara vale também ao editar lançamentos.
 - Entradas e saídas são somadas por categoria. Saldo restante positivo aparece à direita. Saldo faltante aparece à esquerda, em vermelho e com valor negativo, para equilibrar o diagrama quando as saídas superam as entradas. O título acima do gráfico mostra apenas Entradas do período, sem somar o déficit. A espessura da faixa faltante representa a magnitude do déficit para equilibrar o desenho. Ele não é registrado como receita; o resumo continua mostrando o saldo negativo. Saldo zero não cria um bloco de saldo.
-- Clique no nome, faixa ou bloco de uma categoria para abrir os lançamentos do período. Edite valor, mês ou categoria, ou exclua com confirmação. Os blocos de saldo automático não podem ser editados ou excluídos.
+- Clique no nome, faixa ou bloco de uma categoria para abrir os lançamentos do período. Edite valor, data ou categoria, ou exclua com confirmação. Os blocos de saldo automático não podem ser editados ou excluídos.
 - Arraste verticalmente os blocos para ajustar a disposição; essa organização é temporária nesta sessão. Em telas pequenas, o gráfico pode ser rolado horizontalmente.
 - Renomear uma categoria altera seu nome no gráfico em todos os períodos. Trocar seu tipo, com confirmação quando já há valores, muda a classificação de todos os lançamentos vinculados. Excluir uma categoria pede confirmação e exclui seus lançamentos de todos os meses; o aviso informa a quantidade.
 - Tudo salva automaticamente no Notion. A exclusão usa a lixeira nativa do Notion. Alterações feitas no próprio Notion são carregadas pelo botão Atualizar.

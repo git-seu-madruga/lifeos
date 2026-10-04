@@ -2,7 +2,7 @@
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
 const swc=require('next/dist/build/swc'),React=require('react');
 const folder=path.resolve('.client-test');fs.mkdirSync(path.join(folder,'lib'),{recursive:true});
-for(const name of ['useNotionState.js','notionDiff.js','storage.js','api.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
+for(const name of ['useNotionState.js','notionDiff.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
 require('fake-indexeddb/auto');
 global.window={addEventListener(){},removeEventListener(){}};
 const original={useState:React.useState,useRef:React.useRef,useCallback:React.useCallback,useEffect:React.useEffect};
