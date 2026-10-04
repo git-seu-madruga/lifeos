@@ -5,7 +5,6 @@ import { patchTask } from "../lib/tasks";
 import { readState, saveState } from "../lib/storage";
 import { useEffect, useRef, useState } from "react";
 import { NAV, INBOX_TARGETS } from "../lib/nav";
-import { todayISO } from "../lib/dates";
 import { makeTasks, makeProjects, INBOX_SEED } from "../lib/mockData";
 import Inbox from "../components/Inbox";
 import TaskDetail from "../components/TaskDetail";
@@ -101,7 +100,7 @@ export default function Home() {
     const newId = uid(kind === "task" ? "t" : "pr");
     if (kind === "task") {
       setTasks((prev) => [...prev, {
-        id: newId, title: first, status: "todo", due: tabId === "hoje" ? todayISO() : null, start: null,
+        id: newId, title: first, status: "todo", due: null, start: null,
         priority: "medium", context: ctx, project: null, milestone: null, links: [], notes,
         followUp: null, waitingOn: "",
       }]);

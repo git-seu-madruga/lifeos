@@ -14,11 +14,11 @@ Na primeira abertura são carregados dados fictícios. Espere o indicador “Sal
 
 ## Datas e projetos
 
-Digite DD/MM e pressione Tab para completar o ano atual, ou informe DD/MM/AAAA. Também há um seletor de calendário. Datas inválidas e marcos posteriores ao prazo final do projeto são bloqueados. Sem prazo final, os marcos são livres. Antecipar o prazo final exige ajustar antes os marcos posteriores.
+Digite apenas os números (DDMM ou DDMMAAAA); as barras são inseridas automaticamente. Digite DDMM e pressione Tab para completar o ano atual, ou informe DD/MM/AAAA. Também há um seletor de calendário. Datas inválidas e marcos posteriores ao prazo final do projeto são bloqueados. Sem prazo final, os marcos são livres. Antecipar o prazo final exige ajustar antes os marcos posteriores.
 
 Projetos têm status Ativo, Pausado, Concluído e Cancelado. Excluir um projeto exige confirmação, remove seus anexos e mantém as tarefas sem projeto e sem marco. Não há histórico de exclusão.
 
-Os anexos podem ser incluídos, abertos, baixados, arquivados e restaurados. Arquivar preserva o arquivo; a visualização depende do suporte do navegador ao formato.
+Os anexos podem ser incluídos, abertos, baixados e excluídos com confirmação; a visualização depende do suporte do navegador ao formato.
 
 ## Estrutura
 
@@ -27,5 +27,7 @@ Os anexos podem ser incluídos, abertos, baixados, arquivados e restaurados. Arq
 - `lib/nav.js`: navegação.
 - `components/TasksView.js` e `components/ProjectsView.js`: telas principais.
 - `components/DateInput.js`: entrada de datas e calendário.
-- `components/ProjectAttachments.js`: anexos e arquivamento.
+- `components/ProjectAttachments.js`: anexos e exclusão.
 - `app/globals.css`: visual e responsividade.
+
+A navegação contém apenas Projetos, Tarefas, Diário e Finanças. Diário e Finanças ainda mostram a indicação de tela não construída. Anexos arquivados em versões anteriores aparecem na lista única e podem ser excluídos.
