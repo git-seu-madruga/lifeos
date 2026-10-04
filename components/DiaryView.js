@@ -60,7 +60,7 @@ export default function DiaryView({entries=[],setEntries,configured}) {
   const year=Number(view.slice(0,4)),month=Number(view.slice(5,7))-1;
   const days=calendarDays(year,month);
   const entryByDate=new Map(entries.map(entry=>[entry.date,entry]));
-  function navigate(value){if(!value)return;setView(value);setSelected(null);}
+  function navigate(value,openEntry=false){if(!value)return;setView(value);setSelected(openEntry?value:null);}
   function shift(months){const date=new Date(year,month+months,1,12);if(date.getFullYear()<1000||date.getFullYear()>9999)return;navigate(dateKey(date));}
   function update(entry){setEntries(previous=>{const existing=previous.find(item=>item.date===entry.date);return existing?previous.map(item=>item.id===existing.id?entry:item):[...previous,entry];});}
   if(!configured)return <section className="diary-setup"><h2>Configure o Diário no Notion</h2><p>Crie o banco Diário com Nome (Título), Data (Data), Conteúdo (Texto) e Anexos (Arquivos e mídia).</p><p>Na Vercel, adicione <code>NOTION_DIARY_DATABASE_ID</code> com o ID desse banco e faça um novo deploy.</p></section>;
@@ -70,7 +70,7 @@ export default function DiaryView({entries=[],setEntries,configured}) {
       <h2 aria-live="polite">{new Date(year,month,1,12).toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</h2>
       <div className="diary-nav-buttons"><button className="ghost" onClick={()=>shift(1)} aria-label="Próximo mês">Mês ›</button><button className="ghost" onClick={()=>shift(12)} aria-label="Próximo ano">Ano »</button></div>
     </div>
-    <div className="diary-jump"><label>Ir para a data <DateInput value={view} onChange={e=>navigate(e.target.value)} aria-label="Ir para a data"/></label><button className="ghost" onClick={()=>navigate(today)}>Hoje</button><span className="muted small">● Dia com entrada</span></div>
+    <div className="diary-jump"><label>Ir para a data <DateInput className="search" value={view} onChange={e=>navigate(e.target.value,true)} aria-label="Ir para a data"/></label><button className="ghost" onClick={()=>navigate(today,true)}>Hoje</button><span className="muted small">● Dia com entrada</span></div>
     <div className="diary-calendar" role="group" aria-label="Calendário do diário">
       {['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day=><div key={day} className="diary-weekday">{day}</div>)}
       {days.map(day=><button key={day.date} className={`diary-day${day.outside?' outside':''}${day.date===today?' today':''}${day.date===selected?' selected':''}`} aria-current={day.date===today?'date':undefined} aria-pressed={day.date===selected} aria-label={`${formatDateInput(day.date)}${day.date===today?', hoje':''}${entryByDate.has(day.date)?', com entrada':''}`} onClick={()=>{setSelected(day.date);if(day.outside)setView(day.date);}}><span>{day.day}</span>{entryByDate.has(day.date)&&<span className="diary-dot" aria-hidden="true">●</span>}</button>)}

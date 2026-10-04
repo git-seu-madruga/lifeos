@@ -55,7 +55,7 @@ O app adiciona LifeOS ID automaticamente na primeira gravação. O Diário aceit
 
 ### Calendário, leitura e edição
 
-- O calendário mostra um mês completo, destaca hoje e marca os dias com entrada. Há botões para avançar ou voltar um mês ou ano, botão Hoje e campo com máscara DD/MM/AAAA. Digitar só dia e mês completa o ano atual ao sair do campo.
+- O calendário mostra um mês completo, destaca hoje e marca os dias com entrada. Há botões para avançar ou voltar um mês ou ano, botão Hoje e campo com máscara DD/MM/AAAA. O campo segue o estilo das demais datas. Digitar só dia e mês completa o ano atual ao sair do campo. Confirmar uma data digitada ou escolhê-la no seletor abre a entrada do dia e seleciona a data no calendário principal. O botão Hoje também abre a entrada de hoje.
 - Clique em um dia para abrir a entrada. Um dia sem registro abre para escrever; selecionar a data sozinha não cria uma página vazia.
 - Entradas existentes abrem para leitura. Clique em Editar entrada para alterar texto ou anexos. Concluir edição, Fechar, mudar de data/mês ou sair da aba bloqueia a edição novamente. O bloqueio é uma proteção da interface; o salvamento continua automático.
 - O texto aceita quebras de linha, negrito, itálico, títulos e listas pelos botões. A formatação simples usa `**negrito**`, `*itálico*`, `## Título` e linhas iniciadas por `- `. No Notion essas marcações ficam no campo Conteúdo; no LifeOS a leitura exibe a formatação.
