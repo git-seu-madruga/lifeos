@@ -348,15 +348,3 @@ input[type="date"] { min-width: 165px; }
 .attachments input[type="file"] { max-width: 230px; font-size: 12px; }
 .attachment-row { flex-wrap: wrap; overflow-wrap: anywhere; }
 .attachment-row > a:first-child { flex: 1; min-width: 100px; color: var(--blue); }
-
-/* Configurações e opções personalizadas */
-.settings-field { padding: 16px 0; border-top: 1px solid var(--line); }
-.settings-field h3 { margin: 0 0 10px; }
-.settings-row { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 10px 0; }
-.settings-row > input { flex: 1 1 150px; width: 150px; }
-.settings-row > select { flex: 1 1 150px; width: 150px; }
-.settings-row .date-error { flex-basis: 100%; }
-.segmented { flex-wrap: wrap; max-width: 100%; }
-.cards { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
-.icon-btn:disabled { opacity: .4; cursor: default; }
-@media (max-width: 640px) { .cards { grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); } }

@@ -31,17 +31,3 @@ Os anexos podem ser incluídos, abertos, baixados e excluídos com confirmação
 - `app/globals.css`: visual e responsividade.
 
 A navegação contém apenas Projetos, Tarefas, Diário e Finanças. Diário e Finanças ainda mostram a indicação de tela não construída. Anexos arquivados em versões anteriores aparecem na lista única e podem ser excluídos.
-
-## Configurações
-
-A engrenagem ao lado de Atualizar abre as configurações da aba atual:
-
-- Projetos: status, áreas e contextos.
-- Tarefas: status, prioridades e contextos.
-- Diário e Finanças: contextos globais; as opções específicas dependem da construção dessas telas.
-
-É possível adicionar, renomear e ordenar opções. As prioridades seguem a ordem da lista, da maior para a menor. Contextos são globais. Renomear áreas atualiza os projetos existentes; os demais vínculos usam identificadores estáveis. Áreas antigas em texto livre são incluídas automaticamente nas opções.
-
-Status personalizados de tarefas têm um comportamento: não iniciado, em andamento, aguardando/cobrança ou concluído. O comportamento é utilizado nos cards, no progresso, nas cobranças e no cronograma. Os comportamentos dos status básicos são preservados; seus nomes e ordem podem ser alterados. Novos status dos projetos também aparecem nas guias de projetos.
-
-As configurações são salvas junto aos dados locais e permanecem após recarregar. O painel não remove opções para evitar deixar registros existentes sem vínculo.
