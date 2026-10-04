@@ -44,9 +44,9 @@ Use o ID do banco, não o ID de visualização após `v=`. Confira o acesso da c
 
 ## Usar Finanças
 
-- Os contextos ficam centralizados no cabeçalho. Em Finanças, Pessoal fica selecionado e a mudança de contexto é bloqueada; ao sair, o contexto anterior continua disponível nas outras seções.
+- Os contextos ficam centralizados no espaço livre entre o logo LifeOS e o botão redondo de atualizar. Em Finanças, Pessoal fica selecionado e a mudança de contexto é bloqueada; ao sair, o contexto anterior continua disponível nas outras seções.
 - Crie nomes de entrada e saída em Gerenciar categorias. Depois, selecione tipo, categoria, mês e valor em Adicionar valor. Cada inclusão cria um lançamento e vários lançamentos podem compartilhar a mesma categoria e mês.
-- Use Mês, Ano ou Período para consolidar. O período inclui os dois meses das pontas. Campos de mês usam MM/AAAA; digitar apenas mês e pressionar Tab/Enter completa o ano corrente. No campo de valor, use o padrão brasileiro, como 1.250,50.
+- Use Mês, Ano ou Período para consolidar. O período inclui os dois meses das pontas. Campos de mês usam MM/AAAA; digitar apenas mês e pressionar Tab/Enter completa o ano corrente. Nos campos de valor, a máscara exibe R$ e separadores de milhar durante a digitação. Tab ou sair do campo completa duas casas decimais: 1250 vira R$ 1.250,00 e 1250,5 vira R$ 1.250,50. A máscara vale também ao editar lançamentos.
 - Entradas e saídas são somadas por categoria. Saldo restante positivo aparece à direita. Saldo faltante aparece à esquerda, em vermelho, para equilibrar o diagrama quando as saídas superam as entradas. Ele não é registrado como receita; o resumo continua mostrando o saldo negativo. Saldo zero não cria um bloco de saldo.
 - Clique no nome, faixa ou bloco de uma categoria para abrir os lançamentos do período. Edite valor, mês ou categoria, ou exclua com confirmação. Os blocos de saldo automático não podem ser editados ou excluídos.
 - Arraste verticalmente os blocos para ajustar a disposição; essa organização é temporária nesta sessão. Em telas pequenas, o gráfico pode ser rolado horizontalmente.

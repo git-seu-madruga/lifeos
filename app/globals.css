@@ -391,9 +391,9 @@ button:disabled { opacity: .5; cursor: default; }
 .tab[draggable="true"] { touch-action: pan-y; }
 
 /* Versão experimental: finanças pessoais */
-.topbar { display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr); }
+.topbar { display:grid;grid-template-columns:auto minmax(0,1fr) auto; }
 .topbar>.segmented { justify-self:center; }
-.topbar-right { margin-left:0;justify-self:end; }
+.topbar-right { margin-left:0;justify-self:end;width:auto;justify-content:flex-start; }
 .topbar .segmented button.on:disabled { opacity:1;cursor:default; }
 .finance-view { margin-top:20px; }
 .finance-heading { display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap; }
