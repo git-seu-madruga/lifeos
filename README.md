@@ -1,3 +1,9 @@
+# LifeOS — login Google e dois usuários
+
+**Comece pelo arquivo [INSTRUCOES-GOOGLE.md](INSTRUCOES-GOOGLE.md).** Esta versão substitui a senha compartilhada por login Google e inclui isolamento de dados privados, áreas compartilhadas e coordenação de gravações. Configure tudo antes do deploy; a versão antiga pode continuar funcionando enquanto você prepara as credenciais.
+
+Os registros privados atuais pertencem à conta periclesbernardes@gmail.com. A segunda conta autorizada é leticiacost3@gmail.com. Compras, Aniversários e Finanças são compartilhados. Nenhum banco precisa ser duplicado.
+
 # LifeOS — atualização com Finanças
 
 Base: v3 com anexos em Projetos e Tarefas. Sem painel de configurações. Projetos, tarefas, marcos e Inbox agora vêm do Notion. Diário tem calendário, texto formatado e anexos. Finanças agora tem categorias, lançamentos e um gráfico Sankey interativo.
@@ -6,9 +12,9 @@ Base: v3 com anexos em Projetos e Tarefas. Sem painel de configurações. Projet
 
 1. Crie apenas os dois novos bancos financeiros abaixo, dentro da página LifeOS no Notion. Mantenha os bancos existentes de Projetos, Marcos, Tarefas, Inbox e Diário.
 2. Confira se a conexão interna LifeOS tem acesso aos dois bancos novos e permissões de ler, inserir e atualizar conteúdo.
-3. No projeto atual da Vercel, mantenha todas as variáveis existentes, incluindo NOTION_TOKEN, LIFEOS_PASSWORD e os IDs de Inbox e Diário. Acrescente apenas NOTION_FINANCE_CATEGORIES_DATABASE_ID e NOTION_FINANCE_TRANSACTIONS_DATABASE_ID com os IDs dos bancos financeiros.
+3. No projeto atual da Vercel, mantenha todas as variáveis existentes, incluindo NOTION_TOKEN e os IDs de Inbox e Diário. Acrescente apenas NOTION_FINANCE_CATEGORIES_DATABASE_ID e NOTION_FINANCE_TRANSACTIONS_DATABASE_ID com os IDs dos bancos financeiros.
 4. Envie o conteúdo deste ZIP ao repositório e à branch que já alimentam seu app na Vercel, preservando as pastas. Não é necessário criar outro fork nem outro projeto na Vercel.
-5. Faça um novo deploy após cadastrar as variáveis e enviar os arquivos. Acesse pelo endereço que já utiliza e entre com a mesma senha.
+5. Faça um novo deploy após cadastrar as variáveis e enviar os arquivos. Acesse pelo endereço que já utiliza e entre com uma das contas Google autorizadas.
 6. Na aba Finanças, crie suas categorias em Gerenciar categorias e adicione os valores. Aguarde Salvo no Notion antes de fechar.
 
 O pacote mantém as funcionalidades atuais de Projetos, Tarefas, Inbox e Diário. A mudança global no cabeçalho centraliza os contextos. Finanças usa apenas os dois novos bancos financeiros e fica no contexto Pessoal. Os IDs padrão de Projetos, Marcos e Tarefas continuam os mesmos; não precisa cadastrá-los novamente na Vercel. Sem configurar os dois bancos novos, Finanças mostra as instruções de configuração e as demais telas continuam disponíveis.
@@ -65,9 +71,9 @@ Registros existentes mantêm a data que já está no Notion; os criados pela ver
 
 ## Variáveis existentes
 
-Mantenha os valores que já funcionam no projeto atual. Não substitua o token, a senha ou os IDs atuais por campos vazios do arquivo .env.example. Esse arquivo é apenas um modelo para desenvolvimento local. Para publicar esta atualização, cadastre somente as duas novas variáveis financeiras e faça novo deploy.
+Mantenha os valores que já funcionam no projeto atual. Não substitua o token ou os IDs atuais por campos vazios do arquivo .env.example. Esse arquivo é apenas um modelo para desenvolvimento local. Para publicar esta atualização, cadastre somente as duas novas variáveis financeiras e faça novo deploy.
 
-O token só é utilizado no servidor. Os endpoints de leitura, gravação e anexos exigem sessão autenticada. A sessão usa cookie HttpOnly, SameSite e validade de 7 dias. Trocar a senha invalida as sessões. As tentativas de login têm limitação por instância do servidor; para um produto com múltiplos usuários, substituir por autenticação dedicada.
+O token é utilizado apenas no servidor. Todos os endpoints exigem sessão Google e verificam o usuário. Consulte INSTRUCOES-GOOGLE.md para autenticação, isolamento e configuração.
 
 ## Bancos configurados
 
@@ -195,7 +201,7 @@ npm run build
 npm run dev
 ```
 
-Para desenvolvimento, copie `.env.example` para `.env.local` e preencha o token, a senha e os IDs de Inbox e Diário. O arquivo `.env.local` está ignorado pelo Git.
+Para desenvolvimento, copie `.env.example` para `.env.local` e preencha as credenciais Google, o token e os IDs de Inbox e Diário. O arquivo `.env.local` está ignorado pelo Git.
 
 Os testes usam uma API e um IndexedDB simulados: cobrem autenticação, schemas, paginação, criação com relações, reenvio sem duplicação, edição parcial, conflitos, conclusão, datas, anexos, exclusão, rascunhos e edições durante salvamento. Não acessam seu workspace.
 
@@ -358,7 +364,7 @@ NOTION_HABITS_DATABASE_ID=ID_DO_BANCO_HABITOS
 NOTION_HABIT_LOGS_DATABASE_ID=ID_DO_BANCO_REGISTROS_DE_HABITOS
 ```
 
-Copie os IDs dos links dos bancos (trecho de 32 caracteres antes de `?v=`), não os IDs das visualizações. Mantenha o token, a senha e todos os IDs existentes. Atualize os arquivos no GitHub e faça o deploy depois de acrescentar as variáveis. Se algum dos dois IDs estiver ausente, a aba mostra instruções e as demais abas continuam funcionando. Nenhuma alteração é necessária nos bancos anteriores.
+Copie os IDs dos links dos bancos (trecho de 32 caracteres antes de `?v=`), não os IDs das visualizações. Mantenha o token e todos os IDs existentes. Atualize os arquivos no GitHub e faça o deploy depois de acrescentar as variáveis. Se algum dos dois IDs estiver ausente, a aba mostra instruções e as demais abas continuam funcionando. Nenhuma alteração é necessária nos bancos anteriores.
 
 ### Marcação e renovação diária
 

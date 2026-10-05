@@ -14,7 +14,7 @@ for(const folder of ['lib','app/api']) {
  }
  compile(folder);
 }
-process.env.NOTION_TOKEN='test-notion-token';process.env.LIFEOS_PASSWORD='test-password-long';
+process.env.NOTION_TOKEN='test-notion-token';process.env.GOOGLE_CLIENT_ID='client.apps.googleusercontent.com';process.env.GOOGLE_CLIENT_SECRET='test-secret';process.env.LIFEOS_SESSION_SECRET='a'.repeat(40);process.env.LIFEOS_ALLOWED_GOOGLE_EMAILS='periclesbernardes@gmail.com,leticiacost3@gmail.com';process.env.LIFEOS_LEGACY_OWNER_EMAIL='periclesbernardes@gmail.com';process.env.LIFEOS_APP_URL='https://lifeos.test';
 const auth=require(path.join(temp,'lib/server/auth'));
 const notionLib=require(path.join(temp,'lib/server/notion'));
 const {synchronize}=require(path.join(temp,'lib/server/sync'));
@@ -36,7 +36,7 @@ const specs={
  tasks:{'Nome':'title','Status':'status','Prioridade':'select','Contexto':'select','Projeto':'relation','Marco':'relation','Início':'date','Prazo':'date','Aguardando':'rich_text','Cobrar em':'date','Anotações':'rich_text','Concluída em':'date','Anexos':'files'},
 };
 const sources={};for(const [kind,spec] of Object.entries(specs))sources[kind]={id:sourceIds[kind],properties:Object.fromEntries(Object.entries(spec).map(([name,type])=>[name,{id:randomUUID(),name,type,...(type==='relation'?{relation:{data_source_id:sourceIds[name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects'],database_id:databases[name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects']}}:{})}]))};
-const rows=new Map(),calls=[];let creates=0,paginate=false,failShoppingWrite=false;
+const rows=new Map(),calls=[],redisRows=new Map();let creates=0,paginate=false,failShoppingWrite=false;
 const kindBySource=id=>Object.keys(sourceIds).find(kind=>sourceIds[kind]===id);
 function normalizeProperties(kind,properties) {
  return Object.fromEntries(Object.entries(properties).map(([name,value])=>{
@@ -46,6 +46,14 @@ function normalizeProperties(kind,properties) {
  }));
 }
 global.fetch=async(url,options={})=>{
+ if(url==='https://redis.test'){
+  const cmd=JSON.parse(options.body);let result=null;
+  if(cmd[0]==='GET')result=redisRows.get(cmd[1])||null;
+  if(cmd[0]==='SET'){if(!cmd.includes('NX')||!redisRows.has(cmd[1])){redisRows.set(cmd[1],cmd[2]);result='OK';}}
+  if(cmd[0]==='EVAL'){if(redisRows.get(cmd[3])===cmd[4]){redisRows.delete(cmd[3]);result=1;}else result=0;}
+  return Response.json({result});
+ }
+
  assert.equal(options.headers.Authorization,'Bearer test-notion-token');assert.equal(options.headers['Notion-Version'],'2025-09-03');
  const uri=new URL(url),route=uri.pathname.slice(3),method=options.method||'GET';
  const body=options.body instanceof FormData?options.body:options.body?JSON.parse(options.body):undefined;
@@ -83,8 +91,7 @@ global.fetch=async(url,options={})=>{
  const request=new Request('https://lifeos.test/api/session',{method:'POST',headers:{origin:'https://lifeos.test'}});
  assert.throws(()=>auth.authorize(request),error=>error.status===401);
  assert.throws(()=>auth.checkOrigin(new Request('https://lifeos.test/api',{headers:{origin:'https://evil.test'}})),error=>error.status===403);
- assert.throws(()=>auth.login(request,'wrong'),error=>error.status===401);
- const cookie=auth.login(request,'test-password-long').split(';')[0];
+ const cookie=auth.sessionCookie({id:'google:test-pericles',email:'periclesbernardes@gmail.com',name:'Péricles'}).split(';')[0];
  const logged=new Request('https://lifeos.test/api/notion',{headers:{cookie}});auth.authorize(logged);
  assert.equal(auth.authenticated(new Request('https://lifeos.test/api',{headers:{cookie:cookie+'bad'}})),false);
  let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false,habits:[],habitLogs:[],habitsConfigured:false});
@@ -194,6 +201,21 @@ global.fetch=async(url,options={})=>{
  const invalid=structuredClone(state);invalid.habits[0].color='invalid';await assert.rejects(()=>synchronize(state,invalid),/cor e um ícone/);
  const trashStart=calls.length;await synchronize(state,{...state,habits:[],habitLogs:[]});const trash=calls.slice(trashStart).filter(p=>p.body?.in_trash);assert.equal(trash[0].route,`/pages/${state.habitLogs[0].id}`);assert.equal((await notionLib.readSnapshot()).state.habits.length,0);
  delete process.env.NOTION_HABITS_DATABASE_ID;delete process.env.NOTION_HABIT_LOGS_DATABASE_ID;assert.equal((await notionLib.readSnapshot()).state.habitsConfigured,false);
+ }
+ {
+ process.env.UPSTASH_REDIS_REST_URL='https://redis.test';process.env.UPSTASH_REDIS_REST_TOKEN='redis-test-token';process.env.NOTION_SHOPPING_DATABASE_ID='shopping-test';process.env.NOTION_CONTACTS_DATABASE_ID='contacts-test';process.env.NOTION_FINANCE_CATEGORIES_DATABASE_ID='finance-categories-test';process.env.NOTION_FINANCE_TRANSACTIONS_DATABASE_ID='finance-transactions-test';process.env.NOTION_HABITS_DATABASE_ID='habits-test';process.env.NOTION_HABIT_LOGS_DATABASE_ID='habit-logs-test';
+ const A={id:'google:user-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:user-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+ const {habitToday}=require(path.join(temp,'lib/habits')),day=habitToday();let stateA=(await notionLib.readSnapshot(false,A)).state;
+ const initialB=(await notionLib.readSnapshot(false,B)).state;assert.equal(initialB.projects.length,0);assert.equal(initialB.tasks.length,0);assert.equal(initialB.inbox.length,0);assert.equal(initialB.diary.length,0);
+ function privateNext(base,prefix){const next=structuredClone(base);next.projects.push({id:prefix+'p',name:prefix+'projeto',status:'active',context:'personal',area:'',due:null,description:'',attachments:[],milestones:[{id:prefix+'m',title:'Marco',due:null,done:false}]});next.tasks.push({id:prefix+'t',title:prefix+'tarefa',status:'todo',priority:'medium',context:'personal',project:prefix+'p',milestone:prefix+'m',attachments:[],notes:'',due:null,start:null,followUp:null,waitingOn:'',completedAt:null});next.inbox.push({id:prefix+'i',text:prefix+'segredo',createdAt:Date.now()});next.diary.push({id:prefix+'d',date:'2026-09-17',text:prefix+'diário',attachments:[]});next.habits.push({id:prefix+'h',name:prefix+'hábito',context:'personal',color:'blue',icon:'book',start:day});next.habitLogs.push({id:prefix+'l',name:'Hábito',habit:prefix+'h',date:day});return next;}
+ let nextA=privateNext(stateA,'A');nextA.shopping.push({id:'shared-shop',name:'Mercado compartilhado',context:'personal',items:[{id:'milk',text:'Leite'}]});nextA.contacts.push({id:'shared-contact',name:'Contato compartilhado',day:1,month:1,year:null});nextA.categories.push({id:'shared-cat',name:'Receita compartilhada',flow:'in'});nextA.transactions.push({id:'shared-tx',name:'Receita compartilhada',category:'shared-cat',date:day,amount:10000,notes:''});await synchronize(stateA,nextA,A);
+ const stateB=(await notionLib.readSnapshot(false,B)).state;assert.equal(stateB.projects.length,0);assert.equal(stateB.habits.length,0);assert.equal(stateB.shopping.length,1);assert.equal(stateB.contacts.length,1);assert.equal(stateB.transactions.length,1);let nextB=privateNext(stateB,'B');await synchronize(stateB,nextB,B);
+ stateA=(await notionLib.readSnapshot(false,A)).state;const readB=(await notionLib.readSnapshot(false,B)).state;assert.ok(stateA.projects.some(p=>p.name==='Aprojeto'));assert.ok(!JSON.stringify(stateA).includes('Bsegredo'));assert.ok(!JSON.stringify(readB).includes('Asegredo'));assert.equal(readB.diary.length,1);assert.equal(readB.habitLogs.length,1);const projectA=stateA.projects.find(p=>p.name==='Aprojeto');await assert.rejects(()=>notionLib.ownedPage('projects',projectA.id,B),error=>error.status===403);
+ const stolen=structuredClone(readB);stolen.projects.push({...projectA,name:'Ataque'});await assert.rejects(()=>synchronize(readB,stolen,B),error=>error.status===403);const deleteOther=structuredClone(readB);deleteOther.projects.push(projectA);await assert.rejects(()=>synchronize(deleteOther,readB,B),error=>error.status===403);
+ const forgedUpload=structuredClone(readB);forgedUpload.tasks[0].attachments=[{id:'forged',name:'file.txt',uploadId:'secret-file',uploadProof:auth.seal({user:A.id,uploadId:'secret-file',exp:Date.now()+10000})}];await assert.rejects(()=>synchronize(readB,forgedUpload,B),error=>error.status===403);
+ const sharedEdit=structuredClone(readB);sharedEdit.shopping[0].items.push({id:'eggs',text:'Ovos'});await synchronize(readB,sharedEdit,B);const after=(await notionLib.readSnapshot(false,A)).state;assert.equal(after.shopping[0].items.length,2);const editor=rows.get(after.shopping[0].id).properties['LifeOS Último editor'];assert.ok(notionLib.plain(editor.rich_text).includes('Letícia'));const activity=await require(path.join(temp,'lib/server/coordination')).sharedActivity();assert.equal(activity.shopping.email,B.email);
+ const staleDelete=structuredClone(readB);staleDelete.shopping=[];await assert.rejects(()=>synchronize(readB,staleDelete,B),/alterado desde/);
+ const {withWriteLock}=require(path.join(temp,'lib/server/coordination'));let release;const pending=withWriteLock(async guard=>{await guard();await new Promise(resolve=>release=resolve);});for(let i=0;i<5&&!release;i++)await new Promise(resolve=>setImmediate(resolve));await assert.rejects(()=>withWriteLock(async()=>{}),/Outro usuário/);release();await pending;assert.equal(redisRows.has('lifeos:write:v1'),false);
  }
  const get=require(path.join(temp,'app/api/notion/route')).GET;
  const denied=await get(request);assert.equal(denied.status,401);assert.equal(calls.some(call=>call.route.includes('undefined')),false);

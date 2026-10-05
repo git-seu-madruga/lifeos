@@ -6,9 +6,10 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node tests/notion.cjs && node tests/client-sync.cjs && node tests/diary.cjs && node tests/finance.cjs && node tests/birthdays.cjs && node tests/shopping.cjs && node tests/habits.cjs"
+    "test": "node tests/notion.cjs && node tests/client-sync.cjs && node tests/diary.cjs && node tests/finance.cjs && node tests/birthdays.cjs && node tests/shopping.cjs && node tests/habits.cjs && node tests/google.cjs"
   },
   "dependencies": {
+    "google-auth-library": "^10.9.1",
     "next": "^15.0.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"

@@ -2,7 +2,7 @@
 
 import { patchTask } from "../lib/tasks";
 
-import { readState, saveState } from "../lib/storage";
+
 import { useEffect, useRef, useState } from "react";
 import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { useNotionState } from "../lib/useNotionState";
@@ -52,7 +52,7 @@ export default function Home() {
   const [selected, setSelected] = useState(null);
   const remote = useNotionState();
   const { tasks, projects, inbox, setInbox, setTasks, setProjects, ready, saving, refreshedAt } = remote;
-  const [legacyInbox, setLegacyInbox] = useState([]);
+
   const [shoppingSelected,setShoppingSelected]=useState(null);
   const [shoppingCreating,setShoppingCreating]=useState(false);
   const [shoppingInbox,setShoppingInbox]=useState(null);
@@ -61,28 +61,6 @@ export default function Home() {
   const [diaryOpen,setDiaryOpen] = useState(null);
   const [newTaskId, setNewTaskId] = useState(null);
 
-
-  useEffect(() => {
-    let active = true;
-    (async () => {
-      const saved = await readState('notion-inbox');
-      const legacy = saved ? null : await readState();
-      const imported = await readState('notion-inbox-imported');
-      if (active) { setLegacyInbox((saved?.inbox || legacy?.inbox || []).filter(item => !imported?.ids?.includes(item.id))); }
-    })().catch(() => {  });
-    return () => { active=false; };
-  }, []);
-  const unimportedInbox = legacyInbox.filter(item => !inbox?.some(remoteItem => remoteItem.id === item.id || remoteItem.legacyId === item.id));
-  async function importInbox() {
-    if (!window.confirm(`Importar ${unimportedInbox.length} entrada(s) do navegador para o Notion?`)) return;
-    setInbox(previous => [...unimportedInbox.map(item => ({...item, createdAt:item.createdAt || Date.now()})), ...previous]);
-    try {
-      await remote.flush();
-      const imported = await readState('notion-inbox-imported');
-      await saveState({ids:[...new Set([...(imported?.ids || []), ...unimportedInbox.map(item => item.id)])]}, 'notion-inbox-imported');
-      setLegacyInbox([]);
-    } catch {}
-  }
 
   const personalOnly = ["financas", "diario", "aniversarios", "habitos"].includes(tabId);
   const effectiveContext = personalOnly ? "personal" : context;
@@ -217,7 +195,7 @@ export default function Home() {
             </svg>
           </button>
           <span className="refreshed">{time && `Atualizado às ${time}`}</span>
-          <button className="signout" onClick={() => remote.logout().catch(() => {})}>Sair</button>
+          <span className="muted small signed-user">{remote.user?.name}</span><button className="signout" onClick={() => remote.logout().catch(() => {})}>Sair</button>
         </div>
       </header>
 
@@ -252,7 +230,8 @@ export default function Home() {
         {remote.error && <p className="date-error" role="alert">{remote.error}</p>}
         {remote.error && <button className="ghost" onClick={() => remote.flush().catch(() => {})}>Tentar salvar novamente</button>}
         {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}
-        {unimportedInbox.length > 0 && <button className="ghost" onClick={importInbox}>Importar Inbox deste navegador ({unimportedInbox.length})</button>}
+
+        {!saving&&['compras','aniversarios','financas'].includes(tabId)&&(()=>{const keys=tabId==='compras'?['shopping']:tabId==='aniversarios'?['contacts']:['categories','transactions'];const latest=keys.map(key=>remote.sharedActivity?.[key]).filter(Boolean).sort((a,b)=>b.at.localeCompare(a.at))[0];return latest?<p className="muted small shared-editor">Última alteração no LifeOS por {latest.name} · {new Date(latest.at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}</p>:null;})()}
         {!["diario","financas","aniversarios","compras","habitos"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button

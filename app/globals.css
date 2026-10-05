@@ -464,3 +464,5 @@ button:disabled { opacity: .5; cursor: default; }
 
 /* Abas com largura restrita e rolagem sem trilho visível. */
 .tabs{width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none}.tabs::-webkit-scrollbar{width:0;height:0;display:none}.tabs .tab-wrap{flex:0 0 auto}.tabs .tab{touch-action:pan-y;-webkit-user-select:none;user-select:none}
+
+.google-login{display:flex;align-items:center;justify-content:center;gap:12px;width:100%}.signed-user{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.shared-editor{margin-top:-8px}
