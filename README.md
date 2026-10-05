@@ -1,3 +1,7 @@
+# Correção de seção vazia
+
+Consulte INSTRUCOES-SECAO-VAZIA.md. Agora é possível criar as seções principais mesmo com um bloco vazio, preservando o registro e seus conteúdos.
+
 # Capas no Notion e rolagem no iPhone
 
 Cópia de capas importadas ativada por padrão ao salvar; rolagem nativa das abas e botão separado para ordenar no celular. Consulte INSTRUCOES-CAPAS-IPHONE.md.

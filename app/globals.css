@@ -484,3 +484,5 @@ body { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) en
 
 /* Rolagem nativa no Safari, sem capturar o gesto normal. */
 .tabs-row{display:flex;align-items:center;gap:8px;min-width:0;max-width:100%}.tabs-row>.tabs{flex:1 1 0;min-width:0;-webkit-overflow-scrolling:touch;touch-action:auto}.tabs .tab{touch-action:auto;-webkit-touch-callout:none}.tabs.reordering .tab{touch-action:none}.tab-order-toggle{flex:0 0 34px}.tab-order-toggle.on{background:var(--blue-bg);border-color:var(--blue)}.media-modal form .media-content-fields{margin:0;padding:0;min-width:0;border:0}.media-content-fields>label{display:grid;gap:7px;margin:16px 0}.media-content-fields>.media-copy-option{display:flex;align-items:center;gap:8px;font-size:13px}.media-copy-option input{width:18px;height:18px;accent-color:var(--blue)}
+
+.media-setup-warning{border:1px solid var(--line);background:var(--panel);padding:14px 16px;border-radius:9px;margin-bottom:18px}.media-setup-warning p{margin:0 0 10px}.media-setup-warning .ghost{text-align:left}
