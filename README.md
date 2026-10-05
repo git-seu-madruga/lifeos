@@ -249,3 +249,56 @@ A primeira linha é o nome e a segunda aceita DD/MM ou DD/MM/AAAA. Conteúdo inv
 ### Verificação deste pacote
 
 Os testes automatizados usam mocks da API do Notion, não sua conta real. Depois do deploy, teste um contato com ano e outro sem ano, a conversão do Inbox, a edição, a exclusão e a persistência após atualizar a página. Os aniversários e o dia de hoje usam a data local do dispositivo.
+
+## Compras — listas rápidas sem histórico no LifeOS
+
+A aba Compras permite criar listas em **Pessoal** ou **Trabalho**, adicionar e editar itens, marcar os comprados para removê-los imediatamente e finalizar/excluir a lista com confirmação. Não há área de itens concluídos, arquivo ou histórico no app. Os itens permanecem na ordem de inclusão. Uma lista vazia permanece disponível até ser finalizada.
+
+Os ícones das abas têm 15 px, aproveitando a cor e os nomes existentes. A ordem por arraste continua funcionando. No desktop (a partir de 1000 px), o Inbox permanece à esquerda; o menu de listas aparece logo abaixo dele na aba Compras. Em telas menores, ambos ficam acima do conteúdo. A busca do menu filtra por nome e acompanha o contexto selecionado.
+
+### Novo banco no Notion
+
+1. Dentro da página LifeOS, crie um banco de página inteira chamado **Listas de compras**.
+2. Configure estas propriedades com os nomes exatos:
+
+| Propriedade | Tipo | Configuração |
+| --- | --- | --- |
+| Nome | Título | Nome da lista |
+| Contexto | Seleção | Opções **Pessoal** e **Trabalho** |
+| Itens | Texto | Deixe vazio; o app gerencia este conteúdo |
+
+É apenas um banco: cada página representa uma lista. `LifeOS ID` é criado automaticamente na primeira gravação. Não são necessárias relações ou outro banco para os itens.
+
+3. Confira que a conexão interna atual do LifeOS tem acesso ao banco.
+4. Copie o ID do banco do link (antes de `?v=`, e não o ID da visualização).
+5. Adicione **`NOTION_SHOPPING_DATABASE_ID`** no mesmo projeto Vercel. Mantenha todas as variáveis existentes, inclusive o token da conexão.
+6. Atualize o repositório com os arquivos do pacote e faça o deploy depois de adicionar a variável. Não envie `node_modules`, `.next` ou arquivos `.env.local`.
+
+Nenhuma propriedade precisa ser acrescentada aos demais bancos. Sem esse novo ID, Compras mostra instruções e as outras abas continuam disponíveis.
+
+O campo Itens usa internamente JSON para manter os IDs dos itens estáveis. Para cadastrar uma lista diretamente no Notion, é possível escrever **uma linha por item** nesse campo; o app lê esse formato e passa a usar JSON ao editar os itens. Para editar uma lista já usada pelo app, prefira a tela Compras. Não altere o campo técnico LifeOS ID.
+
+### Integração com o Inbox
+
+Selecione a aba **Compras**. No Inbox, digite o nome da lista na primeira linha e os itens nas linhas seguintes, usando **Shift + Enter** entre as linhas. **Enter** salva a entrada do Inbox:
+
+```text
+Mercado
+Leite — 2 caixas
+Ovos — 1 dúzia
+Café
+```
+
+Abra essa entrada e escolha **Transformar em lista de compras**. Se o contexto selecionado for Pessoal ou Trabalho, ele será usado. Em Todos, o app pede que escolha um dos dois contextos; cancelar mantém o Inbox intacto.
+
+Se existir uma lista de mesmo nome **no contexto escolhido**, sem distinção de maiúsculas e minúsculas e ignorando espaços nas extremidades, o app adiciona os novos itens ao final. Os itens antigos e sua ordem são preservados. Listas Pessoal e Trabalho com o mesmo nome permanecem separadas. Linhas vazias são ignoradas e itens repetidos são mantidos como foram digitados. Se houver duas listas de mesmo nome no mesmo contexto, renomeie uma antes de converter. A interface evita criar ou renomear listas dessa forma.
+
+A conversão seleciona a lista de destino. Nome sem itens, dados inválidos ou cancelamento não removem a entrada do Inbox. O servidor salva a lista antes de enviar a entrada do Inbox à lixeira; reenvios após uma falha usam IDs estáveis para evitar duplicação dos itens.
+
+Limites: nome com até 200 caracteres, até 500 itens por lista, até 500 caracteres por item e 50.000 caracteres no conteúdo técnico da lista.
+
+### Exclusão e teste após deploy
+
+Ao marcar um check, o item é removido, sem confirmação adicional. O botão Excluir item pede confirmação. **Finalizar e excluir lista** pede confirmação e remove a lista inteira. Não há histórico mantido pelo LifeOS. A API do Notion envia páginas de listas excluídas à lixeira do próprio Notion; o app não controla nem elimina o histórico de versões que o Notion possa manter.
+
+A sincronização é automática, com rascunho local e indicação de alterações pendentes. Aguarde **Salvo no Notion** antes de fechar o navegador. Os testes do pacote utilizam mocks; após o deploy, confira criação em ambos os contextos, conversão com nome em letras diferentes, acréscimo ao final, remoção por check e persistência após recarregar a página.

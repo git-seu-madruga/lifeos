@@ -79,7 +79,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
               <span className="label">Conteúdo</span>
               <AutoTextarea className="search notes" rows={6} value={item.text} onChange={(e) => onUpdate(item.id, e.target.value)} />
             </div>
-            <p className="muted small">{target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>
+            <p className="muted small">{target.kind === "shopping" ? "Primeira linha: nome da lista. Shift + Enter para separar cada item nas linhas seguintes." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>
             <div className="inbox-actions">
               <button className="primary" disabled={!target.kind} onClick={convert}>
                 Transformar em {target.label}{target.kind ? "" : " (em breve)"}

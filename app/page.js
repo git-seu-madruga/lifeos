@@ -7,6 +7,9 @@ import { useEffect, useRef, useState } from "react";
 import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { useNotionState } from "../lib/useNotionState";
 import Login from "../components/Login";
+import ShoppingView,{ShoppingMenu} from '../components/ShoppingView';
+import TabIcon from '../components/TabIcon';
+import {shoppingFromInbox} from '../lib/shopping';
 import Inbox from "../components/Inbox";
 import TaskDetail from "../components/TaskDetail";
 import TasksView from "../components/TasksView";
@@ -48,6 +51,10 @@ export default function Home() {
   const remote = useNotionState();
   const { tasks, projects, inbox, setInbox, setTasks, setProjects, ready, saving, refreshedAt } = remote;
   const [legacyInbox, setLegacyInbox] = useState([]);
+  const [shoppingSelected,setShoppingSelected]=useState(null);
+  const [shoppingCreating,setShoppingCreating]=useState(false);
+  const [shoppingInbox,setShoppingInbox]=useState(null);
+  const [shoppingContext,setShoppingContext]=useState("personal");
   const [contactOpen,setContactOpen]=useState(null);
   const [diaryOpen,setDiaryOpen] = useState(null);
   const [newTaskId, setNewTaskId] = useState(null);
@@ -99,6 +106,11 @@ export default function Home() {
 
   // Cria o item na seção atual e tira a entrada do inbox.
   function convertInbox(item, kind) {
+    if(kind==="shopping"){
+      if(!remote.shoppingConfigured){window.alert("Configure o banco Listas de compras no Notion. O texto continua no Inbox.");return false;}
+      if(context==='all'){setShoppingInbox(item);return false;}
+      return moveShoppingInbox(item,context);
+    }
     if(kind==="contact"){
       if(!remote.contactsConfigured){window.alert("Configure o banco Aniversários no Notion antes de mover esta entrada. O texto continua no Inbox.");return false;}
       const parsed=contactFromInbox(item);
@@ -142,6 +154,11 @@ export default function Home() {
     deleteInbox(item.id);
   }
 
+  function moveShoppingInbox(item,ctx){
+    try{const result=shoppingFromInbox(remote.shopping || [],item.text,ctx);remote.setShopping(result.lists);deleteInbox(item.id);setShoppingSelected(result.id);setShoppingInbox(null);setShoppingCreating(false);setTabId('compras');return true;}
+    catch(error){window.alert(error.message);return false;}
+  }
+
   async function refresh() {
     try { await remote.refresh(); setSelected(null); setNewTaskId(null); }
     catch {
@@ -163,7 +180,10 @@ export default function Home() {
 
   return (
     <div className="shell">
+      <div className="left-rail">
       {ready && inbox && <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />}
+      {tabId==="compras" && remote.shoppingConfigured && <ShoppingMenu lists={remote.shopping || []} context={context} selected={shoppingSelected} onSelect={id=>{setShoppingSelected(id);setShoppingCreating(false);}} onCreate={()=>setShoppingCreating(true)}/>}
+      </div>
     <div className="app">
       <header className="topbar">
         <div className="brand">
@@ -221,7 +241,7 @@ export default function Home() {
               aria-current={t.id === tabId ? "page" : undefined}
               onClick={() => { if(suppressClick.current)return;setTabId(t.id); setSelected(null); }}
             >
-              {t.label}
+              <TabIcon id={t.id}/><span>{t.label}</span>
             </button>
           </span>
         ))}
@@ -232,7 +252,7 @@ export default function Home() {
         {remote.error && <button className="ghost" onClick={() => remote.flush().catch(() => {})}>Tentar salvar novamente</button>}
         {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}
         {unimportedInbox.length > 0 && <button className="ghost" onClick={importInbox}>Importar Inbox deste navegador ({unimportedInbox.length})</button>}
-        {!["diario","financas","aniversarios"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
+        {!["diario","financas","aniversarios","compras"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button
               key={s.id}
@@ -260,6 +280,8 @@ export default function Home() {
           )
         ) : tabId === "diario" ? (
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
+        ) : tabId === "compras" ? (
+          <ShoppingView key={shoppingSelected || 'empty'} lists={remote.shopping || []} setLists={remote.setShopping} selected={shoppingSelected} onSelect={setShoppingSelected} context={context} configured={remote.shoppingConfigured} creating={shoppingCreating} onCreate={()=>setShoppingCreating(true)} onCreated={()=>setShoppingCreating(false)}/>
         ) : tabId === "aniversarios" ? (
           <BirthdaysView contacts={remote.contacts || []} setContacts={remote.setContacts} configured={remote.contactsConfigured} openContact={contactOpen} onOpenHandled={()=>setContactOpen(null)}/>
         ) : tabId === "financas" ? (
@@ -269,6 +291,7 @@ export default function Home() {
         )}
       </main>
     </div>
+    {shoppingInbox&&<div className="overlay"><div className="panel finance-modal" role="dialog" aria-modal="true" aria-label="Contexto da lista de compras"><h2>Contexto da lista</h2><p className="muted">Escolha onde criar a lista ou acrescentar os itens à lista de mesmo nome.</p><label>Contexto<select className="search" value={shoppingContext} onChange={e=>setShoppingContext(e.target.value)}><option value="personal">Pessoal</option><option value="work">Trabalho</option></select></label><div className="finance-period"><button className="primary" onClick={()=>moveShoppingInbox(shoppingInbox,shoppingContext)}>Mover para lista</button><button className="ghost" onClick={()=>setShoppingInbox(null)}>Cancelar</button></div></div></div>}
     {newTask && projects && <TaskDetail task={newTask} projects={projects} update={updateNewTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setNewTaskId(null)} />}
     </div>
   );
