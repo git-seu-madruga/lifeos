@@ -471,3 +471,7 @@ button:disabled { opacity: .5; cursor: default; }
 body { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); min-height: 100dvh; }
 .pwa-install { color:var(--blue); border:1px solid var(--line); background:var(--panel); border-radius:999px; padding:6px 10px; font-size:12px; white-space:nowrap; }
 .pwa-help { margin:12px 0 0; max-width:360px; }
+
+/* Mesma geometria para contextos disponíveis e bloqueados. */
+.topbar > .segmented { display:grid; grid-template-columns:repeat(3, 1fr); width:300px; max-width:100%; flex-shrink:0; }
+.topbar > .segmented button { width:100%; min-width:0; height:30px; padding:0 10px; display:flex; align-items:center; justify-content:center; line-height:1; white-space:nowrap; box-sizing:border-box; }

@@ -214,6 +214,16 @@ global.fetch=async(url,options={})=>{
  const stolen=structuredClone(readB);stolen.projects.push({...projectA,name:'Ataque'});await assert.rejects(()=>synchronize(readB,stolen,B),error=>error.status===403);const deleteOther=structuredClone(readB);deleteOther.projects.push(projectA);await assert.rejects(()=>synchronize(deleteOther,readB,B),error=>error.status===403);
  const forgedUpload=structuredClone(readB);forgedUpload.tasks[0].attachments=[{id:'forged',name:'file.txt',uploadId:'secret-file',uploadProof:auth.seal({user:A.id,uploadId:'secret-file',exp:Date.now()+10000})}];await assert.rejects(()=>synchronize(readB,forgedUpload,B),error=>error.status===403);
  const sharedEdit=structuredClone(readB);sharedEdit.shopping[0].items.push({id:'eggs',text:'Ovos'});await synchronize(readB,sharedEdit,B);const after=(await notionLib.readSnapshot(false,A)).state;assert.equal(after.shopping[0].items.length,2);const editor=rows.get(after.shopping[0].id).properties['LifeOS Último editor'];assert.ok(notionLib.plain(editor.rich_text).includes('Letícia'));const activity=await require(path.join(temp,'lib/server/coordination')).sharedActivity();assert.equal(activity.shopping.email,B.email);
+ // Measure the actual queried sources with populated unrelated private banks.
+ const scopedBase=(await notionLib.readSnapshot(false,B)).state;
+ const scenarios=[['shopping',value=>value.shopping[0].name+=' teste',['shopping']],['diary',value=>value.diary[0].text+=' teste',['diary']],['transactions',value=>value.transactions[0].notes='teste',['categories','transactions']],['tasks',value=>value.tasks[0].notes='teste',['projects','milestones','tasks']],['habitLogs',value=>value.habitLogs=[],['habits','habitLogs']]];
+ for(const [label,edit,expected] of scenarios){
+   const current=(await notionLib.readSnapshot(false,B)).state,next=structuredClone(current);edit(next);
+   const start=calls.length;await synchronize(current,next,B);
+   const queried=calls.slice(start).filter(c=>c.route.endsWith('/query')).map(c=>Object.keys(sourceIds).find(kind=>c.route.includes(sourceIds[kind])));
+   assert.deepEqual([...new Set(queried)].sort(),expected.sort(),'Somente bancos necessários: '+label);
+ }
+ const noOp=(await notionLib.readSnapshot(false,B)).state,noOpStart=calls.length;await synchronize(noOp,noOp,B);assert.equal(calls.slice(noOpStart).filter(c=>c.route.endsWith('/query')).length,0);
  const staleDelete=structuredClone(readB);staleDelete.shopping=[];await assert.rejects(()=>synchronize(readB,staleDelete,B),/alterado desde/);
  const {withWriteLock}=require(path.join(temp,'lib/server/coordination'));let release;const pending=withWriteLock(async guard=>{await guard();await new Promise(resolve=>release=resolve);});for(let i=0;i<5&&!release;i++)await new Promise(resolve=>setImmediate(resolve));await assert.rejects(()=>withWriteLock(async()=>{}),/Outro usuário/);release();await pending;assert.equal(redisRows.has('lifeos:write:v1'),false);
  }
