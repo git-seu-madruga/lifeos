@@ -1,3 +1,5 @@
+> Para esta versão, siga INSTRUCOES-ENTRETENIMENTO-SIMPLIFICADO.md. As seções são fixas e criadas automaticamente.
+
 > Atualização mais recente: consulte INSTRUCOES-ANO-PORTUGUES.md (ano das séries e preferência por livros em português).
 
 # Entretenimento — configuração e uso
