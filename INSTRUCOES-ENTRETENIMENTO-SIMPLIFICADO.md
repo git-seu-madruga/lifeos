@@ -18,3 +18,7 @@ Não há novos bancos nem variáveis de ambiente nesta atualização. Mantém a 
 ## Validação
 
 Testes de exclusões rápidas durante uma gravação pendente, exclusão de capa com ID local e URL temporária, reenvio de exclusão concluída, bloqueio de outro usuário e conflito real de capa. Suíte completa e compilação de produção verificadas. Não foi realizado deploy nem acesso aos seus dados em produção.
+
+## Inclusão por seção
+
+O “+” de cada seção define o destino do conteúdo. O editor não mostra seleção de seção e usa os títulos Nova leitura, Novo jogo, Nova série ou Novo filme.
