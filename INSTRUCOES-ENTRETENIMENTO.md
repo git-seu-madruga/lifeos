@@ -1,3 +1,5 @@
+> Atualização mais recente: consulte INSTRUCOES-ANO-PORTUGUES.md (ano das séries e preferência por livros em português).
+
 # Entretenimento — configuração e uso
 
 Esta entrega é um pacote completo que mantém Google, PWA, salvamento seletivo, contextos com tamanho padronizado e as abas anteriores. Entretenimento é pessoal e privado por conta. As duas contas usam os mesmos novos bancos, mas veem somente suas seções e conteúdos.
