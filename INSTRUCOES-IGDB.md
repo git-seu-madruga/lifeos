@@ -30,7 +30,7 @@ Guarde o segredo apenas na Vercel. Não precisa enviá-lo por mensagem nem coloc
 
 Substitua os arquivos do projeto no GitHub pelos arquivos da pasta `lifeos` do ZIP. Aguarde o deploy da Vercel. Se configurar as variáveis depois do deploy, faça um **Redeploy** para aplicá-las.
 
-Não é necessário criar campos ou bancos adicionais no Notion. A integração usa a base de conteúdos e o campo Capa existentes.
+Não é necessário criar novos bancos. O aplicativo cria automaticamente o campo Plataformas, do tipo Texto, na base de conteúdos. O campo Ano, do tipo Número, é compartilhado com as séries e também é criado automaticamente se estiver ausente.
 
 ## 4. Usar
 
@@ -39,7 +39,7 @@ Não é necessário criar campos ou bancos adicionais no Notion. A integração 
 3. Confira nome, ano e plataformas nos resultados para distinguir títulos e versões. Escolha **Importar**.
 4. Revise o título e clique em **Salvar conteúdo**. A opção de salvar uma cópia da capa no Notion vem marcada por padrão.
 
-O aplicativo salva o nome, a capa e o link de origem do IGDB. Ano e plataformas são informações da busca nesta versão; não são novos campos de cadastro. A sua avaliação por estrelas e seus comentários continuam sendo preenchidos por você.
+O aplicativo salva o nome, o ano do primeiro lançamento, as plataformas separadas por vírgulas, a capa e o link de origem do IGDB. Ano e plataformas aparecem nos cartões e podem ser corrigidos no editor. Para jogos importados antes desta atualização, abra o editor e busque/importe novamente para preencher essas informações. A sua avaliação por estrelas e seus comentários continuam sendo preenchidos por você.
 
 A busca não depende de o jogo estar na Steam. Tente, por exemplo, títulos da Nintendo ou jogos antigos pelo nome original. A disponibilidade de cada título e capa depende do catálogo do IGDB. Cadastro manual e envio de capa continuam disponíveis, inclusive antes de configurar as credenciais.
 

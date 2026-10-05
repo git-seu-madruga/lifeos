@@ -234,10 +234,10 @@ global.fetch=async(url,options={})=>{
  const A={id:'google:user-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:user-B',email:'leticiacost3@gmail.com',name:'Letícia'};
  let state=(await notionLib.readSnapshot(false,B)).state;const next=structuredClone(state);
  next.mediaSections=[{id:'section-book',name:'Leitura',type:'book',icon:'book',color:'#6ea8fe'}];
- next.media=[{id:'media-book',name:'Duna',section:'section-book',author:'Frank Herbert',status:'planned',rating:0,comment:'',coverUrl:'https://covers.openlibrary.org/b/id/123-M.jpg',sourceUrl:'https://openlibrary.org/works/OL1W',provider:'Open Library',attachments:[]}];
+ next.media=[{id:'media-book',name:'Duna',year:1998,platforms:'Nintendo 64, Nintendo Switch',section:'section-book',author:'Frank Herbert',status:'planned',rating:0,comment:'',coverUrl:'https://covers.openlibrary.org/b/id/123-M.jpg',sourceUrl:'https://openlibrary.org/works/OL1W',provider:'Open Library',attachments:[]}];
  const start=calls.length;await synchronize(state,next,B);await synchronize(state,next,B);
  assert.ok(calls.slice(start).filter(c=>c.route.endsWith('/query')).every(c=>c.route.includes(sourceIds.media)||c.route.includes(sourceIds.mediaSections)));
- state=(await notionLib.readSnapshot(false,B)).state;assert.equal(state.media.length,1);assert.equal(state.media[0].section,state.mediaSections[0].id);assert.equal(state.media[0].author,'Frank Herbert');assert.equal((await notionLib.readSnapshot(false,A)).state.media.length,0);
+ state=(await notionLib.readSnapshot(false,B)).state;assert.equal(state.media.length,1);assert.equal(state.media[0].section,state.mediaSections[0].id);assert.equal(state.media[0].author,'Frank Herbert');assert.equal(state.media[0].year,1998);assert.equal(state.media[0].platforms,'Nintendo 64, Nintendo Switch');assert.equal((await notionLib.readSnapshot(false,A)).state.media.length,0);
  const rated=structuredClone(state);rated.media[0].rating=5;rated.media[0].status='done';rated.media[0].comment='Gostei';await synchronize(state,rated,B);
  const stale=structuredClone(state);stale.media[0].rating=3;await assert.rejects(()=>synchronize(state,stale,B),/alterado no Notion/);
  state=(await notionLib.readSnapshot(false,B)).state;assert.equal(state.media[0].rating,5);assert.equal(state.media[0].status,'done');
