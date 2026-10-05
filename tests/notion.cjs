@@ -22,9 +22,10 @@ const {diffState,hasChanges}=require(path.join(temp,'lib/notionDiff'));
 process.env.NOTION_DIARY_DATABASE_ID='diary-test-db';
 process.env.NOTION_INBOX_DATABASE_ID='inbox-test-db';
 process.env.NOTION_FINANCE_CATEGORIES_DATABASE_ID='finance-categories-test';process.env.NOTION_FINANCE_TRANSACTIONS_DATABASE_ID='finance-transactions-test';
-const databases={categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
+const databases={contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
 const sourceIds=Object.fromEntries(Object.keys(databases).map(k=>[k,randomUUID()]));
 const specs={
+ contacts:{'Nome':'title','Dia':'number','Mês':'number','Ano de nascimento':'number'},
  categories:{'Nome':'title','Tipo':'select'},transactions:{'Nome':'title','Categoria':'relation','Mês':'date','Valor':'number'},
  diary:{'Nome':'title','Data':'date','Conteúdo':'rich_text','Anexos':'files'},
  inbox:{'Nome':'title','Conteúdo':'rich_text'},
@@ -83,7 +84,7 @@ global.fetch=async(url,options={})=>{
  const cookie=auth.login(request,'test-password-long').split(';')[0];
  const logged=new Request('https://lifeos.test/api/notion',{headers:{cookie}});auth.authorize(logged);
  assert.equal(auth.authenticated(new Request('https://lifeos.test/api',{headers:{cookie:cookie+'bad'}})),false);
- let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true});
+ let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false});
  const base=state;
  const file=new File(['arquivo de teste'],'ref.txt',{type:'text/plain'});
  const uploaded=await notionLib.uploadFile(file);
@@ -161,6 +162,19 @@ global.fetch=async(url,options={})=>{
  const missingCategory=structuredClone(state);missingCategory.categories=[];await assert.rejects(()=>synchronize(state,missingCategory),/categoria/);
  const financeDeleteStart=calls.length;await synchronize(state,{...state,categories:[],transactions:[]});const trashCalls=calls.slice(financeDeleteStart).filter(call=>call.body?.in_trash);assert.equal(trashCalls[0].route,`/pages/${state.transactions[0].id}`,'Lançamentos excluídos antes das categorias');
  delete process.env.NOTION_FINANCE_CATEGORIES_DATABASE_ID;delete process.env.NOTION_FINANCE_TRANSACTIONS_DATABASE_ID;const optionalFinance=(await notionLib.readSnapshot()).state;assert.equal(optionalFinance.financeConfigured,false);assert.deepEqual(optionalFinance.categories,[]);assert.deepEqual(optionalFinance.transactions,[]);
+ {
+ process.env.NOTION_CONTACTS_DATABASE_ID='contacts-test';
+ ({state}=await notionLib.readSnapshot());assert.equal(state.contactsConfigured,true);
+ const contactNext=structuredClone(state);contactNext.contacts=[{id:'contact-known',name:'Ana',day:4,month:10,year:1990},{id:'contact-unknown',name:'João',day:29,month:2,year:null}];
+ const contactStart=calls.length;await synchronize(state,contactNext);await synchronize(state,contactNext);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.contacts.length,2);assert.equal(state.contacts.find(p=>p.name==='Ana').year,1990);const unknown=state.contacts.find(p=>p.name==='João');assert.equal(unknown.year,null);assert.equal(rows.get(unknown.id).properties['Ano de nascimento'].number,null);
+ const changedContact=structuredClone(state);changedContact.contacts.find(p=>p.name==='Ana').name='Ana Costa';await synchronize(state,changedContact);({state}=await notionLib.readSnapshot());assert.ok(state.contacts.some(p=>p.name==='Ana Costa'));
+ const badContact=structuredClone(state);badContact.contacts[0].day=32;await assert.rejects(()=>synchronize(state,badContact),/inválida/);
+ const inboxContact=structuredClone(state);inboxContact.inbox.push({id:'inbox-contact',text:'Bia\n12/12',createdAt:Date.now()});await synchronize(state,inboxContact);({state}=await notionLib.readSnapshot());
+ const conversion=structuredClone(state);const source=conversion.inbox.find(p=>p.text==='Bia\n12/12');conversion.inbox=conversion.inbox.filter(p=>p.id!==source.id);conversion.contacts.push({id:'bia-contact',name:'Bia',day:12,month:12,year:null});const conversionStart=calls.length;await synchronize(state,conversion);const conversionCalls=calls.slice(conversionStart);assert.ok(conversionCalls.findIndex(c=>c.route==='/pages'&&c.body?.parent?.data_source_id===sourceIds.contacts)<conversionCalls.findIndex(c=>c.route===`/pages/${source.id}`&&c.body?.in_trash),'Contato salvo antes da remoção do Inbox');
+ ({state}=await notionLib.readSnapshot());await synchronize(state,{...state,contacts:[]});assert.equal((await notionLib.readSnapshot()).state.contacts.length,0);
+ delete process.env.NOTION_CONTACTS_DATABASE_ID;assert.equal((await notionLib.readSnapshot()).state.contactsConfigured,false);
+ }
  const get=require(path.join(temp,'app/api/notion/route')).GET;
  const denied=await get(request);assert.equal(denied.status,401);assert.equal(calls.some(call=>call.route.includes('undefined')),false);
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão preservando tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');

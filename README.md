@@ -200,3 +200,52 @@ Para desenvolvimento, copie `.env.example` para `.env.local` e preencha o token,
 Os testes usam uma API e um IndexedDB simulados: cobrem autenticação, schemas, paginação, criação com relações, reenvio sem duplicação, edição parcial, conflitos, conclusão, datas, anexos, exclusão, rascunhos e edições durante salvamento. Não acessam seu workspace.
 
 A validação real do token, dos nomes das propriedades e dos arquivos aceitos pelo Notion deve ser feita após publicar. A tela mostra qual propriedade precisa ser ajustada se a estrutura não coincidir.
+
+## Aniversários e contatos — nova aba
+
+A aba Aniversários é exclusivamente Pessoal, como Diário e Finanças. A ordem das abas continua ajustável. Há busca por nome, próximos sete dias (incluindo hoje), aniversariantes do mês selecionado e contatos em ordem alfabética. As contagens acompanham a busca. É possível criar, editar e excluir contatos com confirmação. As edições são sincronizadas automaticamente, seguindo o mesmo mecanismo das demais abas.
+
+### Configuração no Notion
+
+1. Dentro da página LifeOS, crie um banco de dados de página inteira chamado **Contatos**.
+2. Crie exatamente estas propriedades:
+
+| Propriedade | Tipo no Notion | Preenchimento |
+| --- | --- | --- |
+| Nome | Título | Nome do contato |
+| Dia | Número | Dia do nascimento/aniversário |
+| Mês | Número | Mês do nascimento/aniversário |
+| Ano de nascimento | Número | Opcional; deixe vazio se não souber |
+
+Não utilize uma propriedade Data para o aniversário: separar os números permite cadastrar dia e mês sem inventar um ano. O campo `LifeOS ID` é criado automaticamente pelo app na primeira gravação; não o altere. Para cadastrar diretamente pelo Notion, preencha Nome, Dia e Mês; o ano é opcional. Não use datas impossíveis ou nascimento futuro.
+
+3. Garanta que a conexão interna do LifeOS tem acesso a esse banco. Confira em Conexões no menu do banco; se necessário, adicione a conexão que já utiliza nos outros bancos.
+4. Copie o link do banco. O ID é o trecho de 32 caracteres antes de `?v=`, não o ID da visualização depois de `v=`.
+5. No **mesmo projeto Vercel**, adicione `NOTION_CONTACTS_DATABASE_ID` com esse ID. Mantenha as variáveis existentes e o mesmo `NOTION_TOKEN`.
+6. Substitua os arquivos do repositório pelos deste pacote e faça um novo deploy. Não envie `.env.local`, `node_modules` ou `.next`. Se o deploy ocorreu antes de adicionar a variável, faça um Redeploy depois.
+
+Nenhuma alteração é necessária nos bancos de Projetos, Marcos, Tarefas, Inbox, Diário ou Finanças. Até configurar o novo banco, as outras abas continuam funcionando e Aniversários mostra as instruções de configuração.
+
+### Cadastro e Inbox
+
+No formulário de contato, digite dia e mês sem as barras (a máscara as insere). O ano é um campo separado e **não é preenchido automaticamente**: aqui ele representa nascimento, não o ano corrente. Sem ano, o app mostra apenas o aniversário; com ano, mostra quantos anos a pessoa completa no ano selecionado ou no próximo aniversário. Para nascidos em 29/02, o lembrete ocorre em 28/02 nos anos não bissextos, preservando 29/02 no cadastro.
+
+Com a aba **Aniversários** selecionada, abra a entrada no Inbox e use a opção de transformar em contato. O texto deve conter exatamente duas linhas:
+
+```text
+Ana Costa
+04/10/1990
+```
+
+Ou, se não souber o ano:
+
+```text
+João Lima
+07/10
+```
+
+A primeira linha é o nome e a segunda aceita DD/MM ou DD/MM/AAAA. Conteúdo inválido permanece no Inbox. Se já existir o mesmo nome, o app pede confirmação antes de criar outro contato. Ao converter, o cadastro é criado e aberto para edição na aba Aniversários; fechar o editor mantém o contato convertido. O servidor grava o contato antes de remover a entrada do Inbox. Exclusões saem da listagem do app, sem histórico no LifeOS; como nas outras exclusões, a API do Notion envia a página à lixeira do Notion.
+
+### Verificação deste pacote
+
+Os testes automatizados usam mocks da API do Notion, não sua conta real. Depois do deploy, teste um contato com ano e outro sem ano, a conversão do Inbox, a edição, a exclusão e a persistência após atualizar a página. Os aniversários e o dia de hoje usam a data local do dispositivo.

@@ -11,6 +11,8 @@ import Inbox from "../components/Inbox";
 import TaskDetail from "../components/TaskDetail";
 import TasksView from "../components/TasksView";
 import ProjectsView from "../components/ProjectsView";
+import BirthdaysView from '../components/BirthdaysView';
+import {contactFromInbox} from '../lib/birthdays';
 import FinanceView from "../components/FinanceView";
 import DiaryView from "../components/DiaryView";
 import { normalizeTabOrder, moveTab, dateKey, appendInboxToDiary } from "../lib/diary";
@@ -46,6 +48,7 @@ export default function Home() {
   const remote = useNotionState();
   const { tasks, projects, inbox, setInbox, setTasks, setProjects, ready, saving, refreshedAt } = remote;
   const [legacyInbox, setLegacyInbox] = useState([]);
+  const [contactOpen,setContactOpen]=useState(null);
   const [diaryOpen,setDiaryOpen] = useState(null);
   const [newTaskId, setNewTaskId] = useState(null);
 
@@ -72,7 +75,7 @@ export default function Home() {
     } catch {}
   }
 
-  const personalOnly = ["financas", "diario"].includes(tabId);
+  const personalOnly = ["financas", "diario", "aniversarios"].includes(tabId);
   const effectiveContext = personalOnly ? "personal" : context;
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
@@ -96,6 +99,14 @@ export default function Home() {
 
   // Cria o item na seção atual e tira a entrada do inbox.
   function convertInbox(item, kind) {
+    if(kind==="contact"){
+      if(!remote.contactsConfigured){window.alert("Configure o banco Aniversários no Notion antes de mover esta entrada. O texto continua no Inbox.");return false;}
+      const parsed=contactFromInbox(item);
+      if(parsed.error){window.alert(parsed.error);return false;}
+      const person={...parsed.person,id:uid("contact")};
+      if((remote.contacts || []).some(contact=>contact.name.toLocaleLowerCase('pt-BR')===person.name.toLocaleLowerCase('pt-BR'))&&!window.confirm("Já existe um contato com este nome. Criar outro contato?"))return false;
+      remote.setContacts(previous=>[...previous,person]);deleteInbox(item.id);setContactOpen(person.id);setTabId("aniversarios");return true;
+    }
     if (kind === "diary") {
       if (!remote.diaryConfigured) { window.alert("Configure o banco Diário no Notion antes de mover esta entrada. O texto continua no Inbox."); return false; }
       const date=dateKey(new Date());
@@ -221,7 +232,7 @@ export default function Home() {
         {remote.error && <button className="ghost" onClick={() => remote.flush().catch(() => {})}>Tentar salvar novamente</button>}
         {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}
         {unimportedInbox.length > 0 && <button className="ghost" onClick={importInbox}>Importar Inbox deste navegador ({unimportedInbox.length})</button>}
-        {!["diario","financas"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
+        {!["diario","financas","aniversarios"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button
               key={s.id}
@@ -249,6 +260,8 @@ export default function Home() {
           )
         ) : tabId === "diario" ? (
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
+        ) : tabId === "aniversarios" ? (
+          <BirthdaysView contacts={remote.contacts || []} setContacts={remote.setContacts} configured={remote.contactsConfigured} openContact={contactOpen} onOpenHandled={()=>setContactOpen(null)}/>
         ) : tabId === "financas" ? (
           <FinanceView categories={remote.categories} transactions={remote.transactions} setFinance={remote.setFinance} configured={remote.financeConfigured}/>
         ) : (
