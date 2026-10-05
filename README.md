@@ -318,3 +318,7 @@ O arraste de Compras usa eventos de ponteiro para mouse, toque e caneta. Arraste
 A ordem dos **itens** é sincronizada no Notion. A ordem dos **blocos** é uma preferência salva no navegador, como a ordem das abas, e é mantida ao alternar entre os contextos; novos blocos aparecem ao final. Outros navegadores podem ter uma ordem diferente. A busca e o filtro de contexto não apagam a ordem das listas ocultas.
 
 As inclusões manuais aparecem acima dos itens existentes. Exemplo: adicionar Leite e depois Café resulta em Café, Leite. Uma conversão do Inbox com Ovos e Bananas insere Ovos, Bananas acima desses itens, preservando a ordem das linhas. Não é necessário alterar o Notion nem as variáveis da Vercel nesta atualização.
+
+### Correção da sobreposição do Inbox
+
+Os diálogos do Inbox e da escolha de contexto de Compras são renderizados fora da barra lateral, acima dos blocos e das alças de arraste. O seletor de contexto fica também acima do diálogo original do Inbox. Não há alteração no Notion ou nas variáveis da Vercel.

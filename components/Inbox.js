@@ -1,4 +1,5 @@
 "use client";
+import ModalLayer from './ModalLayer';
 import AutoTextarea from "./AutoTextarea";
 
 import { useEffect, useState } from "react";
@@ -69,7 +70,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
       </div>
 
       {item && (
-        <div className="overlay" onClick={() => setOpenId(null)}>
+        <ModalLayer><div className="overlay" onClick={() => setOpenId(null)}>
           <div className="panel" role="dialog" aria-label="Entrada do inbox" onClick={(e) => e.stopPropagation()}>
             <div className="panel-head">
               <h2 className="inbox-title grow">Entrada do inbox</h2>
@@ -88,7 +89,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
             </div>
             {!target.kind && <p className="muted small">Esta seção ainda não foi construída. Troque de aba para transformar em tarefa ou projeto.</p>}
           </div>
-        </div>
+        </div></ModalLayer>
       )}
     </aside>
   );

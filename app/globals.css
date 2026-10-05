@@ -445,3 +445,7 @@ button:disabled { opacity: .5; cursor: default; }
 @media(max-width:600px){.shopping-card-grid{grid-template-columns:1fr}}
 
 .shopping-card-wrap{position:relative;min-width:0;border-radius:12px}.shopping-card-wrap>.shopping-card{width:100%;height:100%;padding-right:45px}.shopping-card-handle{position:absolute;right:8px;top:8px;z-index:1}.shopping-card-wrap.shopping-drop{outline:2px solid var(--blue)}.shopping-drag-handle{touch-action:none;-webkit-user-select:none;user-select:none}.shopping-drag-handle>*{pointer-events:none}
+
+/* Diálogos acima do conteúdo e das alças; contexto sobre o diálogo do Inbox. */
+.overlay{z-index:1000}
+.overlay-context{z-index:1001}
