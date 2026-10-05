@@ -1,4 +1,5 @@
 "use client";
+import LinkText, {TextLinks} from "./LinkText";
 
 import { patchTask, newestCompleted } from "../lib/tasks";
 
@@ -147,7 +148,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
                         onChange={() => update(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
                       <button className="row-title" onClick={() => setOpenId(t.id)}>
                         {t.title}
-                        {t.status === "hold" && t.waitingOn && <span className="row-project">Aguardando: {t.waitingOn}</span>}
+                        {t.status === "hold" && t.waitingOn && <span className="row-project">Aguardando: <LinkText text={t.waitingOn}/></span>}
                       </button>
                       <span className="row-meta">
                         {(t.attachments || []).length > 0 && <span className="muted small" title="Anexos">📎 {t.attachments.length}</span>}

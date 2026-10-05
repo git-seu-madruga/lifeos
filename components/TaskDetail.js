@@ -1,4 +1,5 @@
 "use client";
+import LinkText, {TextLinks} from "./LinkText";
 import ProjectAttachments from "./ProjectAttachments";
 import DateInput from "./DateInput";
 
@@ -45,7 +46,7 @@ export default function TaskDetail({ task, projects, update, onDelete, onClose }
           <div className="field-row">
             <div className="field">
               <span className="label">Aguardando</span>
-              <input className="search" value={task.waitingOn} placeholder="Quem / o quê" onChange={(e) => set({ waitingOn: e.target.value })} />
+              <input className="search" value={task.waitingOn} placeholder="Quem / o quê" onChange={(e) => set({ waitingOn: e.target.value })} /><TextLinks text={task.waitingOn}/>
             </div>
             <div className="field">
               <span className="label">Cobrar em</span>
@@ -106,7 +107,7 @@ export default function TaskDetail({ task, projects, update, onDelete, onClose }
 
         <div className="field">
           <span className="label">Anotações</span>
-          <textarea className="search notes" rows={4} value={task.notes} placeholder="Texto livre (na versão real, o conteúdo da página)" onChange={(e) => set({ notes: e.target.value })} />
+          <textarea className="search notes" rows={4} value={task.notes} placeholder="Texto livre (na versão real, o conteúdo da página)" onChange={(e) => set({ notes: e.target.value })} /><TextLinks text={task.notes}/>
         </div>
         <button className="danger" onClick={() => {
           if (!window.confirm("Excluir esta tarefa? Não dá para desfazer.")) return;

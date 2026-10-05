@@ -1,4 +1,5 @@
 "use client";
+import LinkText, {TextLinks} from "./LinkText";
 import { useEffect, useRef, useState } from 'react';
 import { calendarDays, dateKey, hasDiaryText, updateDiaryEntry } from '../lib/diary';
 import { formatDateInput } from '../lib/dateInput';
@@ -7,7 +8,7 @@ import ProjectAttachments from './ProjectAttachments';
 
 // A formatação é interpretada como texto, sem inserir HTML do usuário.
 function InlineText({text}) {
-  return text.split(/(\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_|`[^`]+`)/g).map((part,index)=>part.startsWith('**')&&part.endsWith('**')?<strong key={index}>{part.slice(2,-2)}</strong>:((part.startsWith('*')&&part.endsWith('*'))||(part.startsWith('_')&&part.endsWith('_')))?<em key={index}>{part.slice(1,-1)}</em>:part.startsWith('`')&&part.endsWith('`')?<code key={index}>{part.slice(1,-1)}</code>:part);
+  return text.split(/((?:https?:\/\/|www\.)[^\s<>"']+|\*\*[^*]+\*\*|\*[^*]+\*|_[^_]+_|`[^`]+`)/g).map((part,index)=>part.startsWith('**')&&part.endsWith('**')?<strong key={index}><LinkText text={part.slice(2,-2)}/></strong>:((part.startsWith('*')&&part.endsWith('*'))||(part.startsWith('_')&&part.endsWith('_')))?<em key={index}><LinkText text={part.slice(1,-1)}/></em>:part.startsWith('`')&&part.endsWith('`')?<code key={index}><LinkText text={part.slice(1,-1)}/></code>:<LinkText key={index} text={part}/>);
 }
 function ReadText({text}) {
   const lines=text.split('\n'),blocks=[];

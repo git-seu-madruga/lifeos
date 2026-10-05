@@ -1,4 +1,5 @@
 "use client";
+import LinkText, {TextLinks} from "./LinkText";
 import ModalLayer from './ModalLayer';
 import AutoTextarea from "./AutoTextarea";
 
@@ -64,7 +65,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
         {items.length === 0 && <p className="muted small inbox-empty">Inbox vazio.</p>}
         <ul className="inbox-list">
           {items.map((i) => (
-            <li key={i.id}><button className="inbox-item" onClick={() => setOpenId(i.id)}>{i.text}</button></li>
+            <li key={i.id}><div className="inbox-item" role="button" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setOpenId(i.id);}}} onClick={() => setOpenId(i.id)}><LinkText text={i.text}/></div></li>
           ))}
         </ul>
       </div>
@@ -78,7 +79,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
             </div>
             <div className="field">
               <span className="label">Conteúdo</span>
-              <AutoTextarea className="search notes" rows={6} value={item.text} onChange={(e) => onUpdate(item.id, e.target.value)} />
+              <AutoTextarea className="search notes" rows={6} value={item.text} onChange={(e) => onUpdate(item.id, e.target.value)} /><TextLinks text={item.text}/>
             </div>
             <p className="muted small">{tabId === "habitos" ? "Para criar um hábito, use + Novo hábito na tela Hábitos." : target.kind === "shopping" ? "Primeira linha: nome da lista. Shift + Enter para separar cada item nas linhas seguintes." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>
             <div className="inbox-actions">

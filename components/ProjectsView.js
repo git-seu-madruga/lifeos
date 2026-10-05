@@ -1,4 +1,5 @@
 "use client";
+import LinkText, {TextLinks} from "./LinkText";
 import ProjectAttachments from "./ProjectAttachments";
 import DateInput from "./DateInput";
 
@@ -165,7 +166,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
         </div>
       </div>
       <div className="field"><span className="label">Descrição</span>
-        <textarea className="search notes" rows={2} value={project.description} onChange={(e) => updateProject(project.id, { description: e.target.value })} />
+        <textarea className="search notes" rows={2} value={project.description} onChange={(e) => updateProject(project.id, { description: e.target.value })} /><TextLinks text={project.description}/>
       </div>
 
       {projectError && <p className="date-error" role="alert">{projectError}</p>}
