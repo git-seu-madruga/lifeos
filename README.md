@@ -299,7 +299,7 @@ Limites: nome com até 200 caracteres, até 500 itens por lista, até 500 caract
 
 ### Exclusão e teste após deploy
 
-Ao marcar um check, o item é removido, sem confirmação adicional. O botão Excluir item pede confirmação. **Finalizar e excluir lista** pede confirmação e remove a lista inteira. Não há histórico mantido pelo LifeOS. A API do Notion envia páginas de listas excluídas à lixeira do próprio Notion; o app não controla nem elimina o histórico de versões que o Notion possa manter.
+Ao marcar um check, o item é removido, sem confirmação adicional. Não há botão de excluir item: o check remove o item, e Editar permite corrigir seu texto. **Finalizar e excluir lista** pede confirmação e remove a lista inteira. Não há histórico mantido pelo LifeOS. A API do Notion envia páginas de listas excluídas à lixeira do próprio Notion; o app não controla nem elimina o histórico de versões que o Notion possa manter.
 
 A sincronização é automática, com rascunho local e indicação de alterações pendentes. Aguarde **Salvo no Notion** antes de fechar o navegador. Os testes do pacote utilizam mocks; após o deploy, confira criação em ambos os contextos, conversão com nome em letras diferentes, inclusão no topo, remoção por check e persistência após recarregar a página.
 
