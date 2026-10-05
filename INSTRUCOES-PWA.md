@@ -40,3 +40,7 @@ O service worker não armazena HTML, dados de contas, respostas de APIs ou anexo
 - Feche o app, desligue a conexão e abra: deve mostrar a mensagem de falta de conexão; reconecte e tente novamente.
 
 Compilação e teste automatizado do service worker executados. A instalação e o retorno do login Google em aparelhos reais precisam ser conferidos após o deploy. Não houve publicação automática.
+
+## Rolagem das abas no iPhone
+
+A barra usa rolagem horizontal nativa, sem barra visível. Para reordenar no celular, toque no botão com setas junto às abas, arraste e toque no ✓ para concluir. No modo de ordenação, arrastar move as abas; fora dele, deslizar rola a barra. O arraste com pausa longa foi substituído por esse modo explícito para evitar conflito com o Safari.

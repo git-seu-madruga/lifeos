@@ -1,3 +1,11 @@
+# Capas no Notion e rolagem no iPhone
+
+Cópia de capas importadas ativada por padrão ao salvar; rolagem nativa das abas e botão separado para ordenar no celular. Consulte INSTRUCOES-CAPAS-IPHONE.md.
+
+# Aba Entretenimento
+
+Consulte INSTRUCOES-ENTRETENIMENTO.md para criar os dois bancos e configurar os IDs na Vercel. Inclui busca de livros/séries, capas, estrelas e seções personalizadas.
+
 # Aplicativo instalável (PWA)
 
 Esta versão inclui ícones e instalação em celulares/computadores. Consulte INSTRUCOES-PWA.md. As configurações Google/Notion/Redis anteriores permanecem necessárias.

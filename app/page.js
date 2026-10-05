@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { useNotionState } from "../lib/useNotionState";
 import { InstallApp } from "../components/PwaProvider";
+import EntertainmentView from "../components/EntertainmentView";
 import Login from "../components/Login";
 import ModalLayer from '../components/ModalLayer';
 import HabitsView from '../components/HabitsView';
@@ -40,6 +41,8 @@ export default function Home() {
   const [dragged,setDragged] = useState(null);
   const draggedTab = useRef(null);
   const touchDrag = useRef(null);
+  const [touchMode,setTouchMode]=useState(false),[touchReorder,setTouchReorder]=useState(false);
+  useEffect(()=>{const query=window.matchMedia("(pointer: coarse)");const update=()=>setTouchMode(query.matches);update();query.addEventListener("change",update);return()=>query.removeEventListener("change",update);},[]);
   const suppressClick = useRef(false);
   useEffect(()=>{
     let order=NAV.map(tab=>tab.id);
@@ -63,7 +66,7 @@ export default function Home() {
   const [newTaskId, setNewTaskId] = useState(null);
 
 
-  const personalOnly = ["financas", "diario", "aniversarios", "habitos"].includes(tabId);
+  const personalOnly = ["financas", "diario", "aniversarios", "habitos", "entretenimento"].includes(tabId);
   const effectiveContext = personalOnly ? "personal" : context;
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
@@ -201,32 +204,32 @@ export default function Home() {
         </div>
       </header>
 
-      <nav className="tabs" aria-label="Seções">
+      <div className="tabs-row"><nav className={"tabs"+(touchReorder?" reordering":"")} aria-label="Seções">
         {orderedTabs.map((t) => (
           <span key={t.id} className="tab-wrap">
             {t.sep && <span className="tab-sep" aria-hidden="true" />}
             <button
               className={"tab" + (t.id === tabId ? " on" : "") + (dragged === t.id ? " dragging" : "")}
-              draggable
+              draggable={!touchMode}
               data-tab-id={t.id}
-              onPointerDown={e=>{if(e.pointerType==='touch'){const bar=e.currentTarget.closest('.tabs');touchDrag.current={id:t.id,x:e.clientX,y:e.clientY,moved:false,target:t.id,bar,scroll:bar.scrollLeft,started:performance.now(),mode:null};e.currentTarget.setPointerCapture(e.pointerId);}}}
-              onPointerMove={e=>{const drag=touchDrag.current;if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.mode&&Math.hypot(dx,dy)>8){drag.mode=performance.now()-drag.started>=450?'reorder':'scroll';drag.moved=true;}if(drag.mode==='scroll'){drag.bar.scrollLeft=drag.scroll-dx;}else if(drag.mode==='reorder'){setDragged(drag.id);const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-tab-id]')?.dataset.tabId;if(target)drag.target=target;}}}
-              onPointerUp={()=>{const drag=touchDrag.current;if(drag?.moved){if(drag.mode==='reorder')reorderTab(drag.id,drag.target);suppressClick.current=true;setTimeout(()=>{suppressClick.current=false;},0);}touchDrag.current=null;setDragged(null);}}
+              onPointerDown={e=>{if(e.pointerType==='touch'&&touchReorder){touchDrag.current={id:t.id,x:e.clientX,y:e.clientY,moved:false,target:t.id,bar:e.currentTarget.closest('.tabs')};e.currentTarget.setPointerCapture(e.pointerId);}}}
+              onPointerMove={e=>{const drag=touchDrag.current;if(!drag)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){drag.moved=true;setDragged(drag.id);const bounds=drag.bar.getBoundingClientRect();if(e.clientX>bounds.right-30)drag.bar.scrollLeft+=12;else if(e.clientX<bounds.left+30)drag.bar.scrollLeft-=12;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-tab-id]')?.dataset.tabId;if(target)drag.target=target;}}}
+              onPointerUp={()=>{const drag=touchDrag.current;if(drag?.moved){reorderTab(drag.id,drag.target);suppressClick.current=true;setTimeout(()=>{suppressClick.current=false;},400);}touchDrag.current=null;setDragged(null);}}
               onPointerCancel={()=>{touchDrag.current=null;setDragged(null);}}
-              title="Deslize para ver as abas · No celular, segure antes de arrastar para reordenar · Alt + seta também move"
+              title={touchMode?"Deslize para ver as abas · Use Ordenar abas para reorganizar":"Arraste para reordenar · Alt + seta também move"}
               onDragStart={e=>{draggedTab.current=t.id;setDragged(t.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',t.id);}}
               onDragOver={e=>{if(draggedTab.current){e.preventDefault();e.dataTransfer.dropEffect='move';}}}
               onDrop={e=>{e.preventDefault();if(draggedTab.current)reorderTab(draggedTab.current,t.id);draggedTab.current=null;setDragged(null);}}
               onDragEnd={()=>{draggedTab.current=null;setDragged(null);}}
               onKeyDown={e=>{if(e.altKey && ['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();const target=tabOrder[tabOrder.indexOf(t.id)+(e.key==='ArrowLeft'?-1:1)];if(target)reorderTab(t.id,target);}}}
               aria-current={t.id === tabId ? "page" : undefined}
-              onClick={() => { if(suppressClick.current)return;setTabId(t.id); setSelected(null); }}
+              onClick={() => { if(suppressClick.current||touchReorder)return;setTabId(t.id); setSelected(null); }}
             >
               <TabIcon id={t.id}/><span>{t.label}</span>
             </button>
           </span>
         ))}
-      </nav>
+      </nav>{touchMode&&<button className={"icon-btn tab-order-toggle"+(touchReorder?" on":"")} aria-label={touchReorder?"Concluir ordem das abas":"Ordenar abas"} aria-pressed={touchReorder} title={touchReorder?"Concluir ordem das abas":"Ordenar abas"} onClick={()=>{setTouchReorder(!touchReorder);touchDrag.current=null;setDragged(null);}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{touchReorder?<path d="m4 12 5 5L20 6"/>:<><path d="M4 8h16M4 16h16m-3-11 3 3-3 3M7 13l-3 3 3 3"/></>}</svg></button>}</div>{touchReorder&&<p className="muted small" role="status">Arraste as abas para ordenar. Toque no ✓ para voltar à rolagem.</p>}
 
       <main className="content">
         {remote.error && <p className="date-error" role="alert">{remote.error}</p>}
@@ -234,7 +237,7 @@ export default function Home() {
         {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}
 
         {!saving&&['compras','aniversarios','financas'].includes(tabId)&&(()=>{const keys=tabId==='compras'?['shopping']:tabId==='aniversarios'?['contacts']:['categories','transactions'];const latest=keys.map(key=>remote.sharedActivity?.[key]).filter(Boolean).sort((a,b)=>b.at.localeCompare(a.at))[0];return latest?<p className="muted small shared-editor">Última alteração no LifeOS por {latest.name} · {new Date(latest.at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}</p>:null;})()}
-        {!["diario","financas","aniversarios","compras","habitos"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
+        {!["diario","financas","aniversarios","compras","habitos","entretenimento"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button
               key={s.id}
@@ -262,6 +265,8 @@ export default function Home() {
           )
         ) : tabId === "diario" ? (
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
+        ) : tabId === "entretenimento" ? (
+          <EntertainmentView sections={remote.mediaSections||[]} items={remote.media||[]} setEntertainment={remote.setEntertainment} configured={remote.mediaConfigured}/>
         ) : tabId === "habitos" ? (
           <HabitsView habits={remote.habits||[]} logs={remote.habitLogs||[]} setHabits={remote.setHabits} context="personal" configured={remote.habitsConfigured}/>
         ) : tabId === "compras" ? (

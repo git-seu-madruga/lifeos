@@ -7,7 +7,7 @@ export async function GET(request) {
     const user=authorize(request);
     const { searchParams } = new URL(request.url);
     const kind = searchParams.get('kind'), id = searchParams.get('id'), index = Number(searchParams.get('index'));
-    if (!['projects','tasks','diary'].includes(kind) || !/^[\da-f-]{32,36}$/i.test(id || '') || !Number.isInteger(index) || index < 0) throw new AppError('Anexo inválido.');
+    if (!['projects','tasks','diary','media'].includes(kind) || !/^[\da-f-]{32,36}$/i.test(id || '') || !Number.isInteger(index) || index < 0) throw new AppError('Anexo inválido.');
     const { page, source } = await ownedPage(kind,id,user);
     const list = page.properties[source.fields.attachments.name]?.files || [];
     const name = searchParams.get('name');

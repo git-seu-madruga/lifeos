@@ -22,9 +22,10 @@ const {diffState,hasChanges}=require(path.join(temp,'lib/notionDiff'));
 process.env.NOTION_DIARY_DATABASE_ID='diary-test-db';
 process.env.NOTION_INBOX_DATABASE_ID='inbox-test-db';
 process.env.NOTION_FINANCE_CATEGORIES_DATABASE_ID='finance-categories-test';process.env.NOTION_FINANCE_TRANSACTIONS_DATABASE_ID='finance-transactions-test';
-const databases={habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
+const databases={mediaSections:"media-sections-test",media:"media-test",habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
 const sourceIds=Object.fromEntries(Object.keys(databases).map(k=>[k,randomUUID()]));
 const specs={
+ mediaSections:{'Nome':'title','Tipo':'rich_text','Ícone':'rich_text','Cor':'rich_text'},media:{'Nome':'title','Seção':'relation','Autor':'rich_text','Status':'select','Avaliação':'number','Comentário':'rich_text','URL da capa':'rich_text','Link de origem':'rich_text','Fonte':'rich_text','Capa':'files'},
  habits:{'Nome':'title','Contexto':'select','Cor':'rich_text','Ícone':'rich_text','Início':'date'},habitLogs:{'Nome':'title','Hábito':'relation','Data':'date'},
  shopping:{'Nome':'title','Contexto':'select','Itens':'rich_text'},
  contacts:{'Nome':'title','Dia':'number','Mês':'number','Ano de nascimento':'number'},
@@ -35,7 +36,7 @@ const specs={
  milestones:{'Nome':'title','Projeto':'relation','Prazo':'date','Concluído':'checkbox','Ordem':'number'},
  tasks:{'Nome':'title','Status':'status','Prioridade':'select','Contexto':'select','Projeto':'relation','Marco':'relation','Início':'date','Prazo':'date','Aguardando':'rich_text','Cobrar em':'date','Anotações':'rich_text','Concluída em':'date','Anexos':'files'},
 };
-const sources={};for(const [kind,spec] of Object.entries(specs))sources[kind]={id:sourceIds[kind],properties:Object.fromEntries(Object.entries(spec).map(([name,type])=>[name,{id:randomUUID(),name,type,...(type==='relation'?{relation:{data_source_id:sourceIds[name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects'],database_id:databases[name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects']}}:{})}]))};
+const sources={};for(const [kind,spec] of Object.entries(specs))sources[kind]={id:sourceIds[kind],properties:Object.fromEntries(Object.entries(spec).map(([name,type])=>[name,{id:randomUUID(),name,type,...(type==='relation'?{relation:{data_source_id:sourceIds[name==='Seção'?'mediaSections':name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects'],database_id:databases[name==='Seção'?'mediaSections':name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects']}}:{})}]))};
 const rows=new Map(),calls=[],redisRows=new Map();let creates=0,paginate=false,failShoppingWrite=false;
 const kindBySource=id=>Object.keys(sourceIds).find(kind=>sourceIds[kind]===id);
 function normalizeProperties(kind,properties) {
@@ -46,6 +47,7 @@ function normalizeProperties(kind,properties) {
  }));
 }
 global.fetch=async(url,options={})=>{
+ if(String(url).startsWith('https://covers.openlibrary.org/'))return new Response(Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1cAAAAASUVORK5CYII=','base64'),{headers:{'content-type':'image/png'}});
  if(url==='https://redis.test'){
   const cmd=JSON.parse(options.body);let result=null;
   if(cmd[0]==='GET')result=redisRows.get(cmd[1])||null;
@@ -94,7 +96,7 @@ global.fetch=async(url,options={})=>{
  const cookie=auth.sessionCookie({id:'google:test-pericles',email:'periclesbernardes@gmail.com',name:'Péricles'}).split(';')[0];
  const logged=new Request('https://lifeos.test/api/notion',{headers:{cookie}});auth.authorize(logged);
  assert.equal(auth.authenticated(new Request('https://lifeos.test/api',{headers:{cookie:cookie+'bad'}})),false);
- let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false,habits:[],habitLogs:[],habitsConfigured:false});
+ let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{mediaSections:[],media:[],mediaConfigured:false,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false,habits:[],habitLogs:[],habitsConfigured:false});
  const base=state;
  const file=new File(['arquivo de teste'],'ref.txt',{type:'text/plain'});
  const uploaded=await notionLib.uploadFile(file);
@@ -227,6 +229,31 @@ global.fetch=async(url,options={})=>{
  const staleDelete=structuredClone(readB);staleDelete.shopping=[];await assert.rejects(()=>synchronize(readB,staleDelete,B),/alterado desde/);
  const {withWriteLock}=require(path.join(temp,'lib/server/coordination'));let release;const pending=withWriteLock(async guard=>{await guard();await new Promise(resolve=>release=resolve);});for(let i=0;i<5&&!release;i++)await new Promise(resolve=>setImmediate(resolve));await assert.rejects(()=>withWriteLock(async()=>{}),/Outro usuário/);release();await pending;assert.equal(redisRows.has('lifeos:write:v1'),false);
  }
+ {
+ process.env.NOTION_MEDIA_DATABASE_ID='media-test';process.env.NOTION_MEDIA_SECTIONS_DATABASE_ID='media-sections-test';
+ const A={id:'google:user-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:user-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+ let state=(await notionLib.readSnapshot(false,B)).state;const next=structuredClone(state);
+ next.mediaSections=[{id:'section-book',name:'Leitura',type:'book',icon:'book',color:'#6ea8fe'}];
+ next.media=[{id:'media-book',name:'Duna',section:'section-book',author:'Frank Herbert',status:'planned',rating:0,comment:'',coverUrl:'https://covers.openlibrary.org/b/id/123-M.jpg',sourceUrl:'https://openlibrary.org/works/OL1W',provider:'Open Library',attachments:[]}];
+ const start=calls.length;await synchronize(state,next,B);await synchronize(state,next,B);
+ assert.ok(calls.slice(start).filter(c=>c.route.endsWith('/query')).every(c=>c.route.includes(sourceIds.media)||c.route.includes(sourceIds.mediaSections)));
+ state=(await notionLib.readSnapshot(false,B)).state;assert.equal(state.media.length,1);assert.equal(state.media[0].section,state.mediaSections[0].id);assert.equal(state.media[0].author,'Frank Herbert');assert.equal((await notionLib.readSnapshot(false,A)).state.media.length,0);
+ const rated=structuredClone(state);rated.media[0].rating=5;rated.media[0].status='done';rated.media[0].comment='Gostei';await synchronize(state,rated,B);
+ const stale=structuredClone(state);stale.media[0].rating=3;await assert.rejects(()=>synchronize(state,stale,B),/alterado no Notion/);
+ state=(await notionLib.readSnapshot(false,B)).state;assert.equal(state.media[0].rating,5);assert.equal(state.media[0].status,'done');
+ await assert.rejects(()=>notionLib.ownedPage('media',state.media[0].id,A),e=>e.status===403);
+ const invalid=structuredClone(state);invalid.media[0].rating=6;await assert.rejects(()=>synchronize(state,invalid,B),/inválidos/);
+ const ownUpload=structuredClone(state);ownUpload.media[0].coverUrl='';ownUpload.media[0].attachments=[{id:'cover',name:'capa.png',uploadId:'cover-upload',uploadProof:auth.seal({user:B.id,uploadId:'cover-upload',exp:Date.now()+60000})}];await synchronize(state,ownUpload,B);
+ state=(await notionLib.readSnapshot(false,B)).state;assert.equal(state.media[0].attachments[0].kind,'media');assert.equal(state.media[0].attachments[0].pageId,state.media[0].id);
+ const foreign=structuredClone((await notionLib.readSnapshot(false,A)).state);foreign.mediaSections.push(state.mediaSections[0]);foreign.media.push(state.media[0]);const foreignBase=(await notionLib.readSnapshot(false,A)).state;await assert.rejects(()=>synchronize(foreignBase,foreign,A),e=>e.status===403);
+ const beforeTrash=calls.length;await synchronize(state,{...state,media:[],mediaSections:[]},B);const trash=calls.slice(beforeTrash).filter(c=>c.body?.in_trash);assert.equal(trash[0].route,'/pages/'+state.media[0].id);assert.equal(trash[1].route,'/pages/'+state.mediaSections[0].id);
+ assert.equal((await notionLib.readSnapshot(false,B)).state.media.length,0);
+ delete process.env.NOTION_MEDIA_DATABASE_ID;delete process.env.NOTION_MEDIA_SECTIONS_DATABASE_ID;
+ }
+ const copyRoute=require(path.join(temp,'app/api/notion/media-cover/route')).POST;
+ const copied=await copyRoute(new Request('https://lifeos.test/api/notion/media-cover',{method:'POST',headers:{cookie,origin:'https://lifeos.test','content-type':'application/json'},body:JSON.stringify({url:'https://covers.openlibrary.org/b/id/123-M.jpg',name:'Duna'})}));assert.equal(copied.status,200);const coverResult=await copied.json();assert.equal(auth.unseal(coverResult.uploadProof).user,'google:test-pericles');assert.ok(coverResult.uploadId);
+ const copyDenied=await copyRoute(new Request('https://lifeos.test/api/notion/media-cover',{method:'POST',body:'{}'}));assert.equal(copyDenied.status,401);
+ const copyOrigin=await copyRoute(new Request('https://lifeos.test/api/notion/media-cover',{method:'POST',headers:{cookie,origin:'https://evil.test'},body:'{}'}));assert.equal(copyOrigin.status,403);
  const get=require(path.join(temp,'app/api/notion/route')).GET;
  const denied=await get(request);assert.equal(denied.status,401);assert.equal(calls.some(call=>call.route.includes('undefined')),false);
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão preservando tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');

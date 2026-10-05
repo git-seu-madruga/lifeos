@@ -1,0 +1,6 @@
+// Regressão: só o modo de ordenação pode capturar o gesto de toque.
+const assert=require('node:assert/strict'),fs=require('node:fs');
+const page=fs.readFileSync('app/page.js','utf8'),css=fs.readFileSync('app/globals.css','utf8');
+const handler=page.match(/onPointerDown=\{(e=>\{if\(e.pointerType==='touch'&&touchReorder\)[\s\S]*?)\}\n\s*onPointerMove/)[1];
+function down(enabled){const touchDrag={current:null},t={id:'diario'};let captures=0;const fn=Function('touchReorder','touchDrag','t','return ('+handler+')')(enabled,touchDrag,t);fn({pointerType:'touch',pointerId:1,clientX:20,clientY:30,currentTarget:{closest(){return {};},setPointerCapture(){captures++;}}});return {captures,touchDrag};}
+assert.equal(down(false).captures,0,'Rolagem normal não deve capturar o toque');assert.equal(down(true).captures,1,'Ordenação captura o toque');assert.ok(page.includes('draggable={!touchMode}'));assert.ok(!css.includes('touch-action:pan-y')&&!css.includes('touch-action: pan-y'));assert.ok(css.includes('.tabs.reordering .tab{touch-action:none}'));assert.ok(css.includes('-webkit-overflow-scrolling:touch'));assert.ok(css.includes('scrollbar-width:none'));console.log('PASSOU: gesto nativo sem captura, modo de ordenação separado e barra oculta.');
