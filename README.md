@@ -252,9 +252,9 @@ Os testes automatizados usam mocks da API do Notion, não sua conta real. Depois
 
 ## Compras — listas rápidas sem histórico no LifeOS
 
-A aba Compras permite criar listas em **Pessoal** ou **Trabalho**, adicionar e editar itens, marcar os comprados para removê-los imediatamente e finalizar/excluir a lista com confirmação. Não há área de itens concluídos, arquivo ou histórico no app. Os itens permanecem na ordem de inclusão. Uma lista vazia permanece disponível até ser finalizada.
+A aba Compras permite criar listas em **Pessoal** ou **Trabalho**, adicionar e editar itens, marcar os comprados para removê-los imediatamente e finalizar/excluir a lista com confirmação. Não há área de itens concluídos, arquivo ou histórico no app. Os novos itens entram ao final e podem ser reordenados por arraste; a ordem escolhida é salva no Notion. Uma lista vazia permanece disponível até ser finalizada.
 
-Os ícones das abas têm 15 px, aproveitando a cor e os nomes existentes. A ordem por arraste continua funcionando. No desktop (a partir de 1000 px), o Inbox permanece à esquerda; o menu de listas aparece logo abaixo dele na aba Compras. Em telas menores, ambos ficam acima do conteúdo. A busca do menu filtra por nome e acompanha o contexto selecionado.
+Os ícones das abas têm 15 px, aproveitando a cor e os nomes existentes. A ordem por arraste continua funcionando. No desktop (a partir de 1000 px), o Inbox permanece à esquerda; a tela principal de Compras mostra blocos para as listas, como em Projetos. Clique em um bloco para abrir e em Voltar às listas para retornar. Em telas menores, o Inbox fica acima do conteúdo. A busca dos blocos filtra por nome e acompanha o contexto selecionado.
 
 ### Novo banco no Notion
 
@@ -302,3 +302,11 @@ Limites: nome com até 200 caracteres, até 500 itens por lista, até 500 caract
 Ao marcar um check, o item é removido, sem confirmação adicional. O botão Excluir item pede confirmação. **Finalizar e excluir lista** pede confirmação e remove a lista inteira. Não há histórico mantido pelo LifeOS. A API do Notion envia páginas de listas excluídas à lixeira do próprio Notion; o app não controla nem elimina o histórico de versões que o Notion possa manter.
 
 A sincronização é automática, com rascunho local e indicação de alterações pendentes. Aguarde **Salvo no Notion** antes de fechar o navegador. Os testes do pacote utilizam mocks; após o deploy, confira criação em ambos os contextos, conversão com nome em letras diferentes, acréscimo ao final, remoção por check e persistência após recarregar a página.
+
+### Compras: blocos e ordem dos itens
+
+O menu lateral de listas foi removido. A tela principal tem blocos com nome, contexto, quantidade e prévia dos itens. A busca e o contexto filtram os blocos; ao voltar de uma lista, a busca é preservada enquanto a aba permanece aberta.
+
+Dentro da lista, arraste a alça ⋮⋮ do item para cima ou para baixo e solte sobre o item de destino. Funciona com mouse ou toque. Pelo teclado, foque a alça e use Alt + seta para cima/baixo. Os checks continuam removendo itens comprados. Novos itens, inclusive vindos do Inbox, entram ao final da ordem atual.
+
+Não há alteração no banco de dados ou nas variáveis da Vercel para esta atualização. Mantenha o banco Listas de compras e NOTION_SHOPPING_DATABASE_ID existentes. Atualize os arquivos no GitHub e faça o deploy. Após o deploy, confira o arraste e recarregue para verificar a ordem salva.

@@ -7,7 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { useNotionState } from "../lib/useNotionState";
 import Login from "../components/Login";
-import ShoppingView,{ShoppingMenu} from '../components/ShoppingView';
+import ShoppingView from '../components/ShoppingView';
 import TabIcon from '../components/TabIcon';
 import {shoppingFromInbox} from '../lib/shopping';
 import Inbox from "../components/Inbox";
@@ -182,7 +182,6 @@ export default function Home() {
     <div className="shell">
       <div className="left-rail">
       {ready && inbox && <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />}
-      {tabId==="compras" && remote.shoppingConfigured && <ShoppingMenu lists={remote.shopping || []} context={context} selected={shoppingSelected} onSelect={id=>{setShoppingSelected(id);setShoppingCreating(false);}} onCreate={()=>setShoppingCreating(true)}/>}
       </div>
     <div className="app">
       <header className="topbar">
@@ -281,7 +280,7 @@ export default function Home() {
         ) : tabId === "diario" ? (
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
         ) : tabId === "compras" ? (
-          <ShoppingView key={shoppingSelected || 'empty'} lists={remote.shopping || []} setLists={remote.setShopping} selected={shoppingSelected} onSelect={setShoppingSelected} context={context} configured={remote.shoppingConfigured} creating={shoppingCreating} onCreate={()=>setShoppingCreating(true)} onCreated={()=>setShoppingCreating(false)}/>
+          <ShoppingView lists={remote.shopping || []} setLists={remote.setShopping} selected={shoppingSelected} onSelect={setShoppingSelected} context={context} configured={remote.shoppingConfigured} creating={shoppingCreating} onCreate={()=>setShoppingCreating(true)} onCreated={()=>setShoppingCreating(false)}/>
         ) : tabId === "aniversarios" ? (
           <BirthdaysView contacts={remote.contacts || []} setContacts={remote.setContacts} configured={remote.contactsConfigured} openContact={contactOpen} onOpenHandled={()=>setContactOpen(null)}/>
         ) : tabId === "financas" ? (
