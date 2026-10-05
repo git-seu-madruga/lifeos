@@ -325,7 +325,7 @@ Os diálogos do Inbox e da escolha de contexto de Compras são renderizados fora
 
 ## Hábitos — cadastro visual e progresso diário
 
-A aba Hábitos tem cards diários, paleta de oito cores e pacote interno de 16 ícones SVG. Cada hábito tem um contexto Pessoal ou Trabalho; Todos reúne ambos. A cor aparece no ícone, no fundo e contorno do card concluído, no check, na barra de progresso do dia e no acompanhamento. No cadastro e na edição há uma prévia da escolha. Trocar nome, cor, ícone ou contexto mantém as marcações existentes.
+A aba Hábitos tem cards diários, paleta de oito cores e pacote interno de 16 ícones SVG. Hábitos usa apenas o contexto Pessoal, com as demais opções bloqueadas. O contexto não aparece no cadastro ou nos cards. A cor aparece no ícone, no fundo e contorno do card concluído, no check, na barra de progresso do dia e no acompanhamento. No cadastro e na edição há uma prévia da escolha. Trocar nome, cor, ícone ou contexto mantém as marcações existentes.
 
 ### Bancos no Notion
 
@@ -382,3 +382,11 @@ Códigos aceitos, se cadastrar manualmente no Notion:
 ### Validação após o deploy
 
 Os testes automatizados usam mocks, sem acessar sua conta real do Notion. Confira criar com diferentes cores/ícones, marcar e desmarcar, recarregar a página, editar mantendo as marcações, consultar mês/ano, alternar contextos e conferir a renovação no dia seguinte. O pacote inclui também todas as correções recentes de Compras.
+
+### Layout ampliado e Hábitos pessoal
+
+Hábitos agora é exclusivamente Pessoal; o app grava novos hábitos com esse contexto. Mantenha a propriedade Contexto no Notion, pois ela continua sendo usada pela integração. Hábitos de Trabalho eventualmente já existentes ficam preservados no Notion, mas não são exibidos nesta versão.
+
+No desktop, o Inbox fica no canto esquerdo e a área principal ocupa a largura restante até a margem direita. O Inbox tem somente o divisor vertical, sem borda inferior. Os cards de hábitos ficaram mais compactos. O acompanhamento usa toda a largura disponível; em áreas estreitas, os dias se organizam em grupos de sete colunas por hábito, sem barra horizontal, preservando todos os dias do mês. O modo anual adapta os meses em grupos de quatro colunas em áreas estreitas. O ícone de Finanças passa a ser um cifrão no mesmo estilo SVG das demais abas.
+
+Não é necessário alterar bancos ou variáveis da Vercel. Atualize os arquivos no GitHub e faça o deploy.

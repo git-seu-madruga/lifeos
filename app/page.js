@@ -84,7 +84,7 @@ export default function Home() {
     } catch {}
   }
 
-  const personalOnly = ["financas", "diario", "aniversarios"].includes(tabId);
+  const personalOnly = ["financas", "diario", "aniversarios", "habitos"].includes(tabId);
   const effectiveContext = personalOnly ? "personal" : context;
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
@@ -282,7 +282,7 @@ export default function Home() {
         ) : tabId === "diario" ? (
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
         ) : tabId === "habitos" ? (
-          <HabitsView habits={remote.habits||[]} logs={remote.habitLogs||[]} setHabits={remote.setHabits} context={context} configured={remote.habitsConfigured}/>
+          <HabitsView habits={remote.habits||[]} logs={remote.habitLogs||[]} setHabits={remote.setHabits} context="personal" configured={remote.habitsConfigured}/>
         ) : tabId === "compras" ? (
           <ShoppingView lists={remote.shopping || []} setLists={remote.setShopping} selected={shoppingSelected} onSelect={setShoppingSelected} context={context} configured={remote.shoppingConfigured} creating={shoppingCreating} onCreate={()=>setShoppingCreating(true)} onCreated={()=>setShoppingCreating(false)}/>
         ) : tabId === "aniversarios" ? (
