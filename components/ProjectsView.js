@@ -5,6 +5,7 @@ import DateInput from "./DateInput";
 import { patchTask, newestCompleted } from "../lib/tasks";
 
 import { useState } from "react";
+import { formatDateInput } from "../lib/dateInput";
 import { dueLabel } from "../lib/dates";
 import TaskDetail from "./TaskDetail";
 import MilestoneManager from "./MilestoneManager";
@@ -110,7 +111,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   const current = ms.find((m) => !m.done);
   const msDone = ms.filter((m) => m.done).length;
   const msPct = ms.length ? Math.round((msDone / ms.length) * 100) : 0;
-  const next = current?.due ? dueLabel(current.due) : null;
+  const next = current?.due ? formatDateInput(current.due) : null;
 
   const setMs = (mid, patch) => updateProject(project.id, { milestones: project.milestones.map((m) => (m.id === mid ? { ...m, ...patch } : m)) });
   function delMs(mid) {
@@ -174,7 +175,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
         <div><span className="label">Marcos</span><Bar pct={msPct} /><span className="muted small">{msDone}/{ms.length} atingidos ({msPct}%)</span></div>
         <div><span className="label">Agora</span>
           <span className="now">{current ? current.title : ms.length ? "Todos os marcos atingidos" : "Sem marcos definidos"}</span>
-          {next && <span className={`small due-${next.tone}`}>{next.text}</span>}
+          {next && <span className="small muted">{next}</span>}
         </div>
       </div>
 
@@ -198,7 +199,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
               <div className="ms-head">
                 <input type="checkbox" className="check" checked={m.done} onChange={() => setMs(m.id, { done: !m.done })} aria-label="Marco atingido" />
                 <span className="ms-title">{m.title}</span>
-                {m.due && <span className="small muted">{dueLabel(m.due).text}</span>}
+                {m.due && <span className="small muted">{formatDateInput(m.due)}</span>}
               </div>
               {current && m.id === current.id && <span className="ms-flag">Você está aqui</span>}
               <div className="ms-prog"><Bar pct={s.pct} /><span className="muted small">{s.total ? `${s.done}/${s.total} tarefas` : "sem tarefas"}</span></div>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { dueLabel } from "../lib/dates";
+import { formatDateInput } from "../lib/dateInput";
 
 const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold", done: "Concluída" };
 
@@ -14,7 +14,7 @@ export default function ProjectBoard({ milestones, tasks, onMove, onOpen }) {
     <div className="board">
       {cols.map((c) => {
         const items = tasks.filter((t) => (t.milestone || "") === c.id);
-        const due = c.due ? dueLabel(c.due) : null;
+        const due = c.due ? formatDateInput(c.due) : null;
         return (
           <div
             key={c.id || "none"}
@@ -29,7 +29,7 @@ export default function ProjectBoard({ milestones, tasks, onMove, onOpen }) {
             }}
           >
             <div className="col-head"><strong>{c.title}</strong><span className="muted small">{items.length}</span></div>
-            {due && <span className={`small due-${due.tone}`}>{due.text}</span>}
+            {due && <span className="small muted">{due}</span>}
             {items.map((t) => (
               <div key={t.id} className="kcard" draggable onDragStart={(e) => e.dataTransfer.setData("text/plain", t.id)}>
                 <button className="kcard-title" onClick={() => onOpen(t.id)}>{t.title}</button>

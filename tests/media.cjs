@@ -24,6 +24,13 @@ for(const file of ['lib/entertainment.js','lib/api.js','lib/server/auth.js','lib
  for(const url of ['http://covers.openlibrary.org/b/id/1-M.jpg','https://127.0.0.1/a','https://covers.openlibrary.org.evil.test/b/id/1-M.jpg','https://static.tvmaze.com/admin','https://user:pass@covers.openlibrary.org/b/id/1-M.jpg'])assert.ok(!cover.allowedCoverUrl(url),url);
  const png=Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1cAAAAASUVORK5CYII=','base64');
  global.fetch=async(url,options)=>{assert.equal(options.redirect,'manual');return new Response(png,{headers:{'content-type':'image/png'}});};
+ const original='https://covers.openlibrary.org/b/id/12547191-M.jpg';
+ const archive='https://archive.org/download/m_covers_0012/m_covers_0012_54.zip/0012547191-M.jpg';
+ const storage='https://ia800505.us.archive.org/view_archive.php?archive=/5/items/m_covers_0012/m_covers_0012_54.zip&file=0012547191-M.jpg';
+ assert.ok(cover.allowedCoverRedirect(archive,original));assert.ok(cover.allowedCoverRedirect(storage,original));assert.ok(!cover.allowedCoverUrl(archive));assert.ok(!cover.allowedCoverRedirect(storage.replace('0012547191-M','0012547192-M'),original));assert.ok(!cover.allowedCoverRedirect(storage.replace('ia800505.us.archive.org','evil.archive.org'),original));assert.ok(!cover.allowedCoverRedirect('https://archive.org/download/private/file',original));
+ let redirects=0;global.fetch=async(url,options)=>{assert.equal(options.redirect,'manual');redirects++;if(redirects===1)return new Response(null,{status:302,headers:{location:archive}});if(redirects===2)return new Response(null,{status:302,headers:{location:storage}});assert.equal(url,storage);return new Response(png);};
+ assert.equal((await cover.downloadMediaCover(original,'Livro')).type,'image/png');assert.equal(redirects,3);
+ global.fetch=async()=>new Response(png);
  const image=await cover.downloadMediaCover('https://covers.openlibrary.org/b/id/123-M.jpg','Duna');assert.equal(image.type,'image/png');assert.equal(image.name,'Duna.png');assert.equal(image.size,png.length);
  global.fetch=async()=>new Response('html');await assert.rejects(()=>cover.downloadMediaCover('https://covers.openlibrary.org/b/id/123-M.jpg'),/imagem compatível/);
  global.fetch=async()=>new Response(null,{status:302,headers:{location:'https://127.0.0.1/private'}});await assert.rejects(()=>cover.downloadMediaCover('https://covers.openlibrary.org/b/id/123-M.jpg'),/não suportado/);

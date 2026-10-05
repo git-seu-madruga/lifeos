@@ -3,7 +3,7 @@ const swc=require('next/dist/build/swc'),React=require('react'),{renderToStaticM
 const folder=path.resolve('.diary-test');
 for(const dir of ['lib','components']){fs.mkdirSync(path.join(folder,dir),{recursive:true});for(const name of fs.readdirSync(dir)){if(!name.endsWith('.js'))continue;const source=fs.readFileSync(path.join(dir,name),'utf8');fs.writeFileSync(path.join(folder,dir,name),swc.transformSync(source,{filename:name,jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'automatic'}},target:'es2022'},module:{type:'commonjs'}}).code);}}
 try {
- const {calendarDays,dateKey,moveTab,normalizeTabOrder,appendInboxToDiary}=require(path.join(folder,'lib/diary'));
+ const {calendarDays,dateKey,moveTab,normalizeTabOrder,appendInboxToDiary,hasDiaryText,updateDiaryEntry}=require(path.join(folder,'lib/diary'));
  const feb=calendarDays(2024,1);assert.equal(feb.length,42);assert.equal(feb.filter(day=>!day.outside).length,29);assert.equal(feb[0].date,'2024-01-28');assert.equal(new Set(feb.map(day=>day.date)).size,42);
  assert.equal(calendarDays(2025,1).filter(day=>!day.outside).length,28);assert.ok(calendarDays(2026,11).some(day=>day.date.startsWith('2027')));
  const order=['projetos','tarefas','diario','financas'];assert.deepEqual(moveTab(order,'diario','projetos'),['diario','projetos','tarefas','financas']);assert.deepEqual(moveTab(order,'projetos','financas'),['tarefas','diario','financas','projetos']);assert.deepEqual(normalizeTabOrder(['diario','diario','unknown'],order),['diario','projetos','tarefas','financas']);
@@ -15,6 +15,10 @@ try {
  const added=appendInboxToDiary([entry],{text:'Texto do Inbox\nOutra linha'},entry.date);assert.equal(added.entries.length,1);assert.equal(added.entry.text,entry.text+'\nTexto do Inbox\nOutra linha');assert.equal(added.entry.attachments,entry.attachments);assert.equal(entry.text.includes('Texto do Inbox'),false);
  const fresh=appendInboxToDiary([],{text:'Anotação completa'},'2026-10-05');assert.equal(fresh.entry.date,'2026-10-05');assert.equal(fresh.entry.text,'Anotação completa');assert.throws(()=>appendInboxToDiary([{...entry,text:'x'.repeat(10000)}],{text:'Mais'},entry.date),/continua no Inbox/);
  const empty=renderToStaticMarkup(React.createElement(DiaryEntry,{date:entry.date,onChange(){},onClose(){}}));assert.match(empty,/<textarea/);assert.match(empty,/type="file"/);assert.match(empty,/Concluir edição/);
+ const erased={...entry,text:' '+String.fromCharCode(10)+' '};
+ assert.equal(hasDiaryText(erased),false);assert.deepEqual(updateDiaryEntry([entry],erased),[]);
+ const erasedHtml=renderToStaticMarkup(React.createElement(DiaryEntry,{date:entry.date,entry:erased,onChange(){},onClose(){}}));assert.match(erasedHtml,/<textarea/);assert.doesNotMatch(erasedHtml,/Editar entrada/);
+ const withFile={...erased,attachments:[{id:'a',name:'ref.txt'}]};assert.equal(updateDiaryEntry([entry],withFile)[0].attachments.length,1);assert.equal(hasDiaryText(withFile),false);
  const calendar=renderToStaticMarkup(React.createElement(DiaryView,{entries:[],configured:true,setEntries(){}}));assert.match(calendar,/aria-current="date"/);assert.match(calendar,new RegExp(dateKey(new Date()).split('-').reverse().join('/')));assert.equal((calendar.match(/class="diary-day/g)||[]).length,42);
  const setup=renderToStaticMarkup(React.createElement(DiaryView,{entries:[],configured:false,setEntries(){}}));assert.match(setup,/NOTION_DIARY_DATABASE_ID/);
 

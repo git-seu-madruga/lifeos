@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useRef, useState } from 'react';
-import { calendarDays, dateKey } from '../lib/diary';
+import { calendarDays, dateKey, hasDiaryText, updateDiaryEntry } from '../lib/diary';
 import { formatDateInput } from '../lib/dateInput';
 import DateInput from './DateInput';
 import ProjectAttachments from './ProjectAttachments';
@@ -23,7 +23,8 @@ function ReadText({text}) {
   return <div className="diary-read">{blocks}</div>;
 }
 export function DiaryEntry({date,entry,onChange,onClose,initialEditing=false}) {
-  const [editing,setEditing]=useState(initialEditing || !entry);
+  const [editing,setEditing]=useState(initialEditing || !hasDiaryText(entry));
+  const editable=editing||!hasDiaryText(entry);
   const editor=useRef(null);
   useEffect(()=>{if(initialEditing && editor.current){editor.current.focus();editor.current.setSelectionRange(editor.current.value.length,editor.current.value.length);editor.current.scrollIntoView?.({block:'center',behavior:'smooth'});}},[]);
   const value=entry || {id:`d${date}`,date,text:'',attachments:[]};
@@ -38,10 +39,10 @@ export function DiaryEntry({date,entry,onChange,onClose,initialEditing=false}) {
   }
   return <section className="diary-entry" aria-label={`Diário de ${formatDateInput(date)}`}>
     <div className="diary-entry-head"><h2>{formatDateInput(date)}</h2><div>
-      {editing?<button className="primary" onClick={()=>setEditing(false)}>Concluir edição</button>:<button className="primary" onClick={()=>setEditing(true)}>Editar entrada</button>}
+      {editable?<button className="primary" onClick={()=>setEditing(false)}>Concluir edição</button>:<button className="primary" onClick={()=>setEditing(true)}>Editar entrada</button>}
       <button className="ghost" onClick={onClose}>Fechar</button>
     </div></div>
-    {editing?<>
+    {editable?<>
       <div className="diary-format" role="toolbar" aria-label="Formatação do diário">
         <button className="ghost" onClick={()=>format('**','**')}><strong>Negrito</strong></button>
         <button className="ghost" onClick={()=>format('*','*')}><em>Itálico</em></button>
@@ -51,7 +52,7 @@ export function DiaryEntry({date,entry,onChange,onClose,initialEditing=false}) {
       <textarea ref={editor} className="diary-editor" aria-label="Texto do diário" placeholder="Como foi seu dia?" value={value.text} maxLength={10000} onChange={e=>update({text:e.target.value})}/>
       <p className="muted small">Salvamento automático · A edição será bloqueada ao fechar, trocar de data ou sair do Diário.</p>
     </>:value.text?<ReadText text={value.text}/>:<p className="muted">Ainda não há texto nesta data.</p>}
-    <ProjectAttachments entity="diário" readOnly={!editing} items={value.attachments} onChange={attachments=>update({attachments})}/>
+    <ProjectAttachments entity="diário" readOnly={!editable} items={value.attachments} onChange={attachments=>update({attachments})}/>
   </section>;
 }
 export default function DiaryView({entries=[],setEntries,configured,openRequest,onOpenHandled}) {
@@ -69,7 +70,7 @@ export default function DiaryView({entries=[],setEntries,configured,openRequest,
   const entryByDate=new Map(entries.map(entry=>[entry.date,entry]));
   function navigate(value,openEntry=false){if(!value)return;setView(value);setSelected(openEntry?value:null);setEditingRequest(null);}
   function shift(months){const date=new Date(year,month+months,1,12);if(date.getFullYear()<1000||date.getFullYear()>9999)return;navigate(dateKey(date));}
-  function update(entry){setEntries(previous=>{const existing=previous.find(item=>item.date===entry.date);return existing?previous.map(item=>item.id===existing.id?entry:item):[...previous,entry];});}
+  function update(entry){setEntries(previous=>updateDiaryEntry(previous,entry));}
   if(!configured)return <section className="diary-setup"><h2>Configure o Diário no Notion</h2><p>Crie o banco Diário com Nome (Título), Data (Data), Conteúdo (Texto) e Anexos (Arquivos e mídia).</p><p>Na Vercel, adicione <code>NOTION_DIARY_DATABASE_ID</code> com o ID desse banco e faça um novo deploy.</p></section>;
   return <div className="diary-view">
     <div className="diary-controls">
@@ -80,7 +81,7 @@ export default function DiaryView({entries=[],setEntries,configured,openRequest,
     <div className="diary-jump"><label>Ir para a data <DateInput className="search" value={view} onChange={e=>navigate(e.target.value,true)} aria-label="Ir para a data"/></label><button className="ghost" onClick={()=>navigate(today,true)}>Hoje</button><span className="muted small">● Dia com entrada</span></div>
     <div className="diary-calendar" role="group" aria-label="Calendário do diário">
       {['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day=><div key={day} className="diary-weekday">{day}</div>)}
-      {days.map(day=><button key={day.date} className={`diary-day${day.outside?' outside':''}${day.date===today?' today':''}${day.date===selected?' selected':''}`} aria-current={day.date===today?'date':undefined} aria-pressed={day.date===selected} aria-label={`${formatDateInput(day.date)}${day.date===today?', hoje':''}${entryByDate.has(day.date)?', com entrada':''}`} onClick={()=>{setEditingRequest(null);setSelected(day.date);if(day.outside)setView(day.date);}}><span>{day.day}</span>{entryByDate.has(day.date)&&<span className="diary-dot" aria-hidden="true">●</span>}</button>)}
+      {days.map(day=><button key={day.date} className={`diary-day${day.outside?' outside':''}${day.date===today?' today':''}${day.date===selected?' selected':''}`} aria-current={day.date===today?'date':undefined} aria-pressed={day.date===selected} aria-label={`${formatDateInput(day.date)}${day.date===today?', hoje':''}${hasDiaryText(entryByDate.get(day.date))?', com entrada':''}`} onClick={()=>{setEditingRequest(null);setSelected(day.date);if(day.outside)setView(day.date);}}><span>{day.day}</span>{hasDiaryText(entryByDate.get(day.date))&&<span className="diary-dot" aria-hidden="true">●</span>}</button>)}
     </div>
     {selected&&<DiaryEntry key={`${selected}:${editingRequest?.token || "read"}`} initialEditing={editingRequest?.date===selected} date={selected} entry={entryByDate.get(selected)} onChange={update} onClose={()=>{setSelected(null);setEditingRequest(null);}}/>}
   </div>;
