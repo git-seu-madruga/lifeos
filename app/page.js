@@ -8,6 +8,7 @@ import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { useNotionState } from "../lib/useNotionState";
 import Login from "../components/Login";
 import ModalLayer from '../components/ModalLayer';
+import HabitsView from '../components/HabitsView';
 import ShoppingView from '../components/ShoppingView';
 import TabIcon from '../components/TabIcon';
 import {shoppingFromInbox} from '../lib/shopping';
@@ -252,7 +253,7 @@ export default function Home() {
         {remote.error && <button className="ghost" onClick={() => remote.flush().catch(() => {})}>Tentar salvar novamente</button>}
         {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}
         {unimportedInbox.length > 0 && <button className="ghost" onClick={importInbox}>Importar Inbox deste navegador ({unimportedInbox.length})</button>}
-        {!["diario","financas","aniversarios","compras"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
+        {!["diario","financas","aniversarios","compras","habitos"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button
               key={s.id}
@@ -280,6 +281,8 @@ export default function Home() {
           )
         ) : tabId === "diario" ? (
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
+        ) : tabId === "habitos" ? (
+          <HabitsView habits={remote.habits||[]} logs={remote.habitLogs||[]} setHabits={remote.setHabits} context={context} configured={remote.habitsConfigured}/>
         ) : tabId === "compras" ? (
           <ShoppingView lists={remote.shopping || []} setLists={remote.setShopping} selected={shoppingSelected} onSelect={setShoppingSelected} context={context} configured={remote.shoppingConfigured} creating={shoppingCreating} onCreate={()=>setShoppingCreating(true)} onCreated={()=>setShoppingCreating(false)}/>
         ) : tabId === "aniversarios" ? (

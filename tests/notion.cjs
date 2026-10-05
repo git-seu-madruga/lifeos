@@ -22,9 +22,10 @@ const {diffState,hasChanges}=require(path.join(temp,'lib/notionDiff'));
 process.env.NOTION_DIARY_DATABASE_ID='diary-test-db';
 process.env.NOTION_INBOX_DATABASE_ID='inbox-test-db';
 process.env.NOTION_FINANCE_CATEGORIES_DATABASE_ID='finance-categories-test';process.env.NOTION_FINANCE_TRANSACTIONS_DATABASE_ID='finance-transactions-test';
-const databases={shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
+const databases={habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
 const sourceIds=Object.fromEntries(Object.keys(databases).map(k=>[k,randomUUID()]));
 const specs={
+ habits:{'Nome':'title','Contexto':'select','Cor':'rich_text','Ícone':'rich_text','Início':'date'},habitLogs:{'Nome':'title','Hábito':'relation','Data':'date'},
  shopping:{'Nome':'title','Contexto':'select','Itens':'rich_text'},
  contacts:{'Nome':'title','Dia':'number','Mês':'number','Ano de nascimento':'number'},
  categories:{'Nome':'title','Tipo':'select'},transactions:{'Nome':'title','Categoria':'relation','Mês':'date','Valor':'number'},
@@ -34,7 +35,7 @@ const specs={
  milestones:{'Nome':'title','Projeto':'relation','Prazo':'date','Concluído':'checkbox','Ordem':'number'},
  tasks:{'Nome':'title','Status':'status','Prioridade':'select','Contexto':'select','Projeto':'relation','Marco':'relation','Início':'date','Prazo':'date','Aguardando':'rich_text','Cobrar em':'date','Anotações':'rich_text','Concluída em':'date','Anexos':'files'},
 };
-const sources={};for(const [kind,spec] of Object.entries(specs))sources[kind]={id:sourceIds[kind],properties:Object.fromEntries(Object.entries(spec).map(([name,type])=>[name,{id:randomUUID(),name,type,...(type==='relation'?{relation:{data_source_id:sourceIds[name==='Categoria'?'categories':name==='Marco'?'milestones':'projects'],database_id:databases[name==='Categoria'?'categories':name==='Marco'?'milestones':'projects']}}:{})}]))};
+const sources={};for(const [kind,spec] of Object.entries(specs))sources[kind]={id:sourceIds[kind],properties:Object.fromEntries(Object.entries(spec).map(([name,type])=>[name,{id:randomUUID(),name,type,...(type==='relation'?{relation:{data_source_id:sourceIds[name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects'],database_id:databases[name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects']}}:{})}]))};
 const rows=new Map(),calls=[];let creates=0,paginate=false,failShoppingWrite=false;
 const kindBySource=id=>Object.keys(sourceIds).find(kind=>sourceIds[kind]===id);
 function normalizeProperties(kind,properties) {
@@ -86,7 +87,7 @@ global.fetch=async(url,options={})=>{
  const cookie=auth.login(request,'test-password-long').split(';')[0];
  const logged=new Request('https://lifeos.test/api/notion',{headers:{cookie}});auth.authorize(logged);
  assert.equal(auth.authenticated(new Request('https://lifeos.test/api',{headers:{cookie:cookie+'bad'}})),false);
- let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false});
+ let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false,habits:[],habitLogs:[],habitsConfigured:false});
  const base=state;
  const file=new File(['arquivo de teste'],'ref.txt',{type:'text/plain'});
  const uploaded=await notionLib.uploadFile(file);
@@ -184,6 +185,15 @@ global.fetch=async(url,options={})=>{
  const conflictBase=structuredClone(state),desired=structuredClone(state);desired.shopping[0].items.push({id:'three',text:'Ovos'});const row=rows.get(state.shopping[0].id);const prior=row.properties.Itens;row.properties.Itens={type:'rich_text',rich_text:[{text:{content:JSON.stringify([{id:'remote',text:'Arroz'}])}}]};await assert.rejects(()=>synchronize(conflictBase,desired),/alterado no Notion/);row.properties.Itens=prior;
  const inboxNext=structuredClone(state);inboxNext.inbox.push({id:'shopping-inbox',text:'MERCADO\nBananas\nOvos',createdAt:Date.now()});await synchronize(state,inboxNext);({state}=await notionLib.readSnapshot());const source=state.inbox.find(p=>p.text==='MERCADO\nBananas\nOvos');const {shoppingFromInbox}=require(path.join(temp,'lib/shopping'));const merged=shoppingFromInbox(state.shopping,source.text,'personal');const converted={...state,shopping:merged.lists,inbox:state.inbox.filter(p=>p.id!==source.id)};failShoppingWrite=true;await assert.rejects(()=>synchronize(state,converted),/Falha simulada/);assert.equal(rows.get(source.id).in_trash,false,'Falha de gravação não exclui Inbox');const start=calls.length;await synchronize(state,converted);const writes=calls.slice(start);assert.ok(writes.findIndex(c=>c.route===`/pages/${state.shopping[0].id}`&&c.body?.properties)<writes.findIndex(c=>c.route===`/pages/${source.id}`&&c.body?.in_trash));await synchronize(state,converted);({state}=await notionLib.readSnapshot());assert.deepEqual(state.shopping[0].items.map(p=>p.text),['Bananas','Ovos','Café']);
  await synchronize(state,{...state,shopping:[]});assert.equal((await notionLib.readSnapshot()).state.shopping.length,0);delete process.env.NOTION_SHOPPING_DATABASE_ID;assert.equal((await notionLib.readSnapshot()).state.shoppingConfigured,false);
+ }
+ {
+ process.env.NOTION_HABITS_DATABASE_ID='habits-test';process.env.NOTION_HABIT_LOGS_DATABASE_ID='habit-logs-test';({state}=await notionLib.readSnapshot());assert.equal(state.habitsConfigured,true);
+ const {habitToday}=require(path.join(temp,'lib/habits'));const day=habitToday(),next=structuredClone(state);next.habits=[{id:'habit-one',name:'Leitura',context:'personal',color:'blue',icon:'book',start:day}];next.habitLogs=[{id:'habit-log-one',name:'Leitura',habit:'habit-one',date:day}];const writesBefore=calls.length;await synchronize(state,next);await synchronize(state,next);({state}=await notionLib.readSnapshot());assert.equal(state.habits.length,1);assert.equal(state.habitLogs.length,1);assert.equal(state.habitLogs[0].habit,state.habits[0].id);assert.equal(state.habits[0].color,'blue');
+ const edited=structuredClone(state);edited.habits[0].color='green';edited.habits[0].icon='water';await synchronize(state,edited);({state}=await notionLib.readSnapshot());assert.equal(state.habits[0].icon,'water');assert.equal(state.habitLogs.length,1);
+ const duplicate=structuredClone(state);duplicate.habitLogs.push({...duplicate.habitLogs[0],id:'duplicate-log',_notionId:undefined});await assert.rejects(()=>synchronize(state,duplicate),/marcação por dia/);
+ const invalid=structuredClone(state);invalid.habits[0].color='invalid';await assert.rejects(()=>synchronize(state,invalid),/cor e um ícone/);
+ const trashStart=calls.length;await synchronize(state,{...state,habits:[],habitLogs:[]});const trash=calls.slice(trashStart).filter(p=>p.body?.in_trash);assert.equal(trash[0].route,`/pages/${state.habitLogs[0].id}`);assert.equal((await notionLib.readSnapshot()).state.habits.length,0);
+ delete process.env.NOTION_HABITS_DATABASE_ID;delete process.env.NOTION_HABIT_LOGS_DATABASE_ID;assert.equal((await notionLib.readSnapshot()).state.habitsConfigured,false);
  }
  const get=require(path.join(temp,'app/api/notion/route')).GET;
  const denied=await get(request);assert.equal(denied.status,401);assert.equal(calls.some(call=>call.route.includes('undefined')),false);

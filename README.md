@@ -322,3 +322,63 @@ As inclusões manuais aparecem acima dos itens existentes. Exemplo: adicionar Le
 ### Correção da sobreposição do Inbox
 
 Os diálogos do Inbox e da escolha de contexto de Compras são renderizados fora da barra lateral, acima dos blocos e das alças de arraste. O seletor de contexto fica também acima do diálogo original do Inbox. Não há alteração no Notion ou nas variáveis da Vercel.
+
+## Hábitos — cadastro visual e progresso diário
+
+A aba Hábitos tem cards diários, paleta de oito cores e pacote interno de 16 ícones SVG. Cada hábito tem um contexto Pessoal ou Trabalho; Todos reúne ambos. A cor aparece no ícone, no fundo e contorno do card concluído, no check, na barra de progresso do dia e no acompanhamento. No cadastro e na edição há uma prévia da escolha. Trocar nome, cor, ícone ou contexto mantém as marcações existentes.
+
+### Bancos no Notion
+
+Crie **dois bancos de página inteira**, dentro da página LifeOS, e dê acesso à mesma conexão interna que já usa no app.
+
+**Hábitos**:
+
+| Propriedade | Tipo | Configuração |
+| --- | --- | --- |
+| Nome | Título | Nome do hábito |
+| Contexto | Seleção | Pessoal e Trabalho |
+| Cor | Texto | Código da paleta, gerenciado pelo app |
+| Ícone | Texto | Código do ícone, gerenciado pelo app |
+| Início | Data | Dia em que o hábito começou |
+
+**Registros de hábitos**:
+
+| Propriedade | Tipo | Configuração |
+| --- | --- | --- |
+| Nome | Título | Gerenciado pelo app |
+| Hábito | Relação | Vinculado ao banco Hábitos; uma página por registro |
+| Data | Data | Dia concluído, sem horário |
+
+Não é necessário um campo Concluído: a presença de um registro representa a conclusão naquele dia. Desmarcar remove esse registro da listagem. O campo técnico LifeOS ID é criado automaticamente na primeira gravação em ambos os bancos; não o altere. Prefira criar e editar os hábitos pelo app para escolher os códigos válidos.
+
+Na Vercel atual, acrescente:
+
+```text
+NOTION_HABITS_DATABASE_ID=ID_DO_BANCO_HABITOS
+NOTION_HABIT_LOGS_DATABASE_ID=ID_DO_BANCO_REGISTROS_DE_HABITOS
+```
+
+Copie os IDs dos links dos bancos (trecho de 32 caracteres antes de `?v=`), não os IDs das visualizações. Mantenha o token, a senha e todos os IDs existentes. Atualize os arquivos no GitHub e faça o deploy depois de acrescentar as variáveis. Se algum dos dois IDs estiver ausente, a aba mostra instruções e as demais abas continuam funcionando. Nenhuma alteração é necessária nos bancos anteriores.
+
+### Marcação e renovação diária
+
+Clique no card para concluir; clique novamente para desmarcar. A barra mostra a proporção de hábitos disponíveis concluídos no dia, com um segmento colorido para cada um. Novos hábitos começam hoje. A data pode ser digitada com a máscara já usada no app ou selecionada no calendário. Há navegação para dias anteriores e botão Hoje. Não é possível marcar dias futuros ou anteriores ao início do hábito.
+
+O dia dos hábitos segue **America/Sao_Paulo**. Ao virar o dia, os cards de hoje ficam disponíveis novamente, sem apagar o progresso anterior. A tela verifica a mudança a cada 30 segundos e ao retornar à janela. Se você está consultando uma data antiga, ela continua selecionada. As marcações são salvas automaticamente no Notion; aguarde Salvo no Notion antes de fechar.
+
+### Acompanhamento
+
+- **Mês:** uma linha por hábito, quadrados por dia, barras na cor do hábito e contagem/percentual de dias concluídos. Clique nos quadrados disponíveis para marcar ou corrigir o histórico.
+- **Ano:** doze meses por hábito, com percentual e intensidade de cor. Clique em um mês para abrir o detalhe diário. O resumo considera todos os dias elegíveis do ano até hoje.
+- Dias futuros e dias anteriores ao início não contam como falhas. Um hábito criado no meio do mês começa a contar naquele dia. Sem dias elegíveis, o resumo mostra 0/0 e 0%, e os meses indisponíveis mostram um traço.
+
+Excluir um hábito pede confirmação e remove suas marcações também. As páginas excluídas vão à lixeira do Notion, como nas outras abas. Não há pausa, frequência semanal ou metas por quantidade nesta versão: todos os hábitos são diários. O Inbox continua disponível para captura, mas o cadastro de hábitos é feito pelo botão Novo hábito.
+
+Códigos aceitos, se cadastrar manualmente no Notion:
+
+- Cor: blue, green, purple, orange, cyan, pink, yellow, red.
+- Ícone: book, water, stretch, walk, study, fitness, sleep, food, heart, meditate, home, work, music, sun, plant, star.
+
+### Validação após o deploy
+
+Os testes automatizados usam mocks, sem acessar sua conta real do Notion. Confira criar com diferentes cores/ícones, marcar e desmarcar, recarregar a página, editar mantendo as marcações, consultar mês/ano, alternar contextos e conferir a renovação no dia seguinte. O pacote inclui também todas as correções recentes de Compras.

@@ -80,14 +80,14 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
               <span className="label">Conteúdo</span>
               <AutoTextarea className="search notes" rows={6} value={item.text} onChange={(e) => onUpdate(item.id, e.target.value)} />
             </div>
-            <p className="muted small">{target.kind === "shopping" ? "Primeira linha: nome da lista. Shift + Enter para separar cada item nas linhas seguintes." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>
+            <p className="muted small">{tabId === "habitos" ? "Para criar um hábito, use + Novo hábito na tela Hábitos." : target.kind === "shopping" ? "Primeira linha: nome da lista. Shift + Enter para separar cada item nas linhas seguintes." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>
             <div className="inbox-actions">
-              <button className="primary" disabled={!target.kind} onClick={convert}>
+              {tabId !== "habitos" && <button className="primary" disabled={!target.kind} onClick={convert}>
                 Transformar em {target.label}{target.kind ? "" : " (em breve)"}
-              </button>
+              </button>}
               <button className="danger" onClick={remove}>Excluir</button>
             </div>
-            {!target.kind && <p className="muted small">Esta seção ainda não foi construída. Troque de aba para transformar em tarefa ou projeto.</p>}
+            {!target.kind && tabId !== "habitos" && <p className="muted small">Esta seção ainda não foi construída. Troque de aba para transformar em tarefa ou projeto.</p>}
           </div>
         </div></ModalLayer>
       )}

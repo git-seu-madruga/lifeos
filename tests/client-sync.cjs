@@ -25,7 +25,7 @@ global.fetch=async(url,options={})=>{
   syncCount++;if(gate)await gate;
   if(failure){failure=false;return Response.json({error:'Falha simulada'},{status:502});}
   const {next}=JSON.parse(options.body),bindings={},files={};
-  for(const item of [...next.projects,...next.projects.flatMap(project=>project.milestones),...next.tasks,...next.inbox,...next.diary,...(next.shopping || []),...next.categories,...next.transactions]){
+  for(const item of [...next.projects,...next.projects.flatMap(project=>project.milestones),...next.tasks,...next.inbox,...next.diary,...(next.shopping || []),...next.categories,...next.transactions,...(next.habits||[]),...(next.habitLogs||[])]){
    bindings[item.id]=item._notionId||`remote-${item.id}`;
    for(const file of item.attachments||[])if(file.uploadId)files[file.id]={id:file.id,name:file.name,notion:{type:'file',name:file.name,file:{url:'https://files.test/ref'}},pageId:bindings[item.id],index:0,kind:next.diary.includes(item)?'diary':next.tasks.includes(item)?'tasks':'projects',url:'https://files.test/ref'};
   }
@@ -52,6 +52,7 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  hook.setDiary([{id:'d2026-10-04',date:'2026-10-04',text:'**Anotação**\nSegunda linha',attachments:[]}]);await hook.flush();await tick();assert.equal(remote.diary[0].date,'2026-10-04');assert.equal(hook.diary[0]._notionId,'remote-d2026-10-04');assert.equal(hook.pending,false);
  hook.setFinance({categories:[{id:'c',name:'Salário',flow:'in'}],transactions:[{id:'tx',name:'Salário',category:'c',month:'2026-10',amount:12345}]});await hook.flush();await tick();assert.equal(hook.transactions[0]._notionId,'remote-tx');assert.equal(remote.transactions[0].amount,12345);assert.equal(hook.pending,false);
  hook.setShopping([{id:'shop-client',name:'Mercado',context:'personal',items:[{id:'a',text:'Leite'}]}]);await hook.flush();await tick();assert.equal(remote.shopping[0].items[0].text,'Leite');assert.equal(hook.shopping[0]._notionId,'remote-shop-client');assert.equal(hook.pending,false);hook.setShopping(prev=>prev.map(p=>({...p,items:[]})));await hook.flush();await tick();assert.equal(remote.shopping[0].items.length,0);
+ hook.setHabits({habits:[{id:'hc',name:'Hábito',context:'personal',color:'blue',icon:'book',start:'2026-10-05'}],habitLogs:[{id:'hl',name:'Hábito',habit:'hc',date:'2026-10-05'}]});await hook.flush();await tick();assert.equal(remote.habitLogs[0].habit,'hc');assert.equal(hook.habits[0]._notionId,'remote-hc');assert.equal(hook.pending,false);
  const legacy=await readState();assert.equal(legacy.tasks[0].id,'old-local-task');
  assert.equal((await readState('notion-draft')).next.tasks[0].title,'Edição durante salvamento');
  active=false;for(const slot of slots)slot?.cleanup?.();Object.assign(React,original);fs.rmSync(folder,{recursive:true});
