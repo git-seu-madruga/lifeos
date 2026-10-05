@@ -6,6 +6,7 @@ import { patchTask } from "../lib/tasks";
 import { useEffect, useRef, useState } from "react";
 import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { useNotionState } from "../lib/useNotionState";
+import { InstallApp } from "../components/PwaProvider";
 import Login from "../components/Login";
 import ModalLayer from '../components/ModalLayer';
 import HabitsView from '../components/HabitsView';
@@ -188,6 +189,7 @@ export default function Home() {
         </div>
 
         <div className="topbar-right">
+          <InstallApp />
           <button className={"icon-btn" + (remote.loading ? " spin" : "")} onClick={refresh} disabled={remote.loading || (saving && !remote.error)} aria-label="Atualizar dados">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M21 12a9 9 0 1 1-3-6.7" />

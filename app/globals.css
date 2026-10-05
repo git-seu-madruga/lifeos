@@ -466,3 +466,8 @@ button:disabled { opacity: .5; cursor: default; }
 .tabs{width:100%;max-width:100%;min-width:0;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;-ms-overflow-style:none}.tabs::-webkit-scrollbar{width:0;height:0;display:none}.tabs .tab-wrap{flex:0 0 auto}.tabs .tab{touch-action:pan-y;-webkit-user-select:none;user-select:none}
 
 .google-login{display:flex;align-items:center;justify-content:center;gap:12px;width:100%}.signed-user{max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.shared-editor{margin-top:-8px}
+
+/* Área segura do aplicativo instalado em celulares. */
+body { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) env(safe-area-inset-bottom, 0px) env(safe-area-inset-left, 0px); min-height: 100dvh; }
+.pwa-install { color:var(--blue); border:1px solid var(--line); background:var(--panel); border-radius:999px; padding:6px 10px; font-size:12px; white-space:nowrap; }
+.pwa-help { margin:12px 0 0; max-width:360px; }

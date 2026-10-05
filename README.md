@@ -1,3 +1,7 @@
+# Aplicativo instalável (PWA)
+
+Esta versão inclui ícones e instalação em celulares/computadores. Consulte INSTRUCOES-PWA.md. As configurações Google/Notion/Redis anteriores permanecem necessárias.
+
 # LifeOS — login Google e dois usuários
 
 **Comece pelo arquivo [INSTRUCOES-GOOGLE.md](INSTRUCOES-GOOGLE.md).** Esta versão substitui a senha compartilhada por login Google e inclui isolamento de dados privados, áreas compartilhadas e coordenação de gravações. Configure tudo antes do deploy; a versão antiga pode continuar funcionando enquanto você prepara as credenciais.
