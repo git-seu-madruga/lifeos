@@ -390,3 +390,7 @@ Hábitos agora é exclusivamente Pessoal; o app grava novos hábitos com esse co
 No desktop, o Inbox fica no canto esquerdo e a área principal ocupa a largura restante até a margem direita. O Inbox tem somente o divisor vertical, sem borda inferior. Os cards de hábitos ficaram mais compactos. O acompanhamento usa toda a largura disponível; em áreas estreitas, os dias se organizam em grupos de sete colunas por hábito, sem barra horizontal, preservando todos os dias do mês. O modo anual adapta os meses em grupos de quatro colunas em áreas estreitas. O ícone de Finanças passa a ser um cifrão no mesmo estilo SVG das demais abas.
 
 Não é necessário alterar bancos ou variáveis da Vercel. Atualize os arquivos no GitHub e faça o deploy.
+
+### Navegação das abas no celular
+
+Deslize horizontalmente sobre os botões das abas para acessar todas as seções. O gesto move a barra sem selecionar ou reordenar abas por acidente; o trilho de rolagem fica invisível. Para mudar a ordem pelo toque, segure a aba por cerca de meio segundo antes de arrastar. O arraste no desktop e Alt + setas continuam disponíveis. Não há alteração no Notion ou nas variáveis da Vercel.

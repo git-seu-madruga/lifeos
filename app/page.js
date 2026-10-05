@@ -229,11 +229,11 @@ export default function Home() {
               className={"tab" + (t.id === tabId ? " on" : "") + (dragged === t.id ? " dragging" : "")}
               draggable
               data-tab-id={t.id}
-              onPointerDown={e=>{if(e.pointerType==='touch'){touchDrag.current={id:t.id,x:e.clientX,y:e.clientY,moved:false,target:t.id};e.currentTarget.setPointerCapture(e.pointerId);}}}
-              onPointerMove={e=>{const drag=touchDrag.current;if(!drag)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>12){drag.moved=true;setDragged(drag.id);}if(drag.moved){const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-tab-id]')?.dataset.tabId;if(target)drag.target=target;}}}
-              onPointerUp={()=>{const drag=touchDrag.current;if(drag?.moved){reorderTab(drag.id,drag.target);suppressClick.current=true;setTimeout(()=>{suppressClick.current=false;},0);}touchDrag.current=null;setDragged(null);}}
+              onPointerDown={e=>{if(e.pointerType==='touch'){const bar=e.currentTarget.closest('.tabs');touchDrag.current={id:t.id,x:e.clientX,y:e.clientY,moved:false,target:t.id,bar,scroll:bar.scrollLeft,started:performance.now(),mode:null};e.currentTarget.setPointerCapture(e.pointerId);}}}
+              onPointerMove={e=>{const drag=touchDrag.current;if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;if(!drag.mode&&Math.hypot(dx,dy)>8){drag.mode=performance.now()-drag.started>=450?'reorder':'scroll';drag.moved=true;}if(drag.mode==='scroll'){drag.bar.scrollLeft=drag.scroll-dx;}else if(drag.mode==='reorder'){setDragged(drag.id);const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-tab-id]')?.dataset.tabId;if(target)drag.target=target;}}}
+              onPointerUp={()=>{const drag=touchDrag.current;if(drag?.moved){if(drag.mode==='reorder')reorderTab(drag.id,drag.target);suppressClick.current=true;setTimeout(()=>{suppressClick.current=false;},0);}touchDrag.current=null;setDragged(null);}}
               onPointerCancel={()=>{touchDrag.current=null;setDragged(null);}}
-              title="Arraste para mudar a ordem · Alt + seta também move a aba"
+              title="Deslize para ver as abas · No celular, segure antes de arrastar para reordenar · Alt + seta também move"
               onDragStart={e=>{draggedTab.current=t.id;setDragged(t.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',t.id);}}
               onDragOver={e=>{if(draggedTab.current){e.preventDefault();e.dataTransfer.dropEffect='move';}}}
               onDrop={e=>{e.preventDefault();if(draggedTab.current)reorderTab(draggedTab.current,t.id);draggedTab.current=null;setDragged(null);}}
