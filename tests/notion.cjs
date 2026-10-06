@@ -239,9 +239,9 @@ global.fetch=async(url,options={})=>{
  const start=calls.length;await synchronize(state,next,B);await synchronize(state,next,B);
  assert.ok(calls.slice(start).filter(c=>c.route.endsWith('/query')).every(c=>c.route.includes(sourceIds.media)||c.route.includes(sourceIds.mediaSections)));
  state=(await notionLib.readSnapshot(false,B)).state;assert.equal(state.media.length,1);assert.equal(state.media[0].section,state.mediaSections[0].id);assert.equal(state.media[0].author,'Frank Herbert');assert.equal(state.media[0].year,1998);assert.equal(state.media[0].platforms,'Nintendo 64, Nintendo Switch');assert.equal((await notionLib.readSnapshot(false,A)).state.media.length,0);
- const rated=structuredClone(state);rated.media[0].rating=5;rated.media[0].status='done';rated.media[0].comment='Gostei';await synchronize(state,rated,B);
+ const noDate=structuredClone(state);noDate.media[0].status='done';await assert.rejects(()=>synchronize(state,noDate,B),/data de conclusão/);const rated=structuredClone(state);rated.media[0].rating=5;rated.media[0].status='done';rated.media[0].completedOn='2026-10-05';rated.media[0].comment='Gostei';await synchronize(state,rated,B);
  const stale=structuredClone(state);stale.media[0].rating=3;await assert.rejects(()=>synchronize(state,stale,B),/alterado no Notion/);
- state=(await notionLib.readSnapshot(false,B)).state;assert.equal(state.media[0].rating,5);assert.equal(state.media[0].status,'done');
+ state=(await notionLib.readSnapshot(false,B)).state;assert.equal(state.media[0].rating,5);assert.equal(state.media[0].status,'done');assert.equal(state.media[0].completedOn,'2026-10-05');
  await assert.rejects(()=>notionLib.ownedPage('media',state.media[0].id,A),e=>e.status===403);
  const invalid=structuredClone(state);invalid.media[0].rating=6;await assert.rejects(()=>synchronize(state,invalid,B),/inválidos/);
  const ownUpload=structuredClone(state);ownUpload.media[0].coverUrl='';ownUpload.media[0].attachments=[{id:'cover',name:'capa.png',uploadId:'cover-upload',uploadProof:auth.seal({user:B.id,uploadId:'cover-upload',exp:Date.now()+60000})}];await synchronize(state,ownUpload,B);
