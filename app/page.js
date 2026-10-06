@@ -7,11 +7,14 @@ import { useEffect, useRef, useState } from "react";
 import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { useNotionState } from "../lib/useNotionState";
 import { InstallApp } from "../components/PwaProvider";
+import Brand from '../components/Brand';
+import AccountMenu from '../components/AccountMenu';
+import BackupView from '../components/BackupView';
 import RecadosView from "../components/RecadosView";
 import EntertainmentView from "../components/EntertainmentView";
 import Login from "../components/Login";
 import ModalLayer from '../components/ModalLayer';
-import {useAppBackNavigation,BackNotice} from '../lib/useBackNavigation';
+import {useAppBackNavigation,useBackLayer,BackNotice} from '../lib/useBackNavigation';
 import HabitsView from '../components/HabitsView';
 import ShoppingView from '../components/ShoppingView';
 import TabIcon from '../components/TabIcon';
@@ -55,6 +58,8 @@ export default function Home() {
   function reorderTab(from,to){setTabOrder(order=>moveTab(order,from,to));}
   const orderedTabs=tabOrder.map(id=>NAV.find(tab=>tab.id===id));
   const [subs, setSubs] = useState({});
+  const [backupOpen,setBackupOpen]=useState(false);
+  useBackLayer(backupOpen,()=>setBackupOpen(false),10);
   const [selected, setSelected] = useState(null);
   const remote = useNotionState();
   useAppBackNavigation(remote.authenticated === true,remote.ready);
@@ -163,7 +168,7 @@ export default function Home() {
 
   if(!orderReady || remote.authenticated === null) return <p className="empty">Carregando LifeOS…</p>;
   if(!remote.authenticated) return <Login onLogin={remote.login} configured={remote.configured} initialError={remote.error} />;
-  if(!ready) return <main className="login-shell"><div className="login-card"><h1>LifeOS</h1><p>{remote.loading ? "Conectando ao Notion…" : "Não foi possível carregar os bancos."}</p>{remote.error && <p className="date-error" role="alert">{remote.error}</p>}<button className="primary" onClick={remote.load} disabled={remote.loading}>Tentar novamente</button><button className="ghost" onClick={()=>remote.logout().catch(()=>{})}>Sair</button></div></main>;
+  if(!ready) return <main className="login-shell"><div className="login-card"><h1><Brand/></h1><p>{remote.loading ? "Conectando ao Notion…" : "Não foi possível carregar os bancos."}</p>{remote.error && <p className="date-error" role="alert">{remote.error}</p>}<button className="primary" onClick={remote.load} disabled={remote.loading}>Tentar novamente</button><button className="ghost" onClick={()=>remote.logout().catch(()=>{})}>Sair</button></div></main>;
 
 
   const time = refreshedAt
@@ -172,17 +177,12 @@ export default function Home() {
 
   return (
     <div className="shell app-viewport" data-app-viewport="">
-      <div className="left-rail">
+      <div className="left-rail" inert={remote.maintenance}>
       {ready && inbox && <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />}
       </div>
     <div className="app">
       <header className="topbar">
-        <div className="brand">
-          <svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true">
-            <path d="M12 1.5c.6 5.6 4.9 9.9 10.5 10.5-5.6.6-9.9 4.9-10.5 10.5C11.4 16.9 7.1 12.6 1.5 12 7.1 11.4 11.4 7.1 12 1.5Z" fill="var(--blue)" />
-          </svg>
-          <span>LifeOS</span>
-        </div>
+        <Brand/>
 
         <div className="segmented" role="group" aria-label="Contexto">
           {CONTEXTS.map((c) => (
@@ -190,7 +190,7 @@ export default function Home() {
               key={c.id}
               className={effectiveContext === c.id ? "on" : ""}
               aria-pressed={effectiveContext === c.id}
-              disabled={personalOnly}
+              disabled={personalOnly||backupOpen||remote.maintenance}
               title={personalOnly ? "Esta seção usa apenas o contexto Pessoal" : undefined}
               onClick={() => setContext(c.id)}
             >
@@ -201,18 +201,18 @@ export default function Home() {
 
         <div className="topbar-right">
           <InstallApp />
-          <button className={"icon-btn" + (remote.loading ? " spin" : "")} onClick={refresh} disabled={remote.loading || (saving && !remote.error)} aria-label="Atualizar dados">
+          <button className={"icon-btn" + (remote.loading ? " spin" : "")} onClick={refresh} disabled={remote.loading || remote.maintenance || (saving && !remote.error)} aria-label="Atualizar dados">
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <path d="M21 12a9 9 0 1 1-3-6.7" />
               <path d="M21 3v6h-6" />
             </svg>
           </button>
           <span className="refreshed" title={refreshedAt?.toLocaleString("pt-BR")}>{time && `Dados atualizados às ${time}`}</span>
-          <span className="muted small signed-user">{remote.user?.name}</span><button className="signout" onClick={() => remote.logout().catch(() => {})}>Sair</button>
+          <AccountMenu user={remote.user} onLogout={()=>remote.logout().catch(()=>{})} onBackup={()=>setBackupOpen(true)}/>
         </div>
       </header>
 
-      <div className="tabs-row"><nav className={"tabs"+(touchReorder?" reordering":"")} aria-label="Seções">
+      <div className="tabs-row" inert={backupOpen||remote.maintenance}><nav className={"tabs"+(touchReorder?" reordering":"")} aria-label="Seções">
         {orderedTabs.map((t) => (
           <span key={t.id} className="tab-wrap">
             {t.sep && <span className="tab-sep" aria-hidden="true" />}
@@ -239,7 +239,9 @@ export default function Home() {
         ))}
       </nav>{touchMode&&<button className={"icon-btn tab-order-toggle"+(touchReorder?" on":"")} aria-label={touchReorder?"Concluir ordem das abas":"Ordenar abas"} aria-pressed={touchReorder} title={touchReorder?"Concluir ordem das abas":"Ordenar abas"} onClick={()=>{setTouchReorder(!touchReorder);touchDrag.current=null;setDragged(null);}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{touchReorder?<path d="m4 12 5 5L20 6"/>:<><path d="M4 8h16M4 16h16m-3-11 3 3-3 3M7 13l-3 3 3 3"/></>}</svg></button>}</div>{touchReorder&&<p className="muted small" role="status">Arraste as abas para ordenar. Toque no ✓ para voltar à rolagem.</p>}
 
-      <main className="content">
+      {backupOpen&&remote.user?.isLegacyOwner&&<BackupView onClose={()=>setBackupOpen(false)} beforeStart={remote.flush} onStatus={remote.setMaintenance} onFinished={()=>{remote.checkMaintenance();refresh();}}/>}
+      {remote.maintenance&&!backupOpen&&<div className="backup-warning" role="status"><h2>Backup ou restauração em andamento</h2><p>As edições estão temporariamente bloqueadas para os dois usuários. Seus textos pendentes foram preservados.</p><p>O aplicativo verificará a liberação enquanto esta tela estiver visível.</p></div>}
+      <main className="content" hidden={backupOpen||remote.maintenance}>
         {remote.error && <p className="date-error" role="alert">{remote.error}</p>}
         {remote.error && <button className="ghost" onClick={() => remote.flush().catch(() => {})}>Tentar salvar novamente</button>}
         {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}

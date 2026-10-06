@@ -37,6 +37,7 @@ const specs={
  tasks:{'Nome':'title','Status':'status','Prioridade':'select','Contexto':'select','Projeto':'relation','Marco':'relation','Início':'date','Prazo':'date','Aguardando':'rich_text','Cobrar em':'date','Anotações':'rich_text','Concluída em':'date','Anexos':'files'},
 };
 const sources={};for(const [kind,spec] of Object.entries(specs))sources[kind]={id:sourceIds[kind],properties:Object.fromEntries(Object.entries(spec).map(([name,type])=>[name,{id:randomUUID(),name,type,...(type==='relation'?{relation:{data_source_id:sourceIds[name==='Seção'?'mediaSections':name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects'],database_id:databases[name==='Seção'?'mediaSections':name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects']}}:{})}]))};
+process.env.UPSTASH_REDIS_REST_URL='https://redis.test';process.env.UPSTASH_REDIS_REST_TOKEN='redis-test-token';
 const rows=new Map(),calls=[],redisRows=new Map();let creates=0,paginate=false,failShoppingWrite=false;
 const kindBySource=id=>Object.keys(sourceIds).find(kind=>sourceIds[kind]===id);
 function normalizeProperties(kind,properties) {

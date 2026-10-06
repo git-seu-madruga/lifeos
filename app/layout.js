@@ -6,7 +6,7 @@ export const metadata = {
   description: "Meu sistema pessoal",
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "LifeOS", statusBarStyle: "black-translucent" },
-  icons: { icon: "/icons/icon-192.png", apple: "/icons/apple-touch-icon.png" },
+  icons: { icon: [{url:"/favicon.ico",sizes:"any"},{url:"/icons/favicon-32.png",sizes:"32x32",type:"image/png"}], apple: "/icons/apple-touch-icon.png" },
 };
 
 export const viewport = { width: "device-width", initialScale: 1, viewportFit: "cover", themeColor: "#0c0d10" };

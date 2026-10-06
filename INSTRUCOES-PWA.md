@@ -13,7 +13,7 @@ Este pacote completo parte da versão com login Google para as duas contas e man
 
 No Chrome, toque em Instalar app quando o botão aparecer no LifeOS. Alternativamente, use o menu do Chrome → Adicionar à tela inicial / Instalar aplicativo (o nome varia). Abra pelo ícone LifeOS criado na tela inicial.
 
-O aplicativo solicita tela cheia. O navegador/sistema pode manter áreas de status ou navegação, ou usar uma janela sem a barra de endereços como alternativa. A instalação não pode ser feita automaticamente sem sua ação.
+O aplicativo solicita o modo standalone: uma janela de aplicativo sem a barra de endereços, preservando as barras do sistema. O modo imersivo fullscreen deixou de ser solicitado para evitar a alternância de área visível ao interagir com o Android. A instalação não pode ser feita automaticamente sem sua ação.
 
 ## Instalar no iPhone/iPad
 
@@ -23,7 +23,7 @@ Abre sem a barra do Safari; o sistema pode manter a barra de status e o indicado
 
 ## Computador
 
-Use o botão Instalar app quando disponível ou a opção de instalação no menu do Chrome/Edge. O comportamento da janela/tela cheia depende do sistema. O app continua acessível normalmente pelo endereço web.
+Use o botão Instalar app quando disponível ou a opção de instalação no menu do Chrome/Edge. A aparência das barras do sistema depende do aparelho. O app continua acessível normalmente pelo endereço web.
 
 ## Conexão, dados e atualizações
 
