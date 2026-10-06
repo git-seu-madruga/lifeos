@@ -52,6 +52,14 @@ try{
  assert.equal(scrolled.win.scrollY,720,'Prompt preserves the current page scroll synchronously');assert.equal(strip.scrollLeft,144,'Horizontal tab scroll also stays in place');
  assert.equal(frames.size,0,'Do not schedule a second scroll correction that can create a visible jump');
  scrolled.gesture();scrolled.win.history.back();assert.equal(scrolled.index,0,'Scroll preservation does not block the second Back');stable.stop();assert.equal(frames.size,0);
+ // The HTML element and window represent the SAME scroll position.
+ // A stale HTML snapshot must not overwrite the current window snapshot.
+ const rootScroll=browser();rootScroll.win.scrollY=320;rootScroll.win.scrollX=0;let scrollWrites=0;
+ const html={scrollLeft:0,scrollHeight:2200,clientHeight:800,isConnected:true,get scrollTop(){return rootScroll.win.scrollY;},set scrollTop(value){rootScroll.win.scrollY=value;}};
+ rootScroll.win.document={scrollingElement:html,documentElement:html,body:{scrollTop:0,scrollLeft:0},querySelectorAll:()=>[html],addEventListener(){},removeEventListener(){}};
+ rootScroll.win.scrollTo=({top})=>{scrollWrites++;rootScroll.win.scrollY=top;};
+ const rootNav=createBackNavigation(rootScroll.win);rootNav.start();rootScroll.win.scrollY=780;rootScroll.scroll(rootScroll.win.document);rootScroll.win.history.back();
+ assert.equal(rootScroll.win.scrollY,780,'A stale HTML snapshot must not move a page that was already at the right scroll position');assert.equal(scrollWrites,0,'Do not force scroll when the browser preserved it');rootScroll.expire();assert.equal(rootScroll.win.scrollY,780);rootNav.stop();
  const visual=browser();let forcedScroll=0;visual.win.scrollTo=()=>forcedScroll++;const visualNav=createBackNavigation(visual.win);visualNav.start();visual.navigate({navigationType:'traverse',canIntercept:true,hasUAVisualTransition:true,destination:{getState:()=>visual.entries[1]},intercept:()=>{}});visual.win.history.back();assert.equal(forcedScroll,0,'Do not move scroll during Chrome native visual transition');visualNav.stop();
  const enter={key:'Enter',nativeEvent:{isComposing:false}};assert.equal(shouldSubmitInbox(enter,true),false);assert.equal(shouldSubmitInbox(enter,false),true);assert.equal(shouldSubmitInbox({...enter,shiftKey:true},false),false);assert.equal(shouldSubmitInbox({...enter,nativeEvent:{isComposing:true}},false),false);assert.equal(shouldSubmitInbox({...enter,keyCode:229},false),false);assert.equal(shouldSubmitInbox({key:'a'},false),false);
  console.log('PASSOU: voltar fecha a camada superior; duas voltas para sair; expiração e interação restauram a proteção; histórico sem acúmulo; Escape e Enter mobile multilinha.');
