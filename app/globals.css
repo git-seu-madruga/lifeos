@@ -539,3 +539,12 @@ textarea:focus+.text-links,input:focus+.text-links{display:none;}
 /* Keep the notice outside page layout and scroll anchoring. */
 .back-toast{contain:layout paint;overflow-anchor:none}
 .back-toast[data-visible="false"]{visibility:hidden}
+
+/* Mobile content scrolls inside the app, never in the history-restored document.
+   Portalled dialogs and the exit notice stay outside this scroll container. */
+@media(max-width:999px){
+  html:has(.app-viewport),body:has(.app-viewport){height:100%;overflow:hidden;overscroll-behavior-y:none}
+  .shell.app-viewport{position:fixed;inset:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);overflow-y:auto;overflow-x:hidden;overscroll-behavior-y:contain;scrollbar-width:none;scroll-behavior:auto}
+  .app-viewport::-webkit-scrollbar{display:none}
+  body:has(.modal-motion:not(.closing)) .app-viewport{overflow-y:hidden}
+}

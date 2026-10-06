@@ -165,7 +165,7 @@ export default function Home() {
     : "";
 
   return (
-    <div className="shell">
+    <div className="shell app-viewport" data-app-viewport="">
       <div className="left-rail">
       {ready && inbox && <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />}
       </div>
