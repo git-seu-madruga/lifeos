@@ -7,6 +7,7 @@ import { useEffect, useRef, useState } from "react";
 import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { useNotionState } from "../lib/useNotionState";
 import { InstallApp } from "../components/PwaProvider";
+import RecadosView from "../components/RecadosView";
 import EntertainmentView from "../components/EntertainmentView";
 import Login from "../components/Login";
 import ModalLayer from '../components/ModalLayer';
@@ -68,7 +69,7 @@ export default function Home() {
   const [newTaskId, setNewTaskId] = useState(null);
 
 
-  const personalOnly = ["financas", "diario", "aniversarios", "habitos", "entretenimento"].includes(tabId);
+  const personalOnly = ["financas", "diario", "aniversarios", "habitos", "entretenimento", "recados"].includes(tabId);
   const effectiveContext = personalOnly ? "personal" : context;
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
@@ -91,7 +92,13 @@ export default function Home() {
   const deleteInbox = (id) => setInbox((prev) => prev.filter((i) => i.id !== id));
 
   // Cria o item na seção atual e tira a entrada do inbox.
+  const [recadoInbox,setRecadoInbox]=useState(null);
   function convertInbox(item, kind) {
+    if(kind==="recado"){
+      const [title,...lines]=item.text.split("\n");
+      if(!title.trim()||!lines.join("\n").trim()){window.alert("Use a primeira linha para o título e as seguintes para a mensagem. O texto continua no Inbox.");return false;}
+      setRecadoInbox({...item,title:title.trim(),message:lines.join("\n").trim(),token:uid("recado-inbox")});return true;
+    }
     if(kind==="shopping"){
       if(!remote.shoppingConfigured){window.alert("Configure o banco Listas de compras no Notion. O texto continua no Inbox.");return false;}
       if(context==='all'){setShoppingInbox(item);return false;}
@@ -213,7 +220,7 @@ export default function Home() {
             <button
               className={"tab" + (t.id === tabId ? " on" : "") + (dragged === t.id ? " dragging" : "")}
               draggable={!touchMode}
-              data-tab-id={t.id}
+              data-tab-id={t.id} data-romantic={t.id==='recados'||undefined}
               onPointerDown={e=>{if(e.pointerType==='touch'&&touchReorder){touchDrag.current={id:t.id,x:e.clientX,y:e.clientY,moved:false,target:t.id,bar:e.currentTarget.closest('.tabs')};e.currentTarget.setPointerCapture(e.pointerId);}}}
               onPointerMove={e=>{const drag=touchDrag.current;if(!drag)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){drag.moved=true;setDragged(drag.id);const bounds=drag.bar.getBoundingClientRect();if(e.clientX>bounds.right-30)drag.bar.scrollLeft+=12;else if(e.clientX<bounds.left+30)drag.bar.scrollLeft-=12;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-tab-id]')?.dataset.tabId;if(target)drag.target=target;}}}
               onPointerUp={()=>{const drag=touchDrag.current;if(drag?.moved){reorderTab(drag.id,drag.target);suppressClick.current=true;setTimeout(()=>{suppressClick.current=false;},400);}touchDrag.current=null;setDragged(null);}}
@@ -269,6 +276,8 @@ export default function Home() {
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
         ) : tabId === "entretenimento" ? (
           <EntertainmentView sections={remote.mediaSections||[]} items={remote.media||[]} setEntertainment={remote.setEntertainment} configured={remote.mediaConfigured}/>
+        ) : tabId === "recados" ? (
+          <RecadosView user={remote.user} inboxRequest={recadoInbox} onInboxHandled={()=>setRecadoInbox(null)} onInboxSent={deleteInbox}/>
         ) : tabId === "habitos" ? (
           <HabitsView habits={remote.habits||[]} logs={remote.habitLogs||[]} setHabits={remote.setHabits} context="personal" configured={remote.habitsConfigured}/>
         ) : tabId === "compras" ? (
