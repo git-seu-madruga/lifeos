@@ -39,6 +39,7 @@ for(const file of ['lib/entertainment.js','lib/api.js','lib/server/auth.js','lib
  assert.equal((await cover.downloadMediaCover(original,'Livro')).type,'image/png');assert.equal(redirects,3);
  global.fetch=async()=>new Response(png);
  const image=await cover.downloadMediaCover('https://covers.openlibrary.org/b/id/123-M.jpg','Duna');assert.equal(image.type,'image/png');assert.equal(image.name,'Duna.png');assert.equal(image.size,png.length);
+ const nativeFile=global.File;try{global.File=undefined;const imported=await cover.downloadMediaCover('https://images.igdb.com/igdb/image/upload/t_cover_big/co123.jpg','Zelda');assert.equal(imported.name,'Zelda.png');assert.equal(imported.type,'image/png');assert.equal(imported.size,png.length);global.File=nativeFile;const form=new FormData();form.append('file',imported,imported.name);assert.equal(form.get('file').name,'Zelda.png');}finally{global.File=nativeFile;}
  global.fetch=async()=>new Response('html');await assert.rejects(()=>cover.downloadMediaCover('https://covers.openlibrary.org/b/id/123-M.jpg'),/imagem compatível/);
  global.fetch=async()=>new Response(null,{status:302,headers:{location:'https://127.0.0.1/private'}});await assert.rejects(()=>cover.downloadMediaCover('https://covers.openlibrary.org/b/id/123-M.jpg'),/não suportado/);
  global.fetch=async()=>new Response(png,{headers:{'content-length':String(5*1024*1024)}});await assert.rejects(()=>cover.downloadMediaCover('https://covers.openlibrary.org/b/id/123-M.jpg'),e=>e.status===413);
