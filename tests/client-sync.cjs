@@ -2,9 +2,9 @@
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
 const swc=require('next/dist/build/swc'),React=require('react');
 const folder=path.resolve('.client-test');fs.mkdirSync(path.join(folder,'lib'),{recursive:true});
-for(const name of ['useNotionState.js','notionDiff.js','entryDrafts.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
+for(const name of ['useNotionState.js','editingGuard.js','notionDiff.js','entryDrafts.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
 require('fake-indexeddb/auto');
-let loginDestination,poll;const popup={closed:false};const handlers=new Map();global.window={location:{origin:'https://lifeos.test',replace:()=>{throw Error('Login must not navigate the app');}},open:url=>{loginDestination=url;return popup;},setInterval:fn=>{poll=fn;return 1;},clearInterval:()=>{poll=null;},addEventListener:(name,fn)=>handlers.set(name,fn),removeEventListener:name=>handlers.delete(name)};
+let loginDestination,poll;const popup={closed:false};const handlers=new Map(),documentHandlers=new Map();const originalNow=Date.now;let clockOffset=0;Date.now=()=>originalNow()+clockOffset;global.window={document:{hidden:false,addEventListener:(name,fn)=>documentHandlers.set(name,fn),removeEventListener:name=>documentHandlers.delete(name)},location:{origin:'https://lifeos.test',replace:()=>{throw Error('Login must not navigate the app');}},open:url=>{loginDestination=url;return popup;},setInterval:fn=>{poll=fn;return 1;},clearInterval:()=>{poll=null;},addEventListener:(name,fn)=>handlers.set(name,fn),removeEventListener:name=>handlers.delete(name)};
 const original={useState:React.useState,useRef:React.useRef,useCallback:React.useCallback,useEffect:React.useEffect};
 const slots=[];let index=0,scheduled=false,effects=[],hook,active=true;
 const changed=(a,b)=>!a||!b||a.length!==b.length||a.some((value,i)=>!Object.is(value,b[i]));
@@ -17,10 +17,10 @@ const {useNotionState}=require(path.join(folder,'lib/useNotionState'));
 function render(){if(!active)return;index=0;effects=[];hook=useNotionState();const pending=effects;effects=[];pending.forEach(effect=>effect());}
 const {readState,saveState,readPrivateDraft}=require(path.join(folder,'lib/storage'));
 const testUser={id:'google:test-user',email:'periclesbernardes@gmail.com',name:'Péricles',isLegacyOwner:true,draftKey:Buffer.alloc(32,7).toString('base64')};
-let sessionAuthenticated=false,sessionQueries=0;let remote={user:testUser,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true},syncCount=0,uploadCount=0,failure=false,gate=null;
+let sessionAuthenticated=false,sessionQueries=0;let remote={user:testUser,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true},syncCount=0,uploadCount=0,failure=false,gate=null,readCount=0,readGate=null,readFailure=false;
 global.fetch=async(url,options={})=>{
  if(url==='/api/session'){sessionQueries++;return Response.json({authenticated:sessionAuthenticated,configured:true,user:sessionAuthenticated?testUser:null});}
- if(url==='/api/notion')return Response.json(remote);
+ if(url==='/api/notion'){readCount++;const snapshot=structuredClone(remote);if(readGate)await readGate;if(readFailure){readFailure=false;return Response.json({error:'Consulta indisponível'},{status:502});}return Response.json(snapshot);}
  if(url==='/api/notion/upload'){uploadCount++;return Response.json({uploadId:'uploaded-file',name:'ref.txt'});}
  if(url==='/api/notion/sync'){
   syncCount++;if(gate)await gate;
@@ -76,6 +76,20 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  hook.setProjects(previous=>previous.map(project=>project.id==='untouched-project'?{...project,name:'Projeto preenchido'}:project));await hook.flush();await tick();assert.equal(remote.projects.find(project=>project.id==='untouched-project').name,'Projeto preenchido');
  hook.setTasks(previous=>[...previous,{...draftTask,id:'discard-task'}]);hook.setProjects(previous=>[...previous,{...draftProject,id:'discard-project'}]);await tick();const beforeClose=syncCount;
  hook.setTasks(previous=>previous.filter(task=>!task._untouchedDraft));hook.setProjects(previous=>previous.filter(project=>!project._untouchedDraft));await hook.flush();await tick();assert.equal(syncCount,beforeClose,'Descartar entrada intocada não exige criação nem exclusão no Notion');assert.ok(hook.tasks.some(task=>task.id==='untouched-task'));assert.ok(hook.projects.some(project=>project.id==='untouched-project'));
+ const {holdEditor}=require(path.join(folder,'lib/editingGuard'));const releaseEditor=holdEditor();const beforeEditor=readCount;clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(readCount,beforeEditor,'Open forms protect local drafts not yet in autosave');releaseEditor();handlers.get('lifeos-editors-closed')();await tick();assert.equal(readCount,beforeEditor+1,'Read resumes after closing the form');
+ // Resume reads do not poll, do not replace dirty edits, and preserve untouched editors.
+ assert.ok(!fs.readFileSync('app/page.js','utf8').includes('if(remote.loading) return'),'Foreground synchronization keeps the application mounted');
+ const beforeResume=readCount;window.document.hidden=true;clockOffset+=11000;documentHandlers.get('visibilitychange')();handlers.get('focus')();await tick();assert.equal(readCount,beforeResume,'No query while hidden');
+ remote={...remote,tasks:remote.tasks.map(task=>task.id==='t'?{...task,title:'Alterado no Android'}:task)};
+ hook.setTasks(previous=>[...previous,{...draftTask,id:'resume-empty'}]);await tick();const initialTime=hook.refreshedAt;
+ window.document.hidden=false;documentHandlers.get('visibilitychange')();handlers.get('focus')();handlers.get('pageshow')();await tick();await tick();assert.equal(readCount,beforeResume+1,'Return events share a single request');assert.equal(hook.tasks.find(t=>t.id==='t').title,'Alterado no Android');assert.ok(hook.tasks.find(t=>t.id==='resume-empty')._untouchedDraft);assert.ok(hook.refreshedAt>initialTime);assert.equal(hook.ready,true,'No initial loading screen');
+ handlers.get('focus')();await tick();assert.equal(readCount,beforeResume+1,'Rapid app switching is throttled');
+ let finishRead;readGate=new Promise(resolve=>finishRead=resolve);clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(hook.loading,true);
+ hook.setTasks(previous=>previous.map(task=>task.id==='t'?{...task,title:'Texto digitado durante consulta'}:task));finishRead();readGate=null;await tick();assert.equal(hook.tasks.find(t=>t.id==='t').title,'Texto digitado durante consulta');assert.equal(hook.pending,true);
+ await hook.flush();await tick();await tick();assert.equal(hook.tasks.find(t=>t.id==='t').title,'Texto digitado durante consulta');assert.equal(hook.pending,false);
+ const beforeDirty=readCount;failure=true;hook.setTasks(previous=>previous.map(task=>task.id==='t'?{...task,title:'Preservar após falha'}:task));await assert.rejects(()=>hook.flush(),/Falha simulada/);clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(readCount,beforeDirty,'Dirty state is not overwritten by a resume read');assert.equal(hook.tasks.find(t=>t.id==='t').title,'Preservar após falha');await hook.flush();await tick();await tick();assert.equal(readCount,beforeDirty+1,'Deferred query runs after saving');
+ const beforeFailureTime=hook.refreshedAt;readFailure=true;clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(hook.error,'Consulta indisponível');assert.equal(hook.refreshedAt,beforeFailureTime,'Failed query does not update the time');assert.equal(hook.ready,true);clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(hook.error,'');
+ Date.now=originalNow;
  active=false;for(const slot of slots)slot?.cleanup?.();Object.assign(React,original);fs.rmSync(folder,{recursive:true});
- console.log('PASSOU: carga remota sem importar exemplos locais, upload, autosave, IDs, rascunho após falha, reenvio e edição durante salvamento.');
+ console.log('PASSOU: retorno ao foco sem consultas ocultas, eventos agrupados, horário real, preservação de edições durante consulta, consulta adiada após falha/salvamento; carga remota sem importar exemplos locais, upload, autosave, IDs, rascunho após falha, reenvio e edição durante salvamento.');
 })().catch(error=>{active=false;for(const slot of slots)slot?.cleanup?.();Object.assign(React,original);console.error(error);process.exitCode=1;});

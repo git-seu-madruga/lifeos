@@ -153,10 +153,10 @@ export default function Home() {
   }
 
   async function refresh() {
-    try { await remote.refresh(); setSelected(null); setNewTaskId(null); }
+    try { await remote.refresh();window.dispatchEvent(new Event("lifeos-refresh")); }
     catch {
       if (window.confirm("Não foi possível salvar antes de atualizar. Descartar as alterações locais pendentes e carregar a versão atual do Notion?")) {
-        try { await remote.refresh(true); setSelected(null); setNewTaskId(null); } catch {}
+        try { await remote.refresh(true);window.dispatchEvent(new Event("lifeos-refresh")); } catch {}
       }
     }
   }
@@ -165,7 +165,6 @@ export default function Home() {
   if(!remote.authenticated) return <Login onLogin={remote.login} configured={remote.configured} initialError={remote.error} />;
   if(!ready) return <main className="login-shell"><div className="login-card"><h1>LifeOS</h1><p>{remote.loading ? "Conectando ao Notion…" : "Não foi possível carregar os bancos."}</p>{remote.error && <p className="date-error" role="alert">{remote.error}</p>}<button className="primary" onClick={remote.load} disabled={remote.loading}>Tentar novamente</button><button className="ghost" onClick={()=>remote.logout().catch(()=>{})}>Sair</button></div></main>;
 
-  if(remote.loading) return <p className="empty">Atualizando dados do Notion…</p>;
 
   const time = refreshedAt
     ? refreshedAt.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })
@@ -208,7 +207,7 @@ export default function Home() {
               <path d="M21 3v6h-6" />
             </svg>
           </button>
-          <span className="refreshed">{time && `Atualizado às ${time}`}</span>
+          <span className="refreshed" title={refreshedAt?.toLocaleString("pt-BR")}>{time && `Dados atualizados às ${time}`}</span>
           <span className="muted small signed-user">{remote.user?.name}</span><button className="signout" onClick={() => remote.logout().catch(() => {})}>Sair</button>
         </div>
       </header>
@@ -277,7 +276,7 @@ export default function Home() {
         ) : tabId === "entretenimento" ? (
           <EntertainmentView sections={remote.mediaSections||[]} items={remote.media||[]} setEntertainment={remote.setEntertainment} configured={remote.mediaConfigured}/>
         ) : tabId === "recados" ? (
-          <RecadosView user={remote.user} inboxRequest={recadoInbox} onInboxHandled={()=>setRecadoInbox(null)} onInboxSent={deleteInbox}/>
+          <RecadosView user={remote.user} onReadComplete={remote.noteRead} inboxRequest={recadoInbox} onInboxHandled={()=>setRecadoInbox(null)} onInboxSent={deleteInbox}/>
         ) : tabId === "habitos" ? (
           <HabitsView habits={remote.habits||[]} logs={remote.habitLogs||[]} setHabits={remote.setHabits} context="personal" configured={remote.habitsConfigured}/>
         ) : tabId === "compras" ? (
