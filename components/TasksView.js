@@ -5,6 +5,8 @@ import { patchTask, newestCompleted } from "../lib/tasks";
 
 import { useMemo, useState } from "react";
 import { diffDays, dueLabel, longToday } from "../lib/dates";
+import ModalLayer from './ModalLayer';
+import {useBackLayer} from '../lib/useBackNavigation';
 import TaskDetail from "./TaskDetail";
 
 const STATUS = [
@@ -44,6 +46,9 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
   const [proj, setProj] = useState("all");
   const [collapsed, setCollapsed] = useState({ done: true });
   const [openId, setOpenId] = useState(null);
+  const [createdId,setCreatedId]=useState(null);
+
+  function closeTask(){setOpenId(null);setCreatedId(null);}
 
   const byProject = sub === "projeto";
   const pn = (id) => projects.find((p) => p.id === id)?.name || "";
@@ -84,6 +89,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
     const id = `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
     const project = projects.find((p) => p.id === projEff);
     setTasks((prev) => [...prev, { id, title: "Nova tarefa", status: "todo", due: null, start: null, completedAt: null, priority: "medium", context: project?.context || (context === "all" ? "work" : context), project: project?.id || null, milestone: null, attachments: [], notes: "", followUp: null, waitingOn: "" }]);
+    setCreatedId(id);
     setOpenId(id);
   }
 
@@ -166,7 +172,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
         );
       })}
 
-      {current && <TaskDetail task={current} projects={projects} update={update} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setOpenId(null)} />}
+      <ModalLayer open={!!current} onClose={closeTask}>{current && <TaskDetail key={current.id} newEntry={current.id===createdId} task={current} projects={projects} update={update} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={closeTask} />}</ModalLayer>
     </section>
   );
 }

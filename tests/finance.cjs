@@ -27,7 +27,7 @@ try{
  const setup=renderToStaticMarkup(React.createElement(FinanceView,{configured:false,setFinance(){}}));assert.match(setup,/NOTION_FINANCE_CATEGORIES_DATABASE_ID/);
 
  const oldRAF=global.requestAnimationFrame;global.requestAnimationFrame=()=>{};
- const originalState=React.useState,slots=[];let cursor=0,model={categories:[],transactions:[]};
+ const originalRef=React.useRef,originalEffect=React.useEffect;React.useRef=value=>({current:value});React.useEffect=()=>{};const originalState=React.useState,slots=[];let cursor=0,model={categories:[],transactions:[]};
  React.useState=initial=>{const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return [slots[i],update=>{slots[i]=typeof update==='function'?update(slots[i]):update;}];};
  function walk(node,predicate){if(!node||typeof node!=='object')return null;if(predicate(node))return node;for(const child of React.Children.toArray(node.props?.children)){const result=walk(child,predicate);if(result)return result;}return null;}
  const button=(tree,text)=>walk(tree,node=>node.type==='button'&&node.props.children===text);
@@ -40,6 +40,6 @@ try{
   tree=render();walk(tree,node=>node.type?.name==='Sankey').props.onSelect(model.categories[0].id);tree=render();button(tree,'Editar').props.onClick();tree=render();walk(tree,node=>node.type==='input'&&node.props.value==='R$ 1.500,00').props.onChange({target:{value:'2000,00',selectionStart:7}});tree=render();walk(tree,node=>node.type?.name==='DateInput'&&node.props['aria-label']==='Editar data do lançamento').props.onChange({target:{value:month+'-27'}});tree=render();walk(tree,node=>node.props?.['aria-label']==='Editar observação do lançamento').props.onChange({target:{value:'Observação editada'}});tree=render();button(tree,'Salvar').props.onClick();assert.equal(model.transactions[0].amount,200000);assert.equal(model.transactions[0].date,month+'-27');assert.equal(model.transactions[0].notes,'Observação editada');
   tree=render();button(tree,'Fechar').props.onClick();tree=render();button(tree,'Ano').props.onClick();tree=render();button(tree,'Hoje').props.onClick();tree=render();assert.ok(walk(tree,node=>node.type?.name==='MonthInput'&&node.props.value===month),'Hoje volta ao mês atual');walk(tree,node=>node.type?.name==='Sankey').props.onSelect(model.categories[0].id);tree=render();
   global.window={confirm:()=>false};tree=render();button(tree,'Excluir').props.onClick();assert.equal(model.transactions.length,1,'Cancelar exclusão mantém o registro');global.window.confirm=()=>true;button(tree,'Excluir').props.onClick();assert.equal(model.transactions.length,0);
- }finally{React.useState=originalState;global.requestAnimationFrame=oldRAF;delete global.window;}
+ }finally{React.useState=originalState;React.useRef=originalRef;React.useEffect=originalEffect;global.requestAnimationFrame=oldRAF;delete global.window;}
  console.log('PASSOU: mês com ano automático, valores em centavos, consolidação anual e por período, sobra e déficit automáticos, proporções do Sankey, blocos interativos e tela de configuração.');
 }finally{fs.rmSync(folder,{recursive:true,force:true});}

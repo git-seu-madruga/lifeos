@@ -516,3 +516,22 @@ textarea:focus+.text-links,input:focus+.text-links{display:none;}
 @media(max-width:700px){.media-section-access{grid-template-columns:repeat(2,minmax(0,1fr));}}
 
 .media-credits{margin-top:32px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:11px}.media-credits h2{font-size:12px;margin:0 0 10px}.media-credits img{display:block;width:100px;height:auto}.media-credits p{margin:10px 0 0}
+
+/* Shared panel motion, including the Inbox drawer. */
+.modal-motion{display:contents}
+.modal-motion>.overlay{animation:panel-backdrop-in 180ms ease-out both}
+.modal-motion>.overlay>.panel{animation:panel-in 180ms ease-out both;overscroll-behavior:contain}
+.modal-motion.closing>.overlay{animation:panel-backdrop-out 180ms ease-in both;pointer-events:none}
+.modal-motion.closing>.overlay>.panel{animation:panel-out 180ms ease-in both}
+@keyframes panel-in{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes panel-out{from{opacity:1;transform:translateY(0)}to{opacity:0;transform:translateY(16px)}}
+@keyframes panel-backdrop-in{from{background:rgba(0,0,0,0)}to{background:rgba(0,0,0,.55)}}
+@keyframes panel-backdrop-out{from{opacity:1}to{opacity:0}}
+.inbox-compose-actions{display:flex;gap:12px;align-items:center;justify-content:space-between;margin-top:8px}
+.inbox-compose-actions p{margin:0}.mobile-inbox-hint{display:none}
+.back-toast{position:fixed;bottom:calc(24px + env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);z-index:3000;max-width:calc(100vw - 32px);width:max-content;background:var(--panel-2);border:1px solid var(--line);color:var(--text);padding:12px 18px;border-radius:10px;box-shadow:0 6px 24px #0005;font-size:13px;pointer-events:none}
+@media(max-width:999px){.inbox-collapse{display:grid;grid-template-rows:0fr;transition:grid-template-rows 180ms ease,opacity 180ms ease;opacity:0}.inbox-collapse>.inbox-body{display:block;overflow:hidden;min-height:0;margin-top:0;visibility:hidden;transition:visibility 180ms}.inbox.open .inbox-collapse{grid-template-rows:1fr;opacity:1}.inbox.open .inbox-collapse>.inbox-body{visibility:visible;padding-top:12px}.mobile-inbox-hint{display:inline}.desktop-inbox-hint{display:none}}
+@media(pointer:coarse){.mobile-inbox-hint{display:inline}.desktop-inbox-hint{display:none}}
+@media(prefers-reduced-motion:reduce){.modal-motion>.overlay,.modal-motion>.overlay>.panel,.modal-motion.closing>.overlay,.modal-motion.closing>.overlay>.panel{animation:none}.inbox-collapse,.inbox-collapse>.inbox-body{transition:none}}
+
+.panel-title::placeholder{color:var(--muted);opacity:1}

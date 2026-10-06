@@ -3,6 +3,7 @@ import LinkText, {TextLinks} from "./LinkText";
 import { useEffect, useRef, useState } from 'react';
 import { calendarDays, dateKey, hasDiaryText, updateDiaryEntry } from '../lib/diary';
 import { formatDateInput } from '../lib/dateInput';
+import {useBackLayer} from '../lib/useBackNavigation';
 import DateInput from './DateInput';
 import ProjectAttachments from './ProjectAttachments';
 
@@ -60,6 +61,7 @@ export default function DiaryView({entries=[],setEntries,configured,openRequest,
   const today=dateKey(new Date());
   const [view,setView]=useState(today);
   const [selected,setSelected]=useState(null);
+  useBackLayer(!!selected,()=>{setSelected(null);setEditingRequest(null);},10);
   const [editingRequest,setEditingRequest]=useState(null);
   useEffect(()=>{
     if(!openRequest)return;

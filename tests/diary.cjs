@@ -22,7 +22,7 @@ try {
  const calendar=renderToStaticMarkup(React.createElement(DiaryView,{entries:[],configured:true,setEntries(){}}));assert.match(calendar,/aria-current="date"/);assert.match(calendar,new RegExp(dateKey(new Date()).split('-').reverse().join('/')));assert.equal((calendar.match(/class="diary-day/g)||[]).length,42);
  const setup=renderToStaticMarkup(React.createElement(DiaryView,{entries:[],configured:false,setEntries(){}}));assert.match(setup,/NOTION_DIARY_DATABASE_ID/);
 
- const originalEffect=React.useEffect;React.useEffect=()=>{};
+ const originalRef=React.useRef;React.useRef=value=>({current:value});const originalEffect=React.useEffect;React.useEffect=()=>{};
  const originalState=React.useState,slots=[];let cursor=0;
  React.useState=initial=>{const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return [slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value;}];};
  function walk(node,predicate){if(!node||typeof node!=='object')return null;if(predicate(node))return node;for(const child of React.Children.toArray(node.props?.children)){const found=walk(child,predicate);if(found)return found;}return null;}
@@ -32,6 +32,6 @@ try {
    input.props.onChange({target:{value:'2026-10-04'}});tree=render();let opened=walk(tree,node=>node.type===DiaryEntry);assert.equal(opened.props.date,'2026-10-04');assert.equal(opened.props.entry,entry);
    opened.props.onClose();tree=render();assert.equal(walk(tree,node=>node.type===DiaryEntry),null);
    walk(tree,node=>node.type?.name==='DateInput').props.onChange({target:{value:'2027-02-15'}});tree=render();opened=walk(tree,node=>node.type===DiaryEntry);assert.equal(opened.props.date,'2027-02-15');assert.equal(opened.props.entry,undefined);assert.equal(slots[0],'2027-02-15');
- } finally {React.useState=originalState;React.useEffect=originalEffect;}
+ } finally {React.useState=originalState;React.useEffect=originalEffect;React.useRef=originalRef;}
  console.log('PASSOU: calendário bissexto e mudança de ano, ordem das abas, leitura bloqueada, formatação segura, edição de entrada nova, anexos bloqueados e destaque de hoje.');
 }finally{fs.rmSync(folder,{recursive:true,force:true});}

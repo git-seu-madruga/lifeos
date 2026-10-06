@@ -1,20 +1,15 @@
 "use client";
+import EntryTitle from "./EntryTitle";
 import LinkText, {TextLinks} from "./LinkText";
 import ProjectAttachments from "./ProjectAttachments";
 import DateInput from "./DateInput";
 
-import { useEffect } from "react";
 import { addDaysISO } from "../lib/dates";
 
 const STATUS = [["todo", "Não iniciada"], ["doing", "Em andamento"], ["hold", "On hold"], ["done", "Concluída"]];
 
-export default function TaskDetail({ task, projects, update, onDelete, onClose }) {
+export default function TaskDetail({ task, projects, update, onDelete, onClose, newEntry=false }) {
 
-  useEffect(() => {
-    const onKey = (e) => e.key === "Escape" && onClose();
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
 
   const set = (patch) => update(task.id, patch);
   const proj = projects.find((p) => p.id === task.project);
@@ -27,9 +22,9 @@ export default function TaskDetail({ task, projects, update, onDelete, onClose }
 
   return (
     <div className="overlay" onClick={onClose}>
-      <aside className="panel" role="dialog" aria-label="Detalhes da tarefa" onClick={(e) => e.stopPropagation()}>
+      <aside className="panel" role="dialog" aria-modal="true" aria-label="Detalhes da tarefa" onClick={(e) => e.stopPropagation()}>
         <div className="panel-head">
-          <input className="panel-title" value={task.title} onChange={(e) => set({ title: e.target.value })} aria-label="Título" />
+          <EntryTitle key={task.id} newEntry={newEntry} placeholder="Nova tarefa" className="panel-title" value={task.title} onChange={(e) => set({ title: e.target.value })} aria-label="Título" />
           <button className="ghost" onClick={onClose}>Fechar</button>
         </div>
 

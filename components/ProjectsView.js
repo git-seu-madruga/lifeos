@@ -1,4 +1,5 @@
 "use client";
+import EntryTitle from "./EntryTitle";
 import LinkText, {TextLinks} from "./LinkText";
 import ProjectAttachments from "./ProjectAttachments";
 import DateInput from "./DateInput";
@@ -8,6 +9,8 @@ import { patchTask, newestCompleted } from "../lib/tasks";
 import { useState } from "react";
 import { formatDateInput } from "../lib/dateInput";
 import { dueLabel } from "../lib/dates";
+import ModalLayer from './ModalLayer';
+import {useBackLayer} from '../lib/useBackNavigation';
 import TaskDetail from "./TaskDetail";
 import MilestoneManager from "./MilestoneManager";
 import ProjectBoard from "./ProjectBoard";
@@ -35,12 +38,15 @@ function Bar({ pct }) {
 
 export default function ProjectsView({ tasks, setTasks, projects, setProjects, context, sub, selected, onSelect }) {
   const [openId, setOpenId] = useState(null);
+  const [createdProjectId,setCreatedProjectId]=useState(null);
+  function closeProject(){setCreatedProjectId(null);onSelect(null);}
   const [view, setView] = useState("lista");
   const [nt, setNt] = useState({ title: "", ms: "", ctx: null });
 
   const [projectError, setProjectError] = useState("");
 
   const project = projects.find((p) => p.id === selected && (context === "all" || p.context === context));
+  useBackLayer(!!project,closeProject,10);
   function updateProject(id, patch) {
     const current = projects.find(p => p.id === id);
     const next = { ...current, ...patch };
@@ -64,6 +70,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   function addProject() {
     const id = uid("pr");
     setProjects((prev) => [...prev, { id, name: "Novo projeto", status: SUB_STATUS[sub] || "active", area: "", context: context === "all" ? "work" : context, due: null, description: "", milestones: [] }]);
+    setCreatedProjectId(id);
     onSelect(id);
   }
 
@@ -144,9 +151,9 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
 
   return (
     <section>
-      <button className="ghost" onClick={() => onSelect(null)}>← Projetos</button>
+      <button className="ghost" onClick={closeProject}>← Projetos</button>
 
-      <input className="panel-title pd-name" value={project.name} onChange={(e) => updateProject(project.id, { name: e.target.value })} aria-label="Nome do projeto" />
+      <EntryTitle key={project.id} newEntry={project.id===createdProjectId} placeholder="Novo projeto" className="panel-title pd-name" value={project.name} onChange={(e) => updateProject(project.id, { name: e.target.value })} aria-label="Nome do projeto" />
       <div className="field-row pd-fields">
         <div className="field"><span className="label">Contexto</span>
           <select value={project.context} onChange={(e) => setProjectContext(e.target.value)}>
@@ -231,7 +238,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
       <ProjectAttachments key={project.id} items={project.attachments || []} onChange={(attachments) => updateProject(project.id, { attachments })} />
       <button className="danger" onClick={deleteProject}>Excluir projeto</button>
 
-      {openTask && <TaskDetail task={openTask} projects={projects} update={updateTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setOpenId(null)} />}
+      <ModalLayer open={!!openTask} onClose={()=>setOpenId(null)}>{openTask && <TaskDetail key={openTask.id} task={openTask} projects={projects} update={updateTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setOpenId(null)} />}</ModalLayer>
     </section>
   );
 }
