@@ -39,33 +39,17 @@ try{
   renderAuth(true,true);assert.equal(authBrowser.entries.length,3,'Loading Notion must not duplicate the guard');
   renderAuth(false,false);for(const effect of effectSlots)effect.cleanup?.();
  }finally{React.useEffect=originalEffect;if(oldWindow===undefined)delete global.window;else global.window=oldWindow;if(oldCustomEvent===undefined)delete global.CustomEvent;else global.CustomEvent=oldCustomEvent;}
- // Simulate a viewport jump before popstate and again before the next paint.
- const scrolled=browser(),frames=new Map();let frameId=0;
- const strip={scrollLeft:144,scrollTop:0,isConnected:true};
- scrolled.win.document={querySelectorAll:()=>[strip],addEventListener(){},removeEventListener(){}};
- scrolled.win.scrollX=0;scrolled.win.scrollY=640;
- scrolled.win.scrollTo=({left,top})=>{scrolled.win.scrollX=left;scrolled.win.scrollY=top;};
- scrolled.win.requestAnimationFrame=fn=>{frames.set(++frameId,fn);return frameId;};scrolled.win.cancelAnimationFrame=id=>frames.delete(id);
- const stable=createBackNavigation(scrolled.win);stable.start();
- scrolled.win.scrollY=720;scrolled.scroll(scrolled.win.document);
- scrolled.win.scrollY=0;strip.scrollLeft=0;scrolled.win.history.back();
- assert.equal(scrolled.win.scrollY,720,'Prompt preserves the current page scroll synchronously');assert.equal(strip.scrollLeft,144,'Horizontal tab scroll also stays in place');
- assert.equal(frames.size,0,'Do not schedule a second scroll correction that can create a visible jump');
- scrolled.gesture();scrolled.win.history.back();assert.equal(scrolled.index,0,'Scroll preservation does not block the second Back');stable.stop();assert.equal(frames.size,0);
- // The HTML element and window represent the SAME scroll position.
- // A stale HTML snapshot must not overwrite the current window snapshot.
- const rootScroll=browser();rootScroll.win.scrollY=320;rootScroll.win.scrollX=0;let scrollWrites=0;
- const html={scrollLeft:0,scrollHeight:2200,clientHeight:800,isConnected:true,get scrollTop(){return rootScroll.win.scrollY;},set scrollTop(value){rootScroll.win.scrollY=value;}};
- rootScroll.win.document={scrollingElement:html,documentElement:html,body:{scrollTop:0,scrollLeft:0},querySelectorAll:()=>[html],addEventListener(){},removeEventListener(){}};
- rootScroll.win.scrollTo=({top})=>{scrollWrites++;rootScroll.win.scrollY=top;};
- const rootNav=createBackNavigation(rootScroll.win);rootNav.start();rootScroll.win.scrollY=780;rootScroll.scroll(rootScroll.win.document);rootScroll.win.history.back();
- assert.equal(rootScroll.win.scrollY,780,'A stale HTML snapshot must not move a page that was already at the right scroll position');assert.equal(scrollWrites,0,'Do not force scroll when the browser preserved it');rootScroll.expire();assert.equal(rootScroll.win.scrollY,780);rootNav.stop();
- const internal=browser();internal.win.scrollX=0;internal.win.scrollY=0;
- const viewport={scrollTop:240,scrollLeft:0,scrollHeight:2500,clientHeight:800,isConnected:true};
- internal.win.document={querySelectorAll:()=>[viewport],addEventListener(){},removeEventListener(){}};
- internal.win.scrollTo=({left,top})=>{internal.win.scrollX=left;internal.win.scrollY=top;};
- const internalNav=createBackNavigation(internal.win);internalNav.start();viewport.scrollTop=900;internal.scroll(viewport);internal.win.history.back();assert.equal(internal.win.scrollY,0,'App viewport keeps document scroll at zero');assert.equal(viewport.scrollTop,900,'First Back preserves the app internal scroll');internal.expire();assert.equal(viewport.scrollTop,900,'Rearming preserves internal scroll');internal.win.history.back();internal.gesture();internal.win.history.back();assert.equal(internal.index,0,'Internal scroll does not block exit');internalNav.stop();
- const visual=browser();let forcedScroll=0;visual.win.scrollTo=()=>forcedScroll++;const visualNav=createBackNavigation(visual.win);visualNav.start();visual.navigate({navigationType:'traverse',canIntercept:true,hasUAVisualTransition:true,destination:{getState:()=>visual.entries[1]},intercept:()=>{}});visual.win.history.back();assert.equal(forcedScroll,0,'Do not move scroll during Chrome native visual transition');visualNav.stop();
+ // Navigation must not scan the DOM or write application scroll positions.
+ const scrolling=browser();let forcedScroll=0,scans=0;
+ const viewport={scrollTop:900,scrollLeft:144};
+ scrolling.win.document={querySelectorAll:()=>{scans++;return [viewport];},addEventListener(){},removeEventListener(){}};
+ scrolling.win.scrollTo=()=>forcedScroll++;
+ const light=createBackNavigation(scrolling.win);light.start();scrolling.scroll(viewport);
+ scrolling.navigate({navigationType:'traverse',canIntercept:true,destination:{getState:()=>scrolling.entries[1]},intercept:()=>{}});
+ scrolling.win.history.back();assert.equal(viewport.scrollTop,900);assert.equal(viewport.scrollLeft,144);
+ scrolling.expire();assert.equal(scrolling.index,2);assert.equal(viewport.scrollTop,900);
+ scrolling.win.history.back();scrolling.gesture();scrolling.win.history.back();assert.equal(scrolling.index,0);light.stop();
+ assert.equal(forcedScroll,0,'Back protection never forces scroll');assert.equal(scans,0,'Back protection never scans the DOM');
  const enter={key:'Enter',nativeEvent:{isComposing:false}};assert.equal(shouldSubmitInbox(enter,true),false);assert.equal(shouldSubmitInbox(enter,false),true);assert.equal(shouldSubmitInbox({...enter,shiftKey:true},false),false);assert.equal(shouldSubmitInbox({...enter,nativeEvent:{isComposing:true}},false),false);assert.equal(shouldSubmitInbox({...enter,keyCode:229},false),false);assert.equal(shouldSubmitInbox({key:'a'},false),false);
  console.log('PASSOU: voltar fecha a camada superior; duas voltas para sair; expiração e interação restauram a proteção; histórico sem acúmulo; Escape e Enter mobile multilinha.');
 }finally{fs.rmSync(folder,{recursive:true,force:true});}
