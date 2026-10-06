@@ -2,7 +2,7 @@
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
 const swc=require('next/dist/build/swc'),React=require('react');
 const folder=path.resolve('.client-test');fs.mkdirSync(path.join(folder,'lib'),{recursive:true});
-for(const name of ['useNotionState.js','notionDiff.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
+for(const name of ['useNotionState.js','notionDiff.js','entryDrafts.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
 require('fake-indexeddb/auto');
 global.window={addEventListener(){},removeEventListener(){}};
 const original={useState:React.useState,useRef:React.useRef,useCallback:React.useCallback,useEffect:React.useEffect};
@@ -64,6 +64,18 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  const storedDraft=await readState('notion-draft:'+testUser.id);assert.equal(storedDraft.v,1);assert.ok(!JSON.stringify(storedDraft).includes('Edição durante salvamento'));await assert.rejects(()=>readPrivateDraft('notion-draft:'+testUser.id,Buffer.alloc(32,8).toString('base64')),/rascunho/);
  const legacy=await readState();assert.equal(legacy.tasks[0].id,'old-local-task');
  assert.equal((await readPrivateDraft('notion-draft:'+testUser.id,testUser.draftKey)).next.tasks[0].title,'Edição durante salvamento');
+ // Untouched creation must not reach Notion, even during an unrelated save.
+ const beforeDrafts=syncCount;
+ const draftTask={id:'untouched-task',_untouchedDraft:true,title:'Nova tarefa',status:'todo',priority:'medium',context:'personal',project:null,milestone:null,due:null,start:null,followUp:null,waitingOn:'',notes:'',completedAt:null,attachments:[]};
+ const draftProject={id:'untouched-project',_untouchedDraft:true,name:'Novo projeto',status:'active',context:'personal',area:'',due:null,description:'',milestones:[],attachments:[]};
+ hook.setTasks(previous=>[...previous,draftTask]);hook.setProjects(previous=>[...previous,draftProject]);await tick();assert.equal(hook.pending,false);await hook.flush();assert.equal(syncCount,beforeDrafts);
+ hook.setTasks(previous=>previous.map(task=>task.id==='t'?{...task,notes:'Edição paralela'}:task));await hook.flush();await tick();assert.equal(remote.tasks.some(task=>task.id==='untouched-task'),false);assert.equal(remote.projects.some(project=>project.id==='untouched-project'),false);
+ const draftCopy=await readPrivateDraft('notion-draft:'+testUser.id,testUser.draftKey);assert.equal(draftCopy.next.tasks.some(task=>task.id==='untouched-task'),false);assert.equal(draftCopy.next.projects.some(project=>project.id==='untouched-project'),false);
+ assert.ok(hook.tasks.find(task=>task.id==='untouched-task')._untouchedDraft,'O editor continua aberto durante salvamento de outro registro');
+ hook.setTasks(previous=>previous.map(task=>task.id==='untouched-task'?{...task,status:'doing'}:task));await hook.flush();await tick();assert.equal(remote.tasks.find(task=>task.id==='untouched-task').status,'doing','Alterar outro campo também registra a tarefa');assert.ok(!hook.tasks.find(task=>task.id==='untouched-task')._untouchedDraft);
+ hook.setProjects(previous=>previous.map(project=>project.id==='untouched-project'?{...project,name:'Projeto preenchido'}:project));await hook.flush();await tick();assert.equal(remote.projects.find(project=>project.id==='untouched-project').name,'Projeto preenchido');
+ hook.setTasks(previous=>[...previous,{...draftTask,id:'discard-task'}]);hook.setProjects(previous=>[...previous,{...draftProject,id:'discard-project'}]);await tick();const beforeClose=syncCount;
+ hook.setTasks(previous=>previous.filter(task=>!task._untouchedDraft));hook.setProjects(previous=>previous.filter(project=>!project._untouchedDraft));await hook.flush();await tick();assert.equal(syncCount,beforeClose,'Descartar entrada intocada não exige criação nem exclusão no Notion');assert.ok(hook.tasks.some(task=>task.id==='untouched-task'));assert.ok(hook.projects.some(project=>project.id==='untouched-project'));
  active=false;for(const slot of slots)slot?.cleanup?.();Object.assign(React,original);fs.rmSync(folder,{recursive:true});
  console.log('PASSOU: carga remota sem importar exemplos locais, upload, autosave, IDs, rascunho após falha, reenvio e edição durante salvamento.');
 })().catch(error=>{active=false;for(const slot of slots)slot?.cleanup?.();Object.assign(React,original);console.error(error);process.exitCode=1;});

@@ -6,7 +6,7 @@ import DateInput from "./DateInput";
 
 import { patchTask, newestCompleted } from "../lib/tasks";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { formatDateInput } from "../lib/dateInput";
 import { dueLabel } from "../lib/dates";
 import ModalLayer from './ModalLayer';
@@ -39,7 +39,8 @@ function Bar({ pct }) {
 export default function ProjectsView({ tasks, setTasks, projects, setProjects, context, sub, selected, onSelect }) {
   const [openId, setOpenId] = useState(null);
   const [createdProjectId,setCreatedProjectId]=useState(null);
-  function closeProject(){setCreatedProjectId(null);onSelect(null);}
+  useEffect(()=>()=>setProjects(previous=>previous.filter(project=>!project._untouchedDraft)),[setProjects]);
+  function closeProject(){setProjects(previous=>previous.filter(project=>!(project.id===selected&&project._untouchedDraft)));setCreatedProjectId(null);onSelect(null);}
   const [view, setView] = useState("lista");
   const [nt, setNt] = useState({ title: "", ms: "", ctx: null });
 
@@ -69,7 +70,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
 
   function addProject() {
     const id = uid("pr");
-    setProjects((prev) => [...prev, { id, name: "Novo projeto", status: SUB_STATUS[sub] || "active", area: "", context: context === "all" ? "work" : context, due: null, description: "", milestones: [] }]);
+    setProjects((prev) => [...prev, { id, _untouchedDraft:true, name: "Novo projeto", status: SUB_STATUS[sub] || "active", area: "", context: context === "all" ? "work" : context, due: null, description: "", milestones: [] }]);
     setCreatedProjectId(id);
     onSelect(id);
   }
@@ -128,6 +129,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   }
   function addTask() {
     if (!nt.title.trim()) return;
+    updateProject(project.id,{});
     setTasks((prev) => [...prev, {
       id: uid("t"), title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
       project: project.id, milestone: nt.ms || null, attachments: [], notes: "", followUp: null, waitingOn: "",

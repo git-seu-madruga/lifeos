@@ -56,7 +56,7 @@ export default function Home() {
   const [subs, setSubs] = useState({});
   const [selected, setSelected] = useState(null);
   const remote = useNotionState();
-  const backMessage=useAppBackNavigation(!!remote.authenticated);
+  const backMessage=useAppBackNavigation(!!remote.authenticated,remote.ready);
   const { tasks, projects, inbox, setInbox, setTasks, setProjects, ready, saving, refreshedAt } = remote;
 
   const [shoppingSelected,setShoppingSelected]=useState(null);
