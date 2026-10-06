@@ -1,3 +1,4 @@
+import {ensureWritable} from '../../../../lib/server/maintenance';
 import {authorize,checkOrigin,json,failure,seal,AppError} from '../../../../lib/server/auth';
 import {downloadMediaCover} from '../../../../lib/server/mediaCover';
 import {uploadFile} from '../../../../lib/server/notion';
@@ -7,7 +8,7 @@ export const maxDuration=60;
 export async function POST(request){
  let stage='request';
  try{
-  const user=authorize(request);checkOrigin(request);
+  const user=authorize(request);checkOrigin(request);await ensureWritable();
   if(Number(request.headers.get('content-length')||0)>4096)throw new AppError('Solicitação muito grande.',413);
   const {url,name}=await request.json();
   if(typeof url!=='string'||url.length>1500||typeof name!=='string'||name.length>300)throw new AppError('Dados da capa inválidos.');
