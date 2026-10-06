@@ -4,7 +4,7 @@ const swc=require('next/dist/build/swc'),React=require('react');
 const folder=path.resolve('.client-test');fs.mkdirSync(path.join(folder,'lib'),{recursive:true});
 for(const name of ['useNotionState.js','notionDiff.js','entryDrafts.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
 require('fake-indexeddb/auto');
-let loginDestination;global.window={location:{replace:url=>loginDestination=url,assign:()=>{throw Error('Login must replace its page, not leave it behind');}},addEventListener(){},removeEventListener(){}};
+let loginDestination,poll;const popup={closed:false};const handlers=new Map();global.window={location:{origin:'https://lifeos.test',replace:()=>{throw Error('Login must not navigate the app');}},open:url=>{loginDestination=url;return popup;},setInterval:fn=>{poll=fn;return 1;},clearInterval:()=>{poll=null;},addEventListener:(name,fn)=>handlers.set(name,fn),removeEventListener:name=>handlers.delete(name)};
 const original={useState:React.useState,useRef:React.useRef,useCallback:React.useCallback,useEffect:React.useEffect};
 const slots=[];let index=0,scheduled=false,effects=[],hook,active=true;
 const changed=(a,b)=>!a||!b||a.length!==b.length||a.some((value,i)=>!Object.is(value,b[i]));
@@ -17,9 +17,9 @@ const {useNotionState}=require(path.join(folder,'lib/useNotionState'));
 function render(){if(!active)return;index=0;effects=[];hook=useNotionState();const pending=effects;effects=[];pending.forEach(effect=>effect());}
 const {readState,saveState,readPrivateDraft}=require(path.join(folder,'lib/storage'));
 const testUser={id:'google:test-user',email:'periclesbernardes@gmail.com',name:'Péricles',isLegacyOwner:true,draftKey:Buffer.alloc(32,7).toString('base64')};
-let remote={user:testUser,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true},syncCount=0,uploadCount=0,failure=false,gate=null;
+let sessionAuthenticated=false,sessionQueries=0;let remote={user:testUser,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true},syncCount=0,uploadCount=0,failure=false,gate=null;
 global.fetch=async(url,options={})=>{
- if(url==='/api/session')return Response.json({authenticated:true,configured:true,user:testUser});
+ if(url==='/api/session'){sessionQueries++;return Response.json({authenticated:sessionAuthenticated,configured:true,user:sessionAuthenticated?testUser:null});}
  if(url==='/api/notion')return Response.json(remote);
  if(url==='/api/notion/upload'){uploadCount++;return Response.json({uploadId:'uploaded-file',name:'ref.txt'});}
  if(url==='/api/notion/sync'){
@@ -37,7 +37,7 @@ global.fetch=async(url,options={})=>{
 const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
 (async()=>{
  await saveState({projects:[{id:'old-local'}],tasks:[{id:'old-local-task'}],inbox:[]});
- render();for(let i=0;i<100&&!hook.ready;i++)await tick();assert.ok(hook.ready);assert.equal(hook.projects.length,0,'Dados locais antigos não devem ser enviados automaticamente');assert.equal(syncCount,0);hook.login();assert.equal(loginDestination,'/api/auth/google');
+ render();for(let i=0;i<100&&hook.authenticated===null;i++)await tick();assert.equal(hook.authenticated,false);assert.equal(hook.ready,false);hook.login();assert.equal(loginDestination,'/api/auth/google?popup=1');assert.ok(poll);sessionAuthenticated=true;handlers.get('message')({origin:'https://evil.test',source:popup,data:{type:'lifeos-login-complete'}});assert.equal(hook.ready,false);poll();for(let i=0;i<100&&!hook.ready;i++)await tick();assert.equal(poll,null,'Successful login must stop polling');const queries=sessionQueries;handlers.get('focus')();await tick();assert.equal(sessionQueries,queries,'Authenticated app does not poll or reload banks on focus');assert.ok(hook.ready);assert.equal(hook.projects.length,0,'Dados locais antigos não devem ser enviados automaticamente');assert.equal(syncCount,0);
  hook.setProjects([{id:'p',name:'Projeto',status:'active',context:'work',area:'',due:null,description:'',milestones:[],attachments:[]}]);
  hook.setTasks([{id:'t',title:'Primeira versão',status:'todo',priority:'medium',context:'work',project:'p',milestone:null,due:null,start:null,followUp:null,waitingOn:'',notes:'',completedAt:null,attachments:[{id:'a',name:'ref.txt',file:new File(['test'],'ref.txt',{type:'text/plain'})}]}]);
  await hook.flush();await tick();assert.equal(syncCount,1);assert.equal(uploadCount,1);assert.equal(hook.tasks[0]._notionId,'remote-t');assert.ok(hook.tasks[0].attachments[0].notion);assert.equal(hook.pending,false);

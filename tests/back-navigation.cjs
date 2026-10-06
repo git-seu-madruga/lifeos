@@ -50,8 +50,9 @@ try{
  scrolled.win.scrollY=720;scrolled.scroll(scrolled.win.document);
  scrolled.win.scrollY=0;strip.scrollLeft=0;scrolled.win.history.back();
  assert.equal(scrolled.win.scrollY,720,'Prompt preserves the current page scroll synchronously');assert.equal(strip.scrollLeft,144,'Horizontal tab scroll also stays in place');
- scrolled.win.scrollY=12;for(const [id,fn] of [...frames]){frames.delete(id);fn();}assert.equal(scrolled.win.scrollY,720,'A delayed restoration is corrected before the next paint');
+ assert.equal(frames.size,0,'Do not schedule a second scroll correction that can create a visible jump');
  scrolled.gesture();scrolled.win.history.back();assert.equal(scrolled.index,0,'Scroll preservation does not block the second Back');stable.stop();assert.equal(frames.size,0);
+ const visual=browser();let forcedScroll=0;visual.win.scrollTo=()=>forcedScroll++;const visualNav=createBackNavigation(visual.win);visualNav.start();visual.navigate({navigationType:'traverse',canIntercept:true,hasUAVisualTransition:true,destination:{getState:()=>visual.entries[1]},intercept:()=>{}});visual.win.history.back();assert.equal(forcedScroll,0,'Do not move scroll during Chrome native visual transition');visualNav.stop();
  const enter={key:'Enter',nativeEvent:{isComposing:false}};assert.equal(shouldSubmitInbox(enter,true),false);assert.equal(shouldSubmitInbox(enter,false),true);assert.equal(shouldSubmitInbox({...enter,shiftKey:true},false),false);assert.equal(shouldSubmitInbox({...enter,nativeEvent:{isComposing:true}},false),false);assert.equal(shouldSubmitInbox({...enter,keyCode:229},false),false);assert.equal(shouldSubmitInbox({key:'a'},false),false);
  console.log('PASSOU: voltar fecha a camada superior; duas voltas para sair; expiração e interação restauram a proteção; histórico sem acúmulo; Escape e Enter mobile multilinha.');
 }finally{fs.rmSync(folder,{recursive:true,force:true});}
