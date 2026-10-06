@@ -6,9 +6,8 @@
   "lang": "pt-BR",
   "start_url": "/",
   "scope": "/",
-  "display": "fullscreen",
+  "display": "standalone",
   "display_override": [
-    "fullscreen",
     "standalone"
   ],
   "background_color": "#0c0d10",
