@@ -509,3 +509,8 @@ textarea:focus+.text-links,input:focus+.text-links{display:none;}
 @media(max-width:600px){.media-section-access{gap:12px;}.media-access-card{padding:24px 12px;}.media-access-icon{padding:16px;}.media-access-card strong{font-size:20px;}.media-access-card .muted{font-size:12px;}.media-access-icon svg{width:46px;height:46px;}}
 
 .media-view-toggle{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0;}.media-group-toggle{display:flex;align-items:center;gap:10px;background:transparent;border:0;color:var(--text);font:inherit;text-align:left;cursor:pointer;padding:8px 0;}.media-group-toggle:focus-visible{outline:2px solid var(--blue);outline-offset:4px;}.media-content-group [hidden]{display:none;}
+
+/* Espaçamento e acessos das quatro seções de Entretenimento. */
+.media-page-title{margin-top:30px;}
+.media-section-access{grid-template-columns:repeat(4,minmax(0,1fr));}
+@media(max-width:700px){.media-section-access{grid-template-columns:repeat(2,minmax(0,1fr));}}
