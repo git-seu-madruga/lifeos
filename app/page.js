@@ -10,7 +10,7 @@ import { InstallApp } from "../components/PwaProvider";
 import EntertainmentView from "../components/EntertainmentView";
 import Login from "../components/Login";
 import ModalLayer from '../components/ModalLayer';
-import {useAppBackNavigation} from '../lib/useBackNavigation';
+import {useAppBackNavigation,BackNotice} from '../lib/useBackNavigation';
 import HabitsView from '../components/HabitsView';
 import ShoppingView from '../components/ShoppingView';
 import TabIcon from '../components/TabIcon';
@@ -56,7 +56,7 @@ export default function Home() {
   const [subs, setSubs] = useState({});
   const [selected, setSelected] = useState(null);
   const remote = useNotionState();
-  const backMessage=useAppBackNavigation(true,remote.ready);
+  useAppBackNavigation(remote.authenticated === true,remote.ready);
   const { tasks, projects, inbox, setInbox, setTasks, setProjects, ready, saving, refreshedAt } = remote;
 
   const [shoppingSelected,setShoppingSelected]=useState(null);
@@ -282,7 +282,7 @@ export default function Home() {
         )}
       </main>
     </div>
-    {backMessage&&<div className="back-toast" role="status">{backMessage}</div>}
+    <BackNotice/>
     <ModalLayer open={!!shoppingInbox} onClose={()=>setShoppingInbox(null)}>{shoppingInbox&&<div className="overlay overlay-context"><div className="panel finance-modal" role="dialog" aria-modal="true" aria-label="Contexto da lista de compras"><h2>Contexto da lista</h2><p className="muted">Escolha onde criar a lista ou acrescentar os itens à lista de mesmo nome.</p><label>Contexto<select className="search" value={shoppingContext} onChange={e=>setShoppingContext(e.target.value)}><option value="personal">Pessoal</option><option value="work">Trabalho</option></select></label><div className="finance-period"><button className="primary" onClick={()=>moveShoppingInbox(shoppingInbox,shoppingContext)}>Mover para lista</button><button className="ghost" onClick={()=>setShoppingInbox(null)}>Cancelar</button></div></div></div>}</ModalLayer>
     <ModalLayer open={!!newTask&&!!projects} onClose={()=>setNewTaskId(null)}>{newTask && projects && <TaskDetail key={newTask.id} task={newTask} projects={projects} update={updateNewTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setNewTaskId(null)} />}</ModalLayer>
     </div>

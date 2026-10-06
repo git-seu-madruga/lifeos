@@ -535,3 +535,7 @@ textarea:focus+.text-links,input:focus+.text-links{display:none;}
 @media(prefers-reduced-motion:reduce){.modal-motion>.overlay,.modal-motion>.overlay>.panel,.modal-motion.closing>.overlay,.modal-motion.closing>.overlay>.panel{animation:none}.inbox-collapse,.inbox-collapse>.inbox-body{transition:none}}
 
 .panel-title::placeholder{color:var(--muted);opacity:1}
+
+/* Keep the notice outside page layout and scroll anchoring. */
+.back-toast{contain:layout paint;overflow-anchor:none}
+.back-toast[data-visible="false"]{visibility:hidden}

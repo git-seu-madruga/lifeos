@@ -1,12 +1,12 @@
 const assert=require('node:assert/strict'),fs=require('fs'),path=require('path'),swc=require('next/dist/build/swc');
 const folder=path.resolve('.back-test');fs.mkdirSync(folder,{recursive:true});
-for(const file of ['backNavigation','inboxInput'])fs.writeFileSync(path.join(folder,file+'.js'),swc.transformSync(fs.readFileSync('lib/'+file+'.js','utf8'),{jsc:{target:'es2022'},module:{type:'commonjs'}}).code);
+for(const file of ['backNavigation','inboxInput','useBackNavigation'])fs.writeFileSync(path.join(folder,file+'.js'),swc.transformSync(fs.readFileSync('lib/'+file+'.js','utf8'),{jsc:{target:'es2022',parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'automatic'}}},module:{type:'commonjs'}}).code);
 function browser(mobile=true){
  const listeners=new Map(),timers=new Map();let seq=0,index=1;const entries=[{external:true},{nextState:'keep'}];
  function dispatch(name,event={}){let stopped=false;event.stopImmediatePropagation=()=>{stopped=true;};for(const listener of [...(listeners.get(name)||[])].sort((a,b)=>Number(b.capture)-Number(a.capture))){listener.fn(event);if(stopped)break;}return stopped;}
  const win={navigation:{addEventListener:(...args)=>win.addEventListener(...args),removeEventListener:(...args)=>win.removeEventListener(...args)},matchMedia:()=>({matches:mobile}),addEventListener:(name,fn,capture=false)=>{listeners.set(name,[...(listeners.get(name)||[]),{fn,capture}]);},removeEventListener:(name,fn,capture=false)=>{listeners.set(name,(listeners.get(name)||[]).filter(listener=>listener.fn!==fn||listener.capture!==capture));},setTimeout:fn=>{timers.set(++seq,fn);return seq;},clearTimeout:id=>timers.delete(id)};
  win.history={get state(){return entries[index];},replaceState:s=>{entries[index]=s;},pushState:s=>{entries.splice(index+1);entries.push(s);index++;},back:()=>{if(index>0){index--;dispatch('popstate',{state:entries[index]});}},forward:()=>{if(index<entries.length-1){index++;dispatch('popstate',{state:entries[index]});}}};
- return {win,entries,get index(){return index;},expire(){for(const [id,fn] of [...timers]){timers.delete(id);fn();}},key(){let prevented=false;dispatch('keydown',{key:'Escape',preventDefault:()=>{prevented=true;}});return prevented;},touch(){dispatch('click',{target:{closest:()=>true}});},gesture(){dispatch('pointerdown');},navigate(event){dispatch('navigate',event);},resume(){dispatch('pageshow');}};
+ return {win,entries,get index(){return index;},expire(){for(const [id,fn] of [...timers]){timers.delete(id);fn();}},key(){let prevented=false;dispatch('keydown',{key:'Escape',preventDefault:()=>{prevented=true;}});return prevented;},touch(){dispatch('click',{target:{closest:()=>true}});},gesture(){dispatch('pointerdown');},scroll(target){dispatch('scroll',{target});},navigate(event){dispatch('navigate',event);},resume(){dispatch('pageshow');}};
 }
 
 try{
@@ -26,6 +26,32 @@ try{
  const close=startup.register(()=>{},20);fresh.win.history.back();assert.equal(restores,0,'Closing panel must not restore main page');close();fresh.win.history.replaceState({__NA:true,tree:'after-resume'},'');fresh.resume();assert.equal(fresh.entries.length,3);assert.equal(fresh.win.history.state.lifeosBackGuard,'guard');startup.stop();startup.start();fresh.win.history.back();assert.equal(restores,0,'Capture registration must survive remount');fresh.win.history.back();assert.equal(fresh.index,0);assert.equal(restores,1,'Unrelated navigation is not intercepted');startup.stop();
  const wrapped=browser();let routerWrites=0;const nativePush=wrapped.win.history.pushState,nativeReplace=wrapped.win.history.replaceState;wrapped.win.History={prototype:{pushState:nativePush,replaceState:nativeReplace}};wrapped.win.history.pushState=()=>{routerWrites++;};wrapped.win.history.replaceState=()=>{routerWrites++;};const isolated=createBackNavigation(wrapped.win);isolated.start();assert.equal(wrapped.index,2);assert.equal(routerWrites,0,'Native history avoids router wrappers');wrapped.win.history.back();wrapped.expire();assert.equal(wrapped.index,2);assert.equal(wrapped.entries.length,3);for(let i=0;i<10;i++){wrapped.touch();wrapped.win.history.back();wrapped.expire();}assert.equal(wrapped.entries.length,3);assert.equal(routerWrites,0);isolated.stop();
  const reload=browser();reload.win.history.replaceState({lifeosBackGuard:'guard',lifeosBackDocument:'previous-document'},'');let reloadPrompt='';const reloaded=createBackNavigation(reload.win,{onPrompt:m=>reloadPrompt=m});reloaded.start();assert.equal(reload.index,2);reload.win.history.back();assert.ok(reloadPrompt.includes('novamente'),'Reload must use a guard in the current document');reloaded.stop();
+ // Before authentication the hook must leave the login history untouched.
+ const React=require('react'),originalEffect=React.useEffect,oldWindow=global.window,oldCustomEvent=global.CustomEvent;
+ const authBrowser=browser(),effectSlots=[];let effectIndex=0;
+ authBrowser.win.dispatchEvent=()=>{};global.window=authBrowser.win;global.CustomEvent=class{constructor(type,options){this.type=type;this.detail=options?.detail;}};
+ React.useEffect=(effect,deps)=>{const i=effectIndex++,old=effectSlots[i];if(!old||deps.some((value,j)=>value!==old.deps[j])){old?.cleanup?.();effectSlots[i]={deps,cleanup:effect()};}};
+ try{
+  const {useAppBackNavigation}=require(path.join(folder,'useBackNavigation'));
+  const renderAuth=(authenticated,ready)=>{effectIndex=0;useAppBackNavigation(authenticated,ready);};
+  renderAuth(false,false);assert.equal(authBrowser.entries.length,2,'Login must not create an exit guard');
+  renderAuth(true,false);assert.equal(authBrowser.entries.length,3,'Protection begins after authentication');
+  renderAuth(true,true);assert.equal(authBrowser.entries.length,3,'Loading Notion must not duplicate the guard');
+  renderAuth(false,false);for(const effect of effectSlots)effect.cleanup?.();
+ }finally{React.useEffect=originalEffect;if(oldWindow===undefined)delete global.window;else global.window=oldWindow;if(oldCustomEvent===undefined)delete global.CustomEvent;else global.CustomEvent=oldCustomEvent;}
+ // Simulate a viewport jump before popstate and again before the next paint.
+ const scrolled=browser(),frames=new Map();let frameId=0;
+ const strip={scrollLeft:144,scrollTop:0,isConnected:true};
+ scrolled.win.document={querySelectorAll:()=>[strip],addEventListener(){},removeEventListener(){}};
+ scrolled.win.scrollX=0;scrolled.win.scrollY=640;
+ scrolled.win.scrollTo=({left,top})=>{scrolled.win.scrollX=left;scrolled.win.scrollY=top;};
+ scrolled.win.requestAnimationFrame=fn=>{frames.set(++frameId,fn);return frameId;};scrolled.win.cancelAnimationFrame=id=>frames.delete(id);
+ const stable=createBackNavigation(scrolled.win);stable.start();
+ scrolled.win.scrollY=720;scrolled.scroll(scrolled.win.document);
+ scrolled.win.scrollY=0;strip.scrollLeft=0;scrolled.win.history.back();
+ assert.equal(scrolled.win.scrollY,720,'Prompt preserves the current page scroll synchronously');assert.equal(strip.scrollLeft,144,'Horizontal tab scroll also stays in place');
+ scrolled.win.scrollY=12;for(const [id,fn] of [...frames]){frames.delete(id);fn();}assert.equal(scrolled.win.scrollY,720,'A delayed restoration is corrected before the next paint');
+ scrolled.gesture();scrolled.win.history.back();assert.equal(scrolled.index,0,'Scroll preservation does not block the second Back');stable.stop();assert.equal(frames.size,0);
  const enter={key:'Enter',nativeEvent:{isComposing:false}};assert.equal(shouldSubmitInbox(enter,true),false);assert.equal(shouldSubmitInbox(enter,false),true);assert.equal(shouldSubmitInbox({...enter,shiftKey:true},false),false);assert.equal(shouldSubmitInbox({...enter,nativeEvent:{isComposing:true}},false),false);assert.equal(shouldSubmitInbox({...enter,keyCode:229},false),false);assert.equal(shouldSubmitInbox({key:'a'},false),false);
  console.log('PASSOU: voltar fecha a camada superior; duas voltas para sair; expiração e interação restauram a proteção; histórico sem acúmulo; Escape e Enter mobile multilinha.');
 }finally{fs.rmSync(folder,{recursive:true,force:true});}

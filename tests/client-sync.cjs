@@ -4,7 +4,7 @@ const swc=require('next/dist/build/swc'),React=require('react');
 const folder=path.resolve('.client-test');fs.mkdirSync(path.join(folder,'lib'),{recursive:true});
 for(const name of ['useNotionState.js','notionDiff.js','entryDrafts.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
 require('fake-indexeddb/auto');
-global.window={addEventListener(){},removeEventListener(){}};
+let loginDestination;global.window={location:{replace:url=>loginDestination=url,assign:()=>{throw Error('Login must replace its page, not leave it behind');}},addEventListener(){},removeEventListener(){}};
 const original={useState:React.useState,useRef:React.useRef,useCallback:React.useCallback,useEffect:React.useEffect};
 const slots=[];let index=0,scheduled=false,effects=[],hook,active=true;
 const changed=(a,b)=>!a||!b||a.length!==b.length||a.some((value,i)=>!Object.is(value,b[i]));
@@ -37,7 +37,7 @@ global.fetch=async(url,options={})=>{
 const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
 (async()=>{
  await saveState({projects:[{id:'old-local'}],tasks:[{id:'old-local-task'}],inbox:[]});
- render();for(let i=0;i<100&&!hook.ready;i++)await tick();assert.ok(hook.ready);assert.equal(hook.projects.length,0,'Dados locais antigos não devem ser enviados automaticamente');assert.equal(syncCount,0);
+ render();for(let i=0;i<100&&!hook.ready;i++)await tick();assert.ok(hook.ready);assert.equal(hook.projects.length,0,'Dados locais antigos não devem ser enviados automaticamente');assert.equal(syncCount,0);hook.login();assert.equal(loginDestination,'/api/auth/google');
  hook.setProjects([{id:'p',name:'Projeto',status:'active',context:'work',area:'',due:null,description:'',milestones:[],attachments:[]}]);
  hook.setTasks([{id:'t',title:'Primeira versão',status:'todo',priority:'medium',context:'work',project:'p',milestone:null,due:null,start:null,followUp:null,waitingOn:'',notes:'',completedAt:null,attachments:[{id:'a',name:'ref.txt',file:new File(['test'],'ref.txt',{type:'text/plain'})}]}]);
  await hook.flush();await tick();assert.equal(syncCount,1);assert.equal(uploadCount,1);assert.equal(hook.tasks[0]._notionId,'remote-t');assert.ok(hook.tasks[0].attachments[0].notion);assert.equal(hook.pending,false);
