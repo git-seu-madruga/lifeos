@@ -511,6 +511,6 @@ textarea:focus+.text-links,input:focus+.text-links{display:none;}
 .media-view-toggle{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0;}.media-group-toggle{display:flex;align-items:center;gap:10px;background:transparent;border:0;color:var(--text);font:inherit;text-align:left;cursor:pointer;padding:8px 0;}.media-group-toggle:focus-visible{outline:2px solid var(--blue);outline-offset:4px;}.media-content-group [hidden]{display:none;}
 
 /* Espaçamento e acessos das quatro seções de Entretenimento. */
-.media-page-title{margin-top:30px;}
+.media-heading .media-page-title{margin:32px 0 0;}
 .media-section-access{grid-template-columns:repeat(4,minmax(0,1fr));}
 @media(max-width:700px){.media-section-access{grid-template-columns:repeat(2,minmax(0,1fr));}}
