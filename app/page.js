@@ -250,7 +250,7 @@ export default function Home() {
         {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}
 
         {!saving&&['compras','aniversarios','financas'].includes(tabId)&&(()=>{const keys=tabId==='compras'?['shopping']:tabId==='aniversarios'?['contacts']:['categories','transactions'];const latest=keys.map(key=>remote.sharedActivity?.[key]).filter(Boolean).sort((a,b)=>b.at.localeCompare(a.at))[0];return latest?<p className="muted small shared-editor">Última alteração no LifeOS por {latest.name} · {new Date(latest.at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}</p>:null;})()}
-        {!["diario","financas","aniversarios","compras","habitos","entretenimento"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
+        {!["diario","financas","aniversarios","compras","habitos","entretenimento","recados"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button
               key={s.id}
