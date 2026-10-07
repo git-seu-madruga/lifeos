@@ -1,418 +1,369 @@
-# Correção de seção vazia
+# LifeOS — Guia de configuração e uso
 
-Consulte INSTRUCOES-SECAO-VAZIA.md. Agora é possível criar as seções principais mesmo com um bloco vazio, preservando o registro e seus conteúdos.
+Documento único da versão atual. Este README substitui os arquivos INSTRUCOES das entregas anteriores e deve ser atualizado nas próximas revisões, sem acumular orientações de versões antigas.
 
-# Capas no Notion e rolagem no iPhone
+## 1. Atualizar uma instalação existente
 
-Cópia de capas importadas ativada por padrão ao salvar; rolagem nativa das abas e botão separado para ordenar no celular. Consulte INSTRUCOES-CAPAS-IPHONE.md.
+1. Aguarde **Salvo no Notion** antes de atualizar. Se houver erro de salvamento, preserve o texto e resolva o erro primeiro.
+2. Extraia o ZIP. Envie o **conteúdo da pasta lifeos** para a raiz do repositório, substituindo os arquivos existentes. Não crie uma segunda pasta lifeos dentro do projeto.
+3. Mantenha as variáveis e os bancos já configurados. Esta revisão do aviso de Recados não exige novos bancos, campos ou variáveis.
+4. Faça o deploy na Vercel e atualize a página/app instalado.
+5. Remova do repositório os antigos arquivos INSTRUCOES-*.md: o envio pelo navegador não remove arquivos que deixaram de existir no ZIP. Todas as instruções atuais estão aqui.
 
-# Aba Entretenimento
+Para enviar mais de 100 arquivos pelo navegador do GitHub, crie uma branch, envie em lotes e faça merge apenas quando todos os arquivos estiverem presentes. Isso evita publicar uma versão parcial em produção. Git/GitHub Desktop também permitem enviar o projeto completo.
 
-Consulte INSTRUCOES-ENTRETENIMENTO.md para criar os dois bancos e configurar os IDs na Vercel. Inclui busca de livros/séries, capas, estrelas e seções personalizadas.
+Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de ambiente locais. O arquivo .env.example é apenas um modelo sem segredos.
 
-# Aplicativo instalável (PWA)
+### Mudanças desta revisão
 
-Esta versão inclui ícones e instalação em celulares/computadores. Consulte INSTRUCOES-PWA.md. As configurações Google/Notion/Redis anteriores permanecem necessárias.
+- Um coração rosa/vermelho substitui somente o logo do cabeçalho principal quando existe recado **recebido hoje e não marcado como lido**. Ao clicar, abre Recados em hoje. Após a confirmação de leitura no Notion, o logo normal retorna. Recados antigos não acionam esse aviso; login, carregamento, favicon e ícone instalado permanecem iguais.
+- Antes de enviar o recado, aparece uma confirmação. Cancelar preserva texto, imagem e a entrada original do Inbox. Após enviar, não há edição pelo app.
+- Mantém o backup manual, o menu da conta, o logo atualizado e a correção do erro ao sair.
 
-# LifeOS — login Google e dois usuários
+## 2. Contas, privacidade e contextos
 
-**Comece pelo arquivo [INSTRUCOES-GOOGLE.md](INSTRUCOES-GOOGLE.md).** Esta versão substitui a senha compartilhada por login Google e inclui isolamento de dados privados, áreas compartilhadas e coordenação de gravações. Configure tudo antes do deploy; a versão antiga pode continuar funcionando enquanto você prepara as credenciais.
+| Área | Acesso |
+| --- | --- |
+| Inbox, Projetos, Marcos, Tarefas, Diário, Hábitos e registros, Entretenimento | Privado de cada conta |
+| Compras, Aniversários, Finanças | Compartilhado entre as duas contas |
+| Recados | Mensagens entre as duas contas, com leitura confirmada pelo destinatário |
+| Backup e restauração | Apenas a conta principal; inclui dados das duas contas |
 
-Os registros privados atuais pertencem à conta periclesbernardes@gmail.com. A segunda conta autorizada é leticiacost3@gmail.com. Compras, Aniversários e Finanças são compartilhados. Nenhum banco precisa ser duplicado.
+Contas autorizadas: **periclesbernardes@gmail.com** e **leticiacost3@gmail.com**. Os dados privados antigos sem proprietário pertencem à primeira conta.
 
-# LifeOS — atualização com Finanças
+Pessoal/Trabalho é uma classificação, não separação de usuário. Projetos, Tarefas e Compras têm ambos os contextos. Diário, Finanças, Aniversários, Hábitos, Entretenimento e Recados usam Pessoal fixo, com Todos e Trabalho bloqueados.
 
-Base: v3 com anexos em Projetos e Tarefas. Sem painel de configurações. Projetos, tarefas, marcos e Inbox agora vêm do Notion. Diário tem calendário, texto formatado e anexos. Finanças agora tem categorias, lançamentos e um gráfico Sankey interativo.
+A separação é aplicada pelo servidor do LifeOS. Quem tiver acesso direto aos bancos completos no Notion terá o acesso concedido pelo próprio Notion. Compras, Finanças e Aniversários mostram nome e horário da última edição feita pelo app; edições diretas no Notion não identificam a conta Google.
 
-## Atualizar o aplicativo atual
+## 3. Uso diário
 
-1. Crie apenas os dois novos bancos financeiros abaixo, dentro da página LifeOS no Notion. Mantenha os bancos existentes de Projetos, Marcos, Tarefas, Inbox e Diário.
-2. Confira se a conexão interna LifeOS tem acesso aos dois bancos novos e permissões de ler, inserir e atualizar conteúdo.
-3. No projeto atual da Vercel, mantenha todas as variáveis existentes, incluindo NOTION_TOKEN e os IDs de Inbox e Diário. Acrescente apenas NOTION_FINANCE_CATEGORIES_DATABASE_ID e NOTION_FINANCE_TRANSACTIONS_DATABASE_ID com os IDs dos bancos financeiros.
-4. Envie o conteúdo deste ZIP ao repositório e à branch que já alimentam seu app na Vercel, preservando as pastas. Não é necessário criar outro fork nem outro projeto na Vercel.
-5. Faça um novo deploy após cadastrar as variáveis e enviar os arquivos. Acesse pelo endereço que já utiliza e entre com uma das contas Google autorizadas.
-6. Na aba Finanças, crie suas categorias em Gerenciar categorias e adicione os valores. Aguarde Salvo no Notion antes de fechar.
+### Navegação e datas
 
-O pacote mantém as funcionalidades atuais de Projetos, Tarefas, Inbox e Diário. A mudança global no cabeçalho centraliza os contextos. Finanças usa apenas os dois novos bancos financeiros e fica no contexto Pessoal. Os IDs padrão de Projetos, Marcos e Tarefas continuam os mesmos; não precisa cadastrá-los novamente na Vercel. Sem configurar os dois bancos novos, Finanças mostra as instruções de configuração e as demais telas continuam disponíveis.
+Arraste as abas para ordenar; a primeira é a tela inicial. A preferência fica no navegador/dispositivo, não é sincronizada por usuário. No celular, deslize horizontalmente as abas; a barra de rolagem fica oculta. O menu da conta contém **Sair** e, para Péricles, **Backup e restauração**.
 
-## Finanças: criar os bancos no Notion
+As datas usam **DD/MM/AAAA**, com barras automáticas e calendário alternativo. Ao preencher apenas dia e mês e sair do campo, o ano atual é completado. **Aniversários é exceção:** o ano pode ficar desconhecido. Links em textos/comentários aparecem clicáveis nas visualizações de leitura.
+
+### Inbox
+
+No desktop, fica à esquerda; no celular, pode ser aberto/recolhido. O campo cresce com o texto. No celular, Enter cria uma nova linha e o botão Adicionar confirma. No desktop, use Shift+Enter para quebra de linha.
+
+| Destino | Texto da entrada |
+| --- | --- |
+| Projeto ou tarefa | Primeira linha: título; demais: descrição/anotações |
+| Diário | Texto inteiro acrescentado em hoje; se já houver entrada, pede confirmação e reabre para edição |
+| Aniversários | Primeira linha: nome; segunda: DD/MM ou DD/MM/AAAA |
+| Compras | Primeira linha: nome da lista; demais: um item por linha |
+| Recados | Primeira linha: título; demais: mensagem de hoje |
+
+Em Compras, uma lista existente com o mesmo nome, sem diferenciar maiúsculas, recebe os novos itens no início. Os itens acrescentados manualmente também entram no início. Em Recados, o Inbox só é removido depois que o envio é confirmado pelo Notion. Cancelamentos/erros de conversão preservam a entrada. Não há conversão para Finanças, Hábitos ou Entretenimento.
+
+### Projetos e tarefas
+
+Projetos abrem a partir de blocos. O título recebe foco ao criar; entradas novas sem nenhuma alteração são descartadas ao fechar. Projetos têm status Ativo, Pausado, Concluído e Cancelado, exclusão com confirmação, anexos e marcos. O prazo de um marco não pode ultrapassar o prazo final do projeto, quando definido; o marco é referência de cronograma e não gera indicador de atraso.
+
+Tarefas têm Não iniciada, Em andamento, On hold e Concluída, prioridade, datas, projeto/marco opcionais, anotações e anexos. Não há status Cancelada nem páginas relacionadas. Os resumos acompanham os filtros e a busca; os contornos indicam os grupos exibidos. Tarefas concluídas recentes aparecem primeiro. Exclusões não têm histórico no LifeOS; a remoção de páginas é feita pela lixeira do Notion.
+
+### Diário
+
+Uma entrada por dia e usuário. Navegue pelo calendário, setas ou campo de data. Selecionar uma data no campo/calendário abre aquele dia. Entradas existentes são abertas para leitura: use Editar para desbloquear. Ao sair ou trocar o dia, voltam a ficar bloqueadas. Texto aceita múltiplas linhas e formatação simples; pode incluir anexos. Apagar todo o texto sem manter anexos faz o dia voltar ao estado vazio, sem marcador. Uma entrada com anexos ainda tem conteúdo.
+
+### Finanças
+
+Cadastre categorias de Entrada e Saída; elas aparecem em colunas separadas e ordem alfabética. Cada lançamento usa uma categoria, data completa, valor em R$ e observação opcional. O valor ganha duas casas decimais ao sair do campo. O gráfico de fluxo permite abrir a edição pelo nome, sem arraste das barras.
+
+Filtre pelo mês, ano ou intervalo DD/MM/AAAA. Hoje volta ao mês atual. Saldo restante é calculado automaticamente à direita; déficit aparece à esquerda em vermelho e com valor negativo. Não é uma categoria cadastrada. Renomear categorias mantém o vínculo dos lançamentos; exclusões devem seguir as confirmações e restrições indicadas no app.
+
+### Aniversários
+
+Cadastre nome, dia e mês; ano de nascimento é opcional. Com ano conhecido, o resumo informa a idade que a pessoa fará; sem ano, mostra apenas o aniversário. Há busca e destaques da semana/mês. Não complete um ano desconhecido com o ano atual.
+
+### Compras
+
+A tela principal mostra blocos de listas. Clique para abrir e volte para a tela dos blocos. Arraste listas para ordenar e itens dentro da lista para reorganizar. Marcar um item remove-o sem histórico no LifeOS; há edição, sem botão adicional de excluir item. Listas podem ser finalizadas/excluídas rapidamente, sem arquivo de listas passadas no app.
+
+### Hábitos
+
+Crie hábitos com cor da paleta e ícone. As marcações são diárias, com destaque de cor e barra de progresso. O acompanhamento mensal/anual permite consultar o histórico. Encerrar e recuperar exigem confirmação. Encerrados ficam ocultos até Mostrar hábitos encerrados; recuperar mantém as marcações, sem preencher os dias em que ficou oculto. Nome repetido gera aviso e permite recuperar o hábito existente. Excluir é diferente de encerrar e remove suas marcações após confirmação.
+
+### Entretenimento
+
+Quatro seções: **Leitura, Jogos, Séries e Filmes**, cada uma com página própria. Use o + da seção; o editor já define seu destino. Há grupos de quero começar, em andamento e concluídos, que podem ser recolhidos, e alternância entre cartões completos e capas pequenas.
+
+Concluir exige a data DD/MM/AAAA. Concluídos aparecem do mais recente para o mais antigo; novas entradas dos outros grupos entram ao fim. Resumos mensais/anuais mostram capa e nome em ordem cronológica, com campo e setas para navegar. Avaliações por estrelas e comentários são pessoais.
+
+Buscas: livros por Open Library (título/autor/capa, preferência por português quando disponível); séries por TVmaze (nome/ano/capa); jogos por IGDB (nome/ano/plataformas/capa); filmes por TMDB (nome/ano/capa, preferência pt-BR). Todos os dados importados podem ser revisados. A disponibilidade depende do catálogo. Busca é o campo inicial; cadastro manual continua possível.
+
+Salvar uma cópia da capa no Notion vem marcado; o arquivo vai para Capa. Desmarcar mantém somente o link, que não é cópia independente. Upload manual aceita JPG, PNG, WebP ou GIF até 4 MB. Os créditos TMDB ficam apenas em Filmes; as fontes e links de origem são preservados.
+
+### Recados
+
+Um recado de cada conta para a outra por dia, considerando America/Sao_Paulo. Texto obrigatório, título opcional, emojis e uma imagem JPG/PNG/WebP/GIF até 4 MB. Não há envio retroativo nem edição após o envio. A confirmação de envio permite revisar antes de salvar definitivamente.
+
+Somente o destinatário marca como lido; o app salva também o horário. O calendário permite reler dias anteriores. O coração do cabeçalho indica somente o recebido de hoje não lido. Abertura/retorno ao foco e atualização manual verificam o aviso, sem varredura periódica em segundo plano. Um recado que chegar enquanto você permanece no app será reconhecido na próxima atualização ou retorno ao foco.
+
+Texto e título do rascunho são guardados localmente por usuário quando o armazenamento está disponível; a imagem não enviada precisa ser selecionada de novo após recarregar. Aguarde a confirmação de salvamento antes de fechar.
+
+## 4. Salvamento, sincronização e app instalado
+
+As edições comuns são salvas automaticamente. O botão Atualizar relê o Notion; não é obrigatório clicar para cada edição. Envio/leitura de Recados usa salvamento imediato. O horário no cabeçalho indica a última leitura bem-sucedida dos dados, enquanto Salvo no Notion indica a gravação.
+
+Ao voltar para uma aba do navegador ou app em segundo plano, o LifeOS consulta os dados em primeiro plano, com intervalo mínimo entre verificações. Não faz consultas periódicas comuns enquanto está escondido. Formulários abertos, edições pendentes ou salvamentos em andamento adiam a substituição dos dados para preservar texto local. Uma consulta em andamento não sobrescreve edições feitas durante ela.
+
+Não há tela inicial de carregamento a cada retorno: a interface permanece montada e o indicador Atualizar mostra atividade. Se ocorrer conflito, preserve seu texto e revise a atualização; descarte de alterações pendentes exige confirmação. Rascunho local não substitui a confirmação de salvamento: o sistema pode suspender o aplicativo ao trocar de app.
+
+O PWA usa **standalone**, não fullscreen, para evitar o flickering observado no Android. Instale pelo menu do Chrome ou, no Safari/iPhone, Compartilhar → Adicionar à Tela de Início. As abas deslizam horizontalmente. Voltar fecha primeiro o painel aberto; nas abas principais, dois toques permitem sair onde o navegador/sistema suporta esse fluxo. Login Google abre uma janela separada e a sessão é reconhecida ao concluir.
+
+## 5. Notion: bancos e propriedades
+
+Para uma instalação existente, **não recrie os bancos**. Esta seção é referência para conferir nomes/tipos ou configurar uma instalação nova. Autorize a conexão interna LifeOS a ler, inserir e atualizar conteúdo e propriedades em todos os bancos. Use bancos com uma única fonte de dados, salvo configuração explícita de DATA_SOURCE_ID.
+
+Use o ID do banco de dados antes de ?v=; o valor v é a visualização. Textos do LifeOS ficam nas propriedades Texto indicadas abaixo, não no corpo da página. Relações aceitam uma página por valor; uma relação de volta não é exigida pelo app.
+
+### Projetos
+
+| Propriedade | Tipo | Observação |
+| --- | --- | --- |
+| Nome | Título |  |
+| Status | Selecionar ou Status | Ativo, Pausado, Concluído, Cancelado |
+| Contexto | Selecionar | Pessoal, Trabalho |
+| Área | Selecionar |  |
+| Prazo final | Data |  |
+| Descrição | Texto |  |
+| Anexos | Arquivos e mídia |  |
+
+### Marcos
+
+| Propriedade | Tipo | Observação |
+| --- | --- | --- |
+| Nome | Título |  |
+| Projeto | Relação | → Projetos; uma página |
+| Prazo | Data |  |
+| Concluído | Caixa de seleção |  |
+| Ordem | Número |  |
+
+### Tarefas
+
+| Propriedade | Tipo | Observação |
+| --- | --- | --- |
+| Nome | Título |  |
+| Status | Selecionar ou Status | Não iniciada, Em andamento, On hold, Concluída |
+| Prioridade | Selecionar | Alta, Média, Baixa |
+| Contexto | Selecionar | Pessoal, Trabalho |
+| Projeto | Relação | → Projetos; uma página |
+| Marco | Relação | → Marcos; uma página |
+| Início | Data |  |
+| Prazo | Data |  |
+| Aguardando | Texto |  |
+| Cobrar em | Data |  |
+| Anotações | Texto |  |
+| Concluída em | Data |  |
+| Anexos | Arquivos e mídia |  |
+
+### Inbox
+
+| Propriedade | Tipo | Observação |
+| --- | --- | --- |
+| Nome | Título |  |
+| Conteúdo | Texto |  |
+
+### Diário
+
+| Propriedade | Tipo | Observação |
+| --- | --- | --- |
+| Nome | Título |  |
+| Data | Data |  |
+| Conteúdo | Texto |  |
+| Anexos | Arquivos e mídia |  |
 
 ### Categorias financeiras
 
-| Propriedade | Tipo | Configuração |
-|---|---|---|
-| Nome | Título | Nome escolhido por você, como Salário ou Aluguel |
+| Propriedade | Tipo | Observação |
+| --- | --- | --- |
+| Nome | Título |  |
 | Tipo | Selecionar | Entrada, Saída |
 
 ### Lançamentos financeiros
 
-| Propriedade | Tipo | Configuração |
-|---|---|---|
-| Nome | Título | O app preenche com o nome da categoria |
-| Categoria | Relação | Categorias financeiras; limite de uma página |
-| Data (ou a coluna existente Mês) | Data | Sem horário; guarda o dia completo do lançamento |
-| Valor | Número | Formato Real/R$; valor positivo, por exemplo 123,45 |
-| Observação | Texto | Opcional por lançamento; o app cria a propriedade na primeira gravação se faltar |
-
-No Notion, Valor guarda reais. Internamente, o app calcula em centavos para evitar diferenças de arredondamento. Não crie uma categoria para a sobra ou para o déficit: os dois são gerados automaticamente pelo gráfico. Não existe campo Contexto nesses bancos; Finanças é sempre pessoal.
-
-No projeto atual da Vercel, adicione:
-
-```text
-NOTION_FINANCE_CATEGORIES_DATABASE_ID=ID_DO_BANCO_CATEGORIAS
-NOTION_FINANCE_TRANSACTIONS_DATABASE_ID=ID_DO_BANCO_LANCAMENTOS
-```
-
-Use o ID do banco, não o ID de visualização após `v=`. Confira o acesso da conexão. LifeOS ID é acrescentado automaticamente para evitar duplicatas em reenvios. Se um banco tiver várias fontes, use opcionalmente `NOTION_FINANCE_CATEGORIES_DATA_SOURCE_ID` e `NOTION_FINANCE_TRANSACTIONS_DATA_SOURCE_ID`. Sem os dois IDs financeiros, as demais telas continuam disponíveis e Finanças mostra as instruções de configuração.
-
-## Atualização para datas completas
-
-Não precisa criar novos bancos ou alterar variáveis na Vercel. A coluna existente Mês no banco Lançamentos financeiros já é do tipo Data e passa a guardar DD/MM/AAAA. Você pode mantê-la com esse nome ou renomeá-la para Data; o app aceita os dois nomes. Se criar o banco agora, prefira Data. Não converta essa propriedade para Texto.
-
-Registros existentes mantêm a data que já está no Notion; os criados pela versão mensal ficam no dia 01 do respectivo mês, pois antes o app não registrava o dia. Rascunhos antigos ainda pendentes também são compatíveis. Você pode editar as datas pelo LifeOS para informar o dia real. O filtro por período inclui ambos os dias de limite; as visualizações mensal e anual continuam incluindo todos os dias do mês/ano.
-
-## Usar Finanças
-
-- Os contextos ficam centralizados no espaço livre entre o logo LifeOS e o botão redondo de atualizar. Em Finanças e Diário, Pessoal fica selecionado e a mudança de contexto é bloqueada; ao sair, o contexto anterior continua disponível nas outras seções.
-- Gerenciar categorias apresenta duas colunas, Entradas e Saídas, em ordem alfabética. Em telas estreitas, elas ficam uma abaixo da outra. As opções de seleção e os nomes no gráfico também seguem ordem alfabética.
-- Crie nomes de entrada e saída em Gerenciar categorias. Depois, selecione tipo, categoria, data e valor em Adicionar valor. Cada inclusão cria um lançamento e vários lançamentos podem compartilhar a mesma categoria e data.
-- Abaixo dos campos de inclusão, Observação (opcional) aceita texto com quebras de linha. A observação pode ser lida e alterada no painel de edição de cada lançamento; não muda os valores nem o gráfico. A propriedade Texto Observação é criada automaticamente no banco Lançamentos financeiros na primeira gravação. Você pode criá-la manualmente antes, se preferir. Registros antigos começam sem observação.
-- O botão Hoje ao lado dos filtros volta à visualização mensal do mês atual, inclusive quando a consulta estava por ano ou período.
-- Use Mês, Ano ou Período para consolidar. O período usa DD/MM/AAAA e inclui as duas datas das pontas. A data de criação/edição dos lançamentos também usa DD/MM/AAAA: digitar dia e mês e pressionar Tab/Enter completa o ano corrente. A visualização mensal continua com MM/AAAA e a anual continua por ano completo. Nos campos de valor, a máscara exibe R$ e separadores de milhar durante a digitação. Tab ou sair do campo completa duas casas decimais: 1250 vira R$ 1.250,00 e 1250,5 vira R$ 1.250,50. A máscara vale também ao editar lançamentos.
-- Entradas e saídas são somadas por categoria. Saldo restante positivo aparece à direita. Saldo faltante aparece à esquerda, em vermelho e com valor negativo, para equilibrar o diagrama quando as saídas superam as entradas. O título acima do gráfico mostra apenas Entradas do período, sem somar o déficit. A espessura da faixa faltante representa a magnitude do déficit para equilibrar o desenho. Ele não é registrado como receita; o resumo continua mostrando o saldo negativo. Saldo zero não cria um bloco de saldo.
-- Clique no nome, faixa ou bloco de uma categoria para abrir os lançamentos do período. Edite valor, data ou categoria, ou exclua com confirmação. Os blocos de saldo automático não podem ser editados ou excluídos.
-- As barras do gráfico têm posições fixas. Clique nas categorias para editar os lançamentos. Em telas pequenas, o gráfico pode ser rolado horizontalmente.
-- Renomear uma categoria altera seu nome no gráfico em todos os períodos. Trocar seu tipo, com confirmação quando já há valores, muda a classificação de todos os lançamentos vinculados. Excluir uma categoria pede confirmação e exclui seus lançamentos de todos os meses; o aviso informa a quantidade.
-- Tudo salva automaticamente no Notion. A exclusão usa a lixeira nativa do Notion. Alterações feitas no próprio Notion são carregadas pelo botão Atualizar.
-
-## Variáveis existentes
-
-Mantenha os valores que já funcionam no projeto atual. Não substitua o token ou os IDs atuais por campos vazios do arquivo .env.example. Esse arquivo é apenas um modelo para desenvolvimento local. Para publicar esta atualização, cadastre somente as duas novas variáveis financeiras e faça novo deploy.
-
-O token é utilizado apenas no servidor. Todos os endpoints exigem sessão Google e verificam o usuário. Consulte INSTRUCOES-GOOGLE.md para autenticação, isolamento e configuração.
-
-## Bancos configurados
-
-- Projetos: `3ec530f0-f112-80d5-9097-ea21f9ce45d7`
-- Marcos: `3ed530f0-f112-80e0-b1e5-f2a861954669`
-- Tarefas: `3ec530f0-f112-803b-a108-f7778cdee362`
-
-A conexão LifeOS deve ter acesso à página que contém os bancos configurados e capacidades de ler, inserir e atualizar conteúdo. O app descobre a fonte de dados de cada banco pela API. Se houver várias fontes no mesmo banco, defina `NOTION_PROJECTS_DATA_SOURCE_ID`, `NOTION_MILESTONES_DATA_SOURCE_ID` ou `NOTION_TASKS_DATA_SOURCE_ID`; para Inbox, `NOTION_INBOX_DATA_SOURCE_ID`, e para Diário, `NOTION_DIARY_DATA_SOURCE_ID`.
-
-### Criar o banco Inbox
-
-1. Dentro da página LifeOS, crie um banco de dados em tabela chamado **Inbox**.
-2. Renomeie a propriedade de título para **Nome**.
-3. Adicione **Conteúdo**, do tipo **Texto** (não é o corpo da página).
-4. Confira se a conexão interna LifeOS tem acesso ao banco e permissão de ler, inserir e atualizar conteúdo.
-5. Copie o link do banco e use seu ID na variável `NOTION_INBOX_DATABASE_ID` da Vercel. Em `https://app.notion.com/p/ID_DO_BANCO?v=ID_DA_VISUALIZACAO`, use apenas `ID_DO_BANCO`, não o valor após `v=`. O ID tem 32 caracteres hexadecimais, com ou sem hífens.
-
-| Propriedade | Tipo | Uso |
-|---|---|---|
-| Nome | Título | Primeira linha do conteúdo, preenchida pelo app |
-| Conteúdo | Texto | Texto completo, incluindo quebras de linha |
-
-Não precisa criar relações, status, contexto nem anexos no Inbox. A data de criação é lida do próprio registro do Notion para mostrar entradas recentes primeiro. Opcionalmente, crie uma propriedade do tipo Hora de criação para exibi-la no Notion; o app não exige essa coluna.
-
-Para criar uma entrada diretamente no Notion, preencha **Conteúdo**; esse é o texto que o aplicativo lê. Ao editar Conteúdo pelo app, Nome acompanha a primeira linha (até 200 caracteres). O limite por entrada é 10.000 caracteres.
-
-### Criar o banco Diário
-
-Dentro da página LifeOS, crie um banco em tabela chamado **Diário** com:
-
-| Propriedade | Tipo | Uso |
-|---|---|---|
-| Nome | Título | Data DD/MM/AAAA preenchida pelo app |
-| Data | Data | Dia da entrada, sem horário |
-| Conteúdo | Texto | Texto completo com formatação simples |
-| Anexos | Arquivos e mídia | Arquivos da entrada |
-
-Confira o acesso da conexão LifeOS. Na Vercel, configure `NOTION_DIARY_DATABASE_ID` com o ID desse banco e faça novo deploy. Não use o ID da visualização após `v=`. Os outros IDs e variáveis já configurados continuam iguais.
-
-O app adiciona LifeOS ID automaticamente na primeira gravação. O Diário aceita uma entrada por data; ao criar diretamente no Notion, preencha Data e Conteúdo e evite duas páginas para o mesmo dia. Conteúdo é uma propriedade Texto, não o corpo da página. Sem o ID do Diário, as demais seções continuam funcionando e a aba Diário mostra as instruções de configuração.
-
-### Calendário, leitura e edição
-
-- O calendário mostra um mês completo, destaca hoje e marca os dias com entrada. Há botões para avançar ou voltar um mês ou ano, botão Hoje e campo com máscara DD/MM/AAAA. O campo segue o estilo das demais datas. Digitar só dia e mês completa o ano atual ao sair do campo. Confirmar uma data digitada ou escolhê-la no seletor abre a entrada do dia e seleciona a data no calendário principal. O botão Hoje também abre a entrada de hoje.
-- Clique em um dia para abrir a entrada. Um dia sem registro abre para escrever; selecionar a data sozinha não cria uma página vazia.
-- Entradas existentes abrem para leitura. Clique em Editar entrada para alterar texto ou anexos. Concluir edição, Fechar, mudar de data/mês ou sair da aba bloqueia a edição novamente. O bloqueio é uma proteção da interface; o salvamento continua automático.
-- O texto aceita quebras de linha, negrito, itálico, títulos e listas pelos botões. A formatação simples usa `**negrito**`, `*itálico*`, `## Título` e linhas iniciadas por `- `. No Notion essas marcações ficam no campo Conteúdo; no LifeOS a leitura exibe a formatação.
-- Anexos podem ser vistos e baixados em leitura. Incluir e excluir exige desbloquear a edição; excluir pede confirmação. O limite de envio é 4 MB por arquivo. Texto limitado a 10.000 caracteres por dia.
-- Alterações no app salvam automaticamente; alterações em outro dispositivo ou diretamente no Notion aparecem ao clicar Atualizar.
-
-### Inbox para Diário
-
-Na aba Diário, abra uma entrada do Inbox e clique em Transformar em nota do diário. O texto completo é incluído na data de hoje, conforme o horário local do navegador. Se já houver entrada, uma confirmação permite reabri-la e acrescentar o texto ao final, precedido por uma quebra de linha, preservando o texto e os anexos existentes. Cancelar mantém o Inbox e o Diário intactos, com o painel do Inbox aberto.
-
-Ao confirmar, a data de hoje fica selecionada e a entrada abre em edição, com o cursor no final do texto. Você pode continuar escrevendo; fechar, mudar de data ou sair do Diário bloqueia novamente a edição. O salvamento é automático e a remoção do Inbox no Notion só ocorre depois de salvar o Diário. Em caso de falha, use Tentar salvar novamente. Se o banco Diário não estiver configurado ou o texto ultrapassar o limite de 10.000 caracteres, a entrada permanece no Inbox.
-
-### Ordem das abas
-
-Arraste os botões das abas para a posição desejada. No teclado, foque a aba e use Alt + seta esquerda/direita. Em telas de toque, arraste horizontalmente. A ordem é salva neste navegador; a primeira aba da esquerda abre como visualização padrão no próximo acesso. Cada navegador/dispositivo guarda sua própria ordem. Na primeira abertura, a ordem começa por Projetos.
-
-### Projetos
-
-| Propriedade | Tipo | Opções |
-|---|---|---|
-| Nome | Título | |
-| Status | Selecionar ou Status | Ativo, Pausado, Concluído, Cancelado |
-| Contexto | Selecionar | Trabalho, Pessoal |
-| Área | Selecionar | Suas áreas |
-| Prazo final | Data | |
-| Descrição | Texto | |
-| Anexos | Arquivos e mídia | |
-
-### Marcos
-
-| Propriedade | Tipo |
-|---|---|
-| Nome | Título |
-| Projeto | Relação com Projetos, uma página |
-| Prazo | Data |
-| Concluído | Caixa de seleção |
-| Ordem | Número |
-
-### Tarefas
-
-| Propriedade | Tipo | Opções |
-|---|---|---|
-| Nome | Título | |
-| Status | Selecionar ou Status | Não iniciada, Em andamento, On hold, Concluída |
-| Prioridade | Selecionar | Alta, Média, Baixa |
-| Contexto | Selecionar | Trabalho, Pessoal |
-| Projeto | Relação com Projetos, uma página | |
-| Marco | Relação com Marcos, uma página | |
-| Início | Data | |
-| Prazo | Data | |
-| Aguardando | Texto | |
-| Cobrar em | Data | |
-| Anotações | Texto | |
-| Concluída em | Data com horário | |
-| Anexos | Arquivos e mídia | |
-
-Na primeira gravação, o app acrescenta automaticamente a propriedade de texto `LifeOS ID` nos bancos configurados. Ela permite reconhecer uma criação já concluída caso a conexão falhe antes da resposta e evita duplicatas nas tentativas seguintes. Não altere essa propriedade; você pode ocultá-la nas visualizações do Notion.
-
-## Uso
-
-- Criar e editar no app salva no Notion após uma breve pausa na digitação. Espere “Salvo no Notion” antes de fechar.
-- O botão Atualizar busca os registros atuais, incluindo alterações feitas diretamente no Notion. Não há atualização automática em tempo real.
-- Campos não alterados no app não são sobrescritos. Se o mesmo campo mudar também no Notion, o app mostra conflito e permite atualizar com confirmação para descartar as edições locais pendentes.
-- Uma falha pode deixar parte de uma operação salva: Notion não oferece transação envolvendo várias páginas. O rascunho e o campo LifeOS ID permitem tentar novamente.
-- O contexto exibido pela tarefa vem do projeto vinculado. Ao trocar o contexto do projeto pelo app, suas tarefas também são atualizadas.
-- Os prazos dos marcos são validados contra o prazo final do projeto. Tarefas só podem usar um marco do mesmo projeto.
-- Concluir preenche Concluída em; reabrir limpa esse horário. Ao concluir diretamente pelo Notion, preencha o horário ou use uma automação do próprio Notion.
-- Anexos podem ser incluídos, abertos, baixados e removidos com confirmação. O app limita o envio a 4 MB por arquivo para caber no limite de requisição da Vercel. Arquivos maiores podem ser incluídos diretamente na propriedade Anexos do Notion e aparecerão após Atualizar.
-- Excluir um projeto remove seus marcos e mantém as tarefas sem projeto e sem marco. Excluir pelo app envia as páginas para a lixeira do Notion; a API não oferece exclusão permanente. O app não mantém um histórico de excluídos.
-- O Inbox sincroniza com o Notion e pode ser acessado em outros dispositivos. Os rascunhos pendentes ficam temporariamente no navegador.
-- Ao transformar uma entrada em tarefa ou projeto, o destino é salvo antes de enviar a entrada original para a lixeira. Em caso de falha parcial, tente salvar novamente.
-- Se houver Inbox da v3 neste navegador, aparece “Importar Inbox deste navegador”. Confirme para copiar essas entradas ao Notion. A importação usa IDs para evitar duplicatas e mantém os dados antigos; faça isso no mesmo navegador e endereço usados na v3.
-- Projetos e tarefas da antiga versão local são preservados no armazenamento anterior, mas não são importados automaticamente. Os exemplos fictícios não são enviados ao Notion.
-
-## Rodar e testar
-
-```bash
-npm install
-npm run test
-npm run build
-npm run dev
-```
-
-Para desenvolvimento, copie `.env.example` para `.env.local` e preencha as credenciais Google, o token e os IDs de Inbox e Diário. O arquivo `.env.local` está ignorado pelo Git.
-
-Os testes usam uma API e um IndexedDB simulados: cobrem autenticação, schemas, paginação, criação com relações, reenvio sem duplicação, edição parcial, conflitos, conclusão, datas, anexos, exclusão, rascunhos e edições durante salvamento. Não acessam seu workspace.
-
-A validação real do token, dos nomes das propriedades e dos arquivos aceitos pelo Notion deve ser feita após publicar. A tela mostra qual propriedade precisa ser ajustada se a estrutura não coincidir.
-
-## Aniversários e contatos — nova aba
-
-A aba Aniversários é exclusivamente Pessoal, como Diário e Finanças. A ordem das abas continua ajustável. Há busca por nome, próximos sete dias (incluindo hoje), aniversariantes do mês selecionado e contatos em ordem alfabética. As contagens acompanham a busca. É possível criar, editar e excluir contatos com confirmação. As edições são sincronizadas automaticamente, seguindo o mesmo mecanismo das demais abas.
-
-### Configuração no Notion
-
-1. Dentro da página LifeOS, crie um banco de dados de página inteira chamado **Contatos**.
-2. Crie exatamente estas propriedades:
-
-| Propriedade | Tipo no Notion | Preenchimento |
+| Propriedade | Tipo | Observação |
 | --- | --- | --- |
-| Nome | Título | Nome do contato |
-| Dia | Número | Dia do nascimento/aniversário |
-| Mês | Número | Mês do nascimento/aniversário |
-| Ano de nascimento | Número | Opcional; deixe vazio se não souber |
+| Nome | Título |  |
+| Categoria | Relação | → Categorias financeiras; uma página |
+| Data | Data | Aceita a coluna antiga Mês; guarda data completa |
+| Valor | Número |  |
+| Observação | Texto |  |
 
-Não utilize uma propriedade Data para o aniversário: separar os números permite cadastrar dia e mês sem inventar um ano. O campo `LifeOS ID` é criado automaticamente pelo app na primeira gravação; não o altere. Para cadastrar diretamente pelo Notion, preencha Nome, Dia e Mês; o ano é opcional. Não use datas impossíveis ou nascimento futuro.
+### Aniversários
 
-3. Garanta que a conexão interna do LifeOS tem acesso a esse banco. Confira em Conexões no menu do banco; se necessário, adicione a conexão que já utiliza nos outros bancos.
-4. Copie o link do banco. O ID é o trecho de 32 caracteres antes de `?v=`, não o ID da visualização depois de `v=`.
-5. No **mesmo projeto Vercel**, adicione `NOTION_CONTACTS_DATABASE_ID` com esse ID. Mantenha as variáveis existentes e o mesmo `NOTION_TOKEN`.
-6. Substitua os arquivos do repositório pelos deste pacote e faça um novo deploy. Não envie `.env.local`, `node_modules` ou `.next`. Se o deploy ocorreu antes de adicionar a variável, faça um Redeploy depois.
-
-Nenhuma alteração é necessária nos bancos de Projetos, Marcos, Tarefas, Inbox, Diário ou Finanças. Até configurar o novo banco, as outras abas continuam funcionando e Aniversários mostra as instruções de configuração.
-
-### Cadastro e Inbox
-
-No formulário de contato, digite dia e mês sem as barras (a máscara as insere). O ano é um campo separado e **não é preenchido automaticamente**: aqui ele representa nascimento, não o ano corrente. Sem ano, o app mostra apenas o aniversário; com ano, mostra quantos anos a pessoa completa no ano selecionado ou no próximo aniversário. Para nascidos em 29/02, o lembrete ocorre em 28/02 nos anos não bissextos, preservando 29/02 no cadastro.
-
-Com a aba **Aniversários** selecionada, abra a entrada no Inbox e use a opção de transformar em contato. O texto deve conter exatamente duas linhas:
-
-```text
-Ana Costa
-04/10/1990
-```
-
-Ou, se não souber o ano:
-
-```text
-João Lima
-07/10
-```
-
-A primeira linha é o nome e a segunda aceita DD/MM ou DD/MM/AAAA. Conteúdo inválido permanece no Inbox. Se já existir o mesmo nome, o app pede confirmação antes de criar outro contato. Ao converter, o cadastro é criado e aberto para edição na aba Aniversários; fechar o editor mantém o contato convertido. O servidor grava o contato antes de remover a entrada do Inbox. Exclusões saem da listagem do app, sem histórico no LifeOS; como nas outras exclusões, a API do Notion envia a página à lixeira do Notion.
-
-### Verificação deste pacote
-
-Os testes automatizados usam mocks da API do Notion, não sua conta real. Depois do deploy, teste um contato com ano e outro sem ano, a conversão do Inbox, a edição, a exclusão e a persistência após atualizar a página. Os aniversários e o dia de hoje usam a data local do dispositivo.
-
-## Compras — listas rápidas sem histórico no LifeOS
-
-A aba Compras permite criar listas em **Pessoal** ou **Trabalho**, adicionar e editar itens, marcar os comprados para removê-los imediatamente e finalizar/excluir a lista com confirmação. Não há área de itens concluídos, arquivo ou histórico no app. Os novos itens entram no início e podem ser reordenados por arraste; a ordem escolhida é salva no Notion. Uma lista vazia permanece disponível até ser finalizada.
-
-Os ícones das abas têm 15 px, aproveitando a cor e os nomes existentes. A ordem por arraste continua funcionando. No desktop (a partir de 1000 px), o Inbox permanece à esquerda; a tela principal de Compras mostra blocos para as listas, como em Projetos. Clique em um bloco para abrir e em Voltar às listas para retornar. Em telas menores, o Inbox fica acima do conteúdo. A busca dos blocos filtra por nome e acompanha o contexto selecionado.
-
-### Novo banco no Notion
-
-1. Dentro da página LifeOS, crie um banco de página inteira chamado **Listas de compras**.
-2. Configure estas propriedades com os nomes exatos:
-
-| Propriedade | Tipo | Configuração |
+| Propriedade | Tipo | Observação |
 | --- | --- | --- |
-| Nome | Título | Nome da lista |
-| Contexto | Seleção | Opções **Pessoal** e **Trabalho** |
-| Itens | Texto | Deixe vazio; o app gerencia este conteúdo |
+| Nome | Título |  |
+| Dia | Número |  |
+| Mês | Número |  |
+| Ano de nascimento | Número | Opcional |
 
-É apenas um banco: cada página representa uma lista. `LifeOS ID` é criado automaticamente na primeira gravação. Não são necessárias relações ou outro banco para os itens.
+### Listas de compras
 
-3. Confira que a conexão interna atual do LifeOS tem acesso ao banco.
-4. Copie o ID do banco do link (antes de `?v=`, e não o ID da visualização).
-5. Adicione **`NOTION_SHOPPING_DATABASE_ID`** no mesmo projeto Vercel. Mantenha todas as variáveis existentes, inclusive o token da conexão.
-6. Atualize o repositório com os arquivos do pacote e faça o deploy depois de adicionar a variável. Não envie `node_modules`, `.next` ou arquivos `.env.local`.
-
-Nenhuma propriedade precisa ser acrescentada aos demais bancos. Sem esse novo ID, Compras mostra instruções e as outras abas continuam disponíveis.
-
-O campo Itens usa internamente JSON para manter os IDs dos itens estáveis. Para cadastrar uma lista diretamente no Notion, é possível escrever **uma linha por item** nesse campo; o app lê esse formato e passa a usar JSON ao editar os itens. Para editar uma lista já usada pelo app, prefira a tela Compras. Não altere o campo técnico LifeOS ID.
-
-### Integração com o Inbox
-
-Selecione a aba **Compras**. No Inbox, digite o nome da lista na primeira linha e os itens nas linhas seguintes, usando **Shift + Enter** entre as linhas. **Enter** salva a entrada do Inbox:
-
-```text
-Mercado
-Leite — 2 caixas
-Ovos — 1 dúzia
-Café
-```
-
-Abra essa entrada e escolha **Transformar em lista de compras**. Se o contexto selecionado for Pessoal ou Trabalho, ele será usado. Em Todos, o app pede que escolha um dos dois contextos; cancelar mantém o Inbox intacto.
-
-Se existir uma lista de mesmo nome **no contexto escolhido**, sem distinção de maiúsculas e minúsculas e ignorando espaços nas extremidades, o app insere os novos itens no topo, mantendo a ordem das linhas do Inbox. Os itens antigos e sua ordem são preservados. Listas Pessoal e Trabalho com o mesmo nome permanecem separadas. Linhas vazias são ignoradas e itens repetidos são mantidos como foram digitados. Se houver duas listas de mesmo nome no mesmo contexto, renomeie uma antes de converter. A interface evita criar ou renomear listas dessa forma.
-
-A conversão seleciona a lista de destino. Nome sem itens, dados inválidos ou cancelamento não removem a entrada do Inbox. O servidor salva a lista antes de enviar a entrada do Inbox à lixeira; reenvios após uma falha usam IDs estáveis para evitar duplicação dos itens.
-
-Limites: nome com até 200 caracteres, até 500 itens por lista, até 500 caracteres por item e 50.000 caracteres no conteúdo técnico da lista.
-
-### Exclusão e teste após deploy
-
-Ao marcar um check, o item é removido, sem confirmação adicional. Não há botão de excluir item: o check remove o item, e Editar permite corrigir seu texto. **Finalizar e excluir lista** pede confirmação e remove a lista inteira. Não há histórico mantido pelo LifeOS. A API do Notion envia páginas de listas excluídas à lixeira do próprio Notion; o app não controla nem elimina o histórico de versões que o Notion possa manter.
-
-A sincronização é automática, com rascunho local e indicação de alterações pendentes. Aguarde **Salvo no Notion** antes de fechar o navegador. Os testes do pacote utilizam mocks; após o deploy, confira criação em ambos os contextos, conversão com nome em letras diferentes, inclusão no topo, remoção por check e persistência após recarregar a página.
-
-### Compras: blocos e ordem dos itens
-
-O menu lateral de listas foi removido. A tela principal tem blocos com nome, contexto, quantidade e prévia dos itens. A busca e o contexto filtram os blocos; ao voltar de uma lista, a busca é preservada enquanto a aba permanece aberta.
-
-Dentro da lista, arraste a alça ⋮⋮ do item para cima ou para baixo e solte sobre o item de destino. Funciona com mouse ou toque. Pelo teclado, foque a alça e use Alt + seta para cima/baixo. Os checks continuam removendo itens comprados. Novos itens manuais entram no topo. Os itens vindos do Inbox são inseridos como um grupo no topo, preservando a ordem das linhas.
-
-Não há alteração no banco de dados ou nas variáveis da Vercel para esta atualização. Mantenha o banco Listas de compras e NOTION_SHOPPING_DATABASE_ID existentes. Atualize os arquivos no GitHub e faça o deploy. Após o deploy, confira o arraste e recarregue para verificar a ordem salva.
-
-### Correção do arraste e ordenação dos blocos
-
-O arraste de Compras usa eventos de ponteiro para mouse, toque e caneta. Arraste a alça ⋮⋮ dos itens ou dos blocos. O clique no restante do bloco abre a lista; o texto Abrir lista foi removido. No teclado, Alt + setas move o item ou bloco pela alça.
-
-A ordem dos **itens** é sincronizada no Notion. A ordem dos **blocos** é uma preferência salva no navegador, como a ordem das abas, e é mantida ao alternar entre os contextos; novos blocos aparecem ao final. Outros navegadores podem ter uma ordem diferente. A busca e o filtro de contexto não apagam a ordem das listas ocultas.
-
-As inclusões manuais aparecem acima dos itens existentes. Exemplo: adicionar Leite e depois Café resulta em Café, Leite. Uma conversão do Inbox com Ovos e Bananas insere Ovos, Bananas acima desses itens, preservando a ordem das linhas. Não é necessário alterar o Notion nem as variáveis da Vercel nesta atualização.
-
-### Correção da sobreposição do Inbox
-
-Os diálogos do Inbox e da escolha de contexto de Compras são renderizados fora da barra lateral, acima dos blocos e das alças de arraste. O seletor de contexto fica também acima do diálogo original do Inbox. Não há alteração no Notion ou nas variáveis da Vercel.
-
-## Hábitos — cadastro visual e progresso diário
-
-A aba Hábitos tem cards diários, paleta de oito cores e pacote interno de 16 ícones SVG. Hábitos usa apenas o contexto Pessoal, com as demais opções bloqueadas. O contexto não aparece no cadastro ou nos cards. A cor aparece no ícone, no fundo e contorno do card concluído, no check, na barra de progresso do dia e no acompanhamento. No cadastro e na edição há uma prévia da escolha. Trocar nome, cor, ícone ou contexto mantém as marcações existentes.
-
-### Bancos no Notion
-
-Crie **dois bancos de página inteira**, dentro da página LifeOS, e dê acesso à mesma conexão interna que já usa no app.
-
-**Hábitos**:
-
-| Propriedade | Tipo | Configuração |
+| Propriedade | Tipo | Observação |
 | --- | --- | --- |
-| Nome | Título | Nome do hábito |
-| Contexto | Seleção | Pessoal e Trabalho |
-| Cor | Texto | Código da paleta, gerenciado pelo app |
-| Ícone | Texto | Código do ícone, gerenciado pelo app |
-| Início | Data | Dia em que o hábito começou |
+| Nome | Título |  |
+| Contexto | Selecionar | Pessoal, Trabalho |
+| Itens | Texto | Estrutura gerenciada pelo app; não editar manualmente |
 
-**Registros de hábitos**:
+### Hábitos
 
-| Propriedade | Tipo | Configuração |
+| Propriedade | Tipo | Observação |
 | --- | --- | --- |
-| Nome | Título | Gerenciado pelo app |
-| Hábito | Relação | Vinculado ao banco Hábitos; uma página por registro |
-| Data | Data | Dia concluído, sem horário |
+| Encerrado | Caixa de seleção |  |
+| Nome | Título |  |
+| Contexto | Selecionar | Pessoal, Trabalho (Hábitos usa Pessoal no app) |
+| Cor | Texto |  |
+| Ícone | Texto |  |
+| Início | Data |  |
 
-Não é necessário um campo Concluído: a presença de um registro representa a conclusão naquele dia. Desmarcar remove esse registro da listagem. O campo técnico LifeOS ID é criado automaticamente na primeira gravação em ambos os bancos; não o altere. Prefira criar e editar os hábitos pelo app para escolher os códigos válidos.
+### Registros de hábitos
 
-Na Vercel atual, acrescente:
+| Propriedade | Tipo | Observação |
+| --- | --- | --- |
+| Nome | Título |  |
+| Hábito | Relação | → Hábitos; uma página |
+| Data | Data |  |
 
-```text
-NOTION_HABITS_DATABASE_ID=ID_DO_BANCO_HABITOS
-NOTION_HABIT_LOGS_DATABASE_ID=ID_DO_BANCO_REGISTROS_DE_HABITOS
-```
+### Seções de entretenimento
 
-Copie os IDs dos links dos bancos (trecho de 32 caracteres antes de `?v=`), não os IDs das visualizações. Mantenha o token e todos os IDs existentes. Atualize os arquivos no GitHub e faça o deploy depois de acrescentar as variáveis. Se algum dos dois IDs estiver ausente, a aba mostra instruções e as demais abas continuam funcionando. Nenhuma alteração é necessária nos bancos anteriores.
+| Propriedade | Tipo | Observação |
+| --- | --- | --- |
+| Nome | Título |  |
+| Tipo | Texto | Gerenciado pelo app; mantenha as quatro seções |
+| Ícone | Texto | Gerenciado pelo app; mantenha as quatro seções |
+| Cor | Texto | Gerenciado pelo app; mantenha as quatro seções |
 
-### Marcação e renovação diária
+### Conteúdos de entretenimento
 
-Clique no card para concluir; clique novamente para desmarcar. A barra mostra a proporção de hábitos disponíveis concluídos no dia, com um segmento colorido para cada um. Novos hábitos começam hoje. A data pode ser digitada com a máscara já usada no app ou selecionada no calendário. Há navegação para dias anteriores e botão Hoje. Não é possível marcar dias futuros ou anteriores ao início do hábito.
+| Propriedade | Tipo | Observação |
+| --- | --- | --- |
+| Concluído em | Data |  |
+| Plataformas | Texto |  |
+| Ano | Número |  |
+| Nome | Título |  |
+| Seção | Relação | → Seções de entretenimento; uma página |
+| Autor | Texto |  |
+| Status | Selecionar | Quero começar, Em andamento, Concluído |
+| Avaliação | Número | 0 a 5 |
+| Comentário | Texto |  |
+| URL da capa | Texto |  |
+| Link de origem | Texto |  |
+| Fonte | Texto |  |
+| Capa | Arquivos e mídia |  |
 
-O dia dos hábitos segue **America/Sao_Paulo**. Ao virar o dia, os cards de hoje ficam disponíveis novamente, sem apagar o progresso anterior. A tela verifica a mudança a cada 30 segundos e ao retornar à janela. Se você está consultando uma data antiga, ela continua selecionada. As marcações são salvas automaticamente no Notion; aguarde Salvo no Notion antes de fechar.
+### Recados
 
-### Acompanhamento
+| Propriedade | Tipo | Observação |
+| --- | --- | --- |
+| Nome | Título |  |
+| Data | Data |  |
+| Remetente | Texto |  |
+| Destinatário | Texto |  |
+| Mensagem | Texto |  |
+| Imagem | Arquivos e mídia |  |
+| Enviado em | Data |  |
+| Lido | Caixa de seleção |  |
+| Lido em | Data |  |
 
-- **Mês:** uma linha por hábito, quadrados por dia, barras na cor do hábito e contagem/percentual de dias concluídos. Clique nos quadrados disponíveis para marcar ou corrigir o histórico.
-- **Ano:** doze meses por hábito, com percentual e intensidade de cor. Clique em um mês para abrir o detalhe diário. O resumo considera todos os dias elegíveis do ano até hoje.
-- Dias futuros e dias anteriores ao início não contam como falhas. Um hábito criado no meio do mês começa a contar naquele dia. Sem dias elegíveis, o resumo mostra 0/0 e 0%, e os meses indisponíveis mostram um traço.
+O app acrescenta propriedades técnicas: **LifeOS ID**, **LifeOS Usuário** nas áreas privadas, **LifeOS Último editor** e **LifeOS Editado em** nas compartilhadas. Não altere esses campos. Ano, Plataformas e Concluído em de Entretenimento, Encerrado de Hábitos e Observação financeira podem ser acrescentados automaticamente quando ausentes. Os outros campos de negócio devem ter os nomes/tipos acima.
 
-Excluir um hábito pede confirmação e remove suas marcações também. As páginas excluídas vão à lixeira do Notion, como nas outras abas. Não há pausa, frequência semanal ou metas por quantidade nesta versão: todos os hábitos são diários. O Inbox continua disponível para captura, mas o cadastro de hábitos é feito pelo botão Novo hábito.
+Registros privados criados diretamente no Notion sem LifeOS Usuário pertencem à conta principal. Para a segunda conta, prefira criar pelo aplicativo. Em Inbox, preencha Conteúdo: Nome é apenas o título resumido. Em Diário, preencha Data e Conteúdo, evitando duplicar um dia do mesmo usuário. Aniversários usa números separados para admitir ano desconhecido.
 
-Códigos aceitos, se cadastrar manualmente no Notion:
+## 6. Vercel: variáveis
 
-- Cor: blue, green, purple, orange, cyan, pink, yellow, red.
-- Ícone: book, water, stretch, walk, study, fitness, sleep, food, heart, meditate, home, work, music, sun, plant, star.
+Configure em Settings → Environment Variables. Aplique em Production e nos ambientes de teste realmente usados; após qualquer alteração faça novo deploy. Todos os tokens/segredos ficam somente no servidor, sem prefixo NEXT_PUBLIC_.
 
-### Validação após o deploy
+| Variável | Uso |
+| --- | --- |
+| `NOTION_TOKEN` | Token da conexão interna Notion |
+| `NOTION_PROJECTS_DATABASE_ID` | ID do banco correspondente no Notion |
+| `NOTION_MILESTONES_DATABASE_ID` | ID do banco correspondente no Notion |
+| `NOTION_TASKS_DATABASE_ID` | ID do banco correspondente no Notion |
+| `NOTION_INBOX_DATABASE_ID` | ID do banco correspondente no Notion |
+| `NOTION_DIARY_DATABASE_ID` | ID do banco correspondente no Notion |
+| `NOTION_FINANCE_CATEGORIES_DATABASE_ID` | ID do banco correspondente no Notion |
+| `NOTION_FINANCE_TRANSACTIONS_DATABASE_ID` | ID do banco correspondente no Notion |
+| `NOTION_CONTACTS_DATABASE_ID` | ID do banco correspondente no Notion |
+| `NOTION_SHOPPING_DATABASE_ID` | ID do banco correspondente no Notion |
+| `NOTION_HABITS_DATABASE_ID` | ID do banco correspondente no Notion |
+| `NOTION_HABIT_LOGS_DATABASE_ID` | ID do banco correspondente no Notion |
+| `GOOGLE_CLIENT_ID` | ID do cliente OAuth Google |
+| `GOOGLE_CLIENT_SECRET` | Segredo OAuth Google |
+| `LIFEOS_APP_URL` | https://lifeos-two-kohl-18.vercel.app |
+| `LIFEOS_SESSION_SECRET` | Segredo aleatório, pelo menos 32 caracteres; prefira 64 |
+| `LIFEOS_ALLOWED_GOOGLE_EMAILS` | periclesbernardes@gmail.com,leticiacost3@gmail.com |
+| `LIFEOS_LEGACY_OWNER_EMAIL` | periclesbernardes@gmail.com |
+| `UPSTASH_REDIS_REST_URL` | URL REST do Redis dedicado |
+| `UPSTASH_REDIS_REST_TOKEN` | Token REST com escrita |
+| `NOTION_MEDIA_SECTIONS_DATABASE_ID` | ID do banco correspondente no Notion |
+| `NOTION_MEDIA_DATABASE_ID` | ID do banco correspondente no Notion |
+| `IGDB_CLIENT_ID` | ID da aplicação Twitch para busca IGDB |
+| `IGDB_CLIENT_SECRET` | Segredo da aplicação Twitch |
+| `TMDB_READ_ACCESS_TOKEN` | API Read Access Token completo, sem Bearer |
+| `NOTION_RECADOS_DATABASE_ID` | ID do banco correspondente no Notion |
+| `NOTION_BACKUP_PAGE_ID` | ID da página vazia LifeOS — Backups, não de um banco |
 
-Os testes automatizados usam mocks, sem acessar sua conta real do Notion. Confira criar com diferentes cores/ícones, marcar e desmarcar, recarregar a página, editar mantendo as marcações, consultar mês/ano, alternar contextos e conferir a renovação no dia seguinte. O pacote inclui também todas as correções recentes de Compras.
+Projetos, Marcos e Tarefas têm os IDs originais desta instalação como padrão no código; as variáveis permitem substituí-los. Inbox precisa ser configurado. As demais áreas exigem seus IDs para funcionar. Hábitos e Finanças usam dois bancos; Entretenimento usa seções e conteúdos. Bancos com várias fontes exigem a variável correspondente **NOTION_…_DATA_SOURCE_ID** (mesmo prefixo de DATABASE_ID). O arquivo .env.example lista as variáveis sem valores secretos. LIFEOS_PASSWORD não é utilizado.
 
-### Layout ampliado e Hábitos pessoal
+### Login Google
 
-Hábitos agora é exclusivamente Pessoal; o app grava novos hábitos com esse contexto. Mantenha a propriedade Contexto no Notion, pois ela continua sendo usada pela integração. Hábitos de Trabalho eventualmente já existentes ficam preservados no Notion, mas não são exibidos nesta versão.
+No Google Auth Platform, configure aplicativo Externo, identificação básica **openid, email e profile**, e autorize as duas contas como usuários de teste quando o projeto estiver em Testing. Crie cliente OAuth **Aplicativo da Web**.
 
-No desktop, o Inbox fica no canto esquerdo e a área principal ocupa a largura restante até a margem direita. O Inbox tem somente o divisor vertical, sem borda inferior. Os cards de hábitos ficaram mais compactos. O acompanhamento usa toda a largura disponível; em áreas estreitas, os dias se organizam em grupos de sete colunas por hábito, sem barra horizontal, preservando todos os dias do mês. O modo anual adapta os meses em grupos de quatro colunas em áreas estreitas. O ícone de Finanças passa a ser um cifrão no mesmo estilo SVG das demais abas.
+- Origem: https://lifeos-two-kohl-18.vercel.app
+- Callback exato: https://lifeos-two-kohl-18.vercel.app/api/auth/google/callback
 
-Não é necessário alterar bancos ou variáveis da Vercel. Atualize os arquivos no GitHub e faça o deploy.
+Copie Client ID e Client secret para a Vercel. Domínios de Preview precisam de callback/configuração próprios. Não troque LIFEOS_SESSION_SECRET com rascunhos pendentes: ele também participa da proteção dos rascunhos. A sessão assinada usa cookie HttpOnly e tem validade de sete dias.
 
-### Navegação das abas no celular
+### Upstash
 
-Deslize horizontalmente sobre os botões das abas para acessar todas as seções. O gesto move a barra sem selecionar ou reordenar abas por acidente; o trilho de rolagem fica invisível. Para mudar a ordem pelo toque, segure a aba por cerca de meio segundo antes de arrastar. O arraste no desktop e Alt + setas continuam disponíveis. Não há alteração no Notion ou nas variáveis da Vercel.
+Use Redis dedicado ao LifeOS e token REST com escrita. Além da coordenação das gravações e autoria compartilhada, a versão atual guarda progresso/catálogo de backups e o mapeamento de bancos ativos após restauração. **Não limpe o Redis após restaurar.** Não é necessário outro Redis para esta revisão. Indisponibilidade da coordenação bloqueia gravações em vez de permitir operações concorrentes sem controle.
+
+### Catálogos de entretenimento
+
+- **Livros/Open Library** e **séries/TVmaze**: não exigem chave configurada. Pesquise por título; traduções/capas dependem do catálogo.
+- **Jogos/IGDB**: crie aplicação confidencial na [Twitch Developer Console](https://dev.twitch.tv/console/apps), com autenticação em dois fatores na conta. URL solicitada no cadastro: a do LifeOS. Use o Client ID e um Client Secret em IGDB_CLIENT_ID/IGDB_CLIENT_SECRET; não são as credenciais Google.
+- **Filmes/TMDB**: solicite acesso em [API do TMDB](https://www.themoviedb.org/settings/api) e use o **API Read Access Token**, não a chave v3. O app inclui atribuição na página Filmes.
+
+Referências: [Google OpenID Connect](https://developers.google.com/identity/openid-connect/openid-connect), [Open Library](https://openlibrary.org/dev/docs/api/search), [TVmaze](https://www.tvmaze.com/api), [IGDB](https://api-docs.igdb.com/), [TMDB](https://developer.themoviedb.org/docs/authentication-application).
+
+## 7. Backup manual e restauração
+
+Crie uma **página comum vazia**, LifeOS — Backups, autorize a conexão e configure seu ID em NOTION_BACKUP_PAGE_ID. Não crie banco vazio. Somente a conta principal acessa o painel pelo menu da conta; o backup reúne ambas as contas.
+
+Criar backup salva as edições pendentes, bloqueia gravações pelo app nas duas contas e copia os bancos configurados para uma nova subpágina. Inclui registros, propriedades compatíveis, relações internas e arquivos suportados, com download/upload e conferência dos anexos. Não altera quais bancos estão ativos. Só cópias verificadas entram no catálogo; mantém as três mais recentes, arquivando a mais antiga após concluir a nova.
+
+Mantenha o painel aberto e visível. Ao sair do painel/trocar de app, pausa entre etapas; use Retomar. Após 15 minutos sem avanço o bloqueio expira: cancele a operação e comece outra. Não edite diretamente no Notion durante a cópia. O tempo depende de registros/anexos; não há rotina diária automática ou execução contínua em segundo plano.
+
+Restaurar exige digitar RESTAURAR, cria primeiro uma cópia de segurança do estado atual, copia a versão escolhida para **novos bancos**, verifica e ativa o conjunto pelo mapeamento no Upstash. Os bancos anteriores não são apagados nem sobrescritos. A URL e as variáveis originais permanecem; o mapeamento restaurado tem prioridade. Alterar apenas IDs da Vercel depois de restaurar não substitui esse mapeamento.
+
+Backups, cópias de segurança e páginas Restaurado ficam sob LifeOS — Backups. Bancos originais permanecem onde já estavam. **O painel ainda não identifica explicitamente qual página Restaurado está ativa. Não apague páginas originais/restauradas sem conferir o mapeamento ativo.** A retenção de três cópias não remove conjuntos antigos anteriormente ativos. Pastas incompletas não são restauráveis pelo painel.
+
+Limites:
+
+- Copia bancos configurados, não todo o workspace, filtros/visualizações, permissões ou comentários nativos do Notion. Anotações/comentários em propriedades do LifeOS são incluídos.
+- Arquivos devem estar hospedados no Notion e ter até 20 MB, respeitando o plano. O upload comum do app continua limitado a 4 MB. Capas somente por URL externa precisam ser copiadas para o campo Capa antes do backup.
+- Fórmulas, rollups, relações externas, valores paginados além dos suportados, blocos sincronizados, subpáginas dentro de registros e outros tipos não suportados interrompem a cópia; não é considerado backup completo.
+- Páginas com mais de 100 blocos diretos podem exigir evolução. Status pode virar Selecionar no destino, mantendo opções.
+- Um backup com conjunto de bancos diferente do atual não pode ser ativado automaticamente.
+- A cópia no mesmo Notion protege de alterações acidentais, mas depende da mesma conta/serviço. Uma cópia externa é proteção complementar.
+
+Após restaurar, atualize instâncias abertas. Se houver rascunho conflitante, copie/revise antes de descartar. Não apague o Redis ou retire o acesso da integração às páginas restauradas em uso. Um manifesto JSON em cada backup registra seus bancos para recuperação administrativa.
+
+## 8. Conferência e problemas comuns
+
+- Teste ambas as contas: áreas privadas separadas; Compras, Finanças e Aniversários compartilhados.
+- Envie Recados nas duas direções. Cancelar confirmação deve preservar o rascunho/Inbox; confirmar deve salvar uma única mensagem. Na outra conta, verifique coração no cabeçalho, abertura em hoje e retorno do logo somente após salvar a leitura. Mensagens antigas não acionam o coração.
+- Teste sair/entrar, datas, anexos, ordenação das abas e rolagem no desktop e celular.
+- Campo/banco inacessível: confira nome, tipo, ID e permissões da conexão. Não use o ID da visualização.
+- Falha ao salvar: não recarregue descartando texto; aguarde ou tente salvar novamente. Salvo no Notion é a confirmação de gravação.
+- Catálogo sem busca: confira credenciais IGDB/TMDB e novo deploy. Se capa falhar, tente upload manual ou mantenha apenas o link, sabendo da limitação de backup.
+- Ícone antigo no PWA: atualize; se necessário, reinstale o atalho após salvar dados pendentes. Os dados gravados permanecem no Notion.
+- Primeiro backup real: confira registros, relações e anexos nas cópias. A validação automatizada usa serviços simulados e não substitui a verificação no seu workspace.
+
+## 9. Desenvolvimento local
+
+Node.js compatível com Next.js 15. Instale com **npm ci**. Configure variáveis localmente sem publicar segredos. Use **npm run dev**, **npm test** e **npm run build**. Para login local, configure origem/callback OAuth correspondentes. Não há deploy automático executado por esta entrega: a publicação é feita pelo seu GitHub/Vercel.

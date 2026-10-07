@@ -90,6 +90,12 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  await hook.flush();await tick();await tick();assert.equal(hook.tasks.find(t=>t.id==='t').title,'Texto digitado durante consulta');assert.equal(hook.pending,false);
  const beforeDirty=readCount;failure=true;hook.setTasks(previous=>previous.map(task=>task.id==='t'?{...task,title:'Preservar após falha'}:task));await assert.rejects(()=>hook.flush(),/Falha simulada/);clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(readCount,beforeDirty,'Dirty state is not overwritten by a resume read');assert.equal(hook.tasks.find(t=>t.id==='t').title,'Preservar após falha');await hook.flush();await tick();await tick();assert.equal(readCount,beforeDirty+1,'Deferred query runs after saving');
  const beforeFailureTime=hook.refreshedAt;readFailure=true;clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(hook.error,'Consulta indisponível');assert.equal(hook.refreshedAt,beforeFailureTime,'Failed query does not update the time');assert.equal(hook.ready,true);clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(hook.error,'');
+ await hook.logout();await tick();assert.equal(hook.authenticated,false);assert.equal(hook.ready,false);
+ // Editors can dispose untouched drafts after logout cleared the account state.
+ for(const setter of ['setProjects','setTasks','setInbox','setDiary','setShopping','setContacts','setHabits','setFinance','setEntertainment']){
+  assert.doesNotThrow(()=>hook[setter](()=>{throw Error('Stale editor must not edit a closed session');}));
+ }
+ await tick();assert.equal(hook.projects,null);assert.equal(hook.tasks,null);
  Date.now=originalNow;
  active=false;for(const slot of slots)slot?.cleanup?.();Object.assign(React,original);fs.rmSync(folder,{recursive:true});
  console.log('PASSOU: retorno ao foco sem consultas ocultas, eventos agrupados, horário real, preservação de edições durante consulta, consulta adiada após falha/salvamento; carga remota sem importar exemplos locais, upload, autosave, IDs, rascunho após falha, reenvio e edição durante salvamento.');

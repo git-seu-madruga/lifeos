@@ -8,6 +8,7 @@ import { NAV, INBOX_TARGETS } from "../lib/nav";
 import { useNotionState } from "../lib/useNotionState";
 import { InstallApp } from "../components/PwaProvider";
 import Brand from '../components/Brand';
+import {useRecadoNotification} from '../lib/useRecadoNotification';
 import AccountMenu from '../components/AccountMenu';
 import BackupView from '../components/BackupView';
 import RecadosView from "../components/RecadosView";
@@ -63,6 +64,8 @@ export default function Home() {
   const [selected, setSelected] = useState(null);
   const remote = useNotionState();
   useAppBackNavigation(remote.authenticated === true,remote.ready);
+  const recadoNotice=useRecadoNotification(remote.user,remote.authenticated===true&&remote.ready);
+  const [recadoTodayRequest,setRecadoTodayRequest]=useState(0);
   const { tasks, projects, inbox, setInbox, setTasks, setProjects, ready, saving, refreshedAt } = remote;
 
   const [shoppingSelected,setShoppingSelected]=useState(null);
@@ -182,7 +185,7 @@ export default function Home() {
       </div>
     <div className="app">
       <header className="topbar">
-        <Brand/>
+        {recadoNotice?<button className="recado-logo-notice" aria-label="Há um recado de hoje não lido. Abrir Recados" title="Seu recado de hoje chegou ❤️" onClick={()=>{setBackupOpen(false);setTabId('recados');setRecadoTodayRequest(value=>value+1);}}><TabIcon id="recados"/><span>Recado de hoje<small>Um carinho esperando por você</small></span></button>:<Brand/>}
 
         <div className="segmented" role="group" aria-label="Contexto">
           {CONTEXTS.map((c) => (
@@ -278,7 +281,7 @@ export default function Home() {
         ) : tabId === "entretenimento" ? (
           <EntertainmentView sections={remote.mediaSections||[]} items={remote.media||[]} setEntertainment={remote.setEntertainment} configured={remote.mediaConfigured}/>
         ) : tabId === "recados" ? (
-          <RecadosView user={remote.user} onReadComplete={remote.noteRead} inboxRequest={recadoInbox} onInboxHandled={()=>setRecadoInbox(null)} onInboxSent={deleteInbox}/>
+          <RecadosView todayRequest={recadoTodayRequest} user={remote.user} onReadComplete={remote.noteRead} inboxRequest={recadoInbox} onInboxHandled={()=>setRecadoInbox(null)} onInboxSent={deleteInbox}/>
         ) : tabId === "habitos" ? (
           <HabitsView habits={remote.habits||[]} logs={remote.habitLogs||[]} setHabits={remote.setHabits} context="personal" configured={remote.habitsConfigured}/>
         ) : tabId === "compras" ? (
