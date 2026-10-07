@@ -16,9 +16,9 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
-- Um coração rosa/vermelho substitui somente o logo do cabeçalho principal quando existe recado **recebido hoje e não marcado como lido**. Ao clicar, abre Recados em hoje. Após a confirmação de leitura no Notion, o logo normal retorna. Recados antigos não acionam esse aviso; login, carregamento, favicon e ícone instalado permanecem iguais.
-- Antes de enviar o recado, aparece uma confirmação. Cancelar preserva texto, imagem e a entrada original do Inbox. Após enviar, não há edição pelo app.
-- Mantém o backup manual, o menu da conta, o logo atualizado e a correção do erro ao sair.
+- Compras, Finanças e Aniversários exibem **COMPARTILHADO** abaixo do nome da aba, em fonte pequena dentro da altura existente da barra.
+- Mantém coração de recado recebido hoje não lido, confirmação antes de enviar, backup manual, menu da conta e correção do erro ao sair.
+- Este README continua sendo o guia único atualizado do aplicativo.
 
 ## 2. Contas, privacidade e contextos
 

@@ -560,3 +560,5 @@ textarea:focus+.text-links,input:focus+.text-links{display:none;}
 .recado-logo-notice svg{width:34px;height:34px;flex-shrink:0;fill:rgba(251,113,133,.25)}
 .recado-logo-notice span{font-weight:700;font-size:14px}.recado-logo-notice small{display:block;font-size:10px;font-weight:400;color:#fda4af}
 @media(max-width:600px){.recado-logo-notice{padding:7px;gap:6px}.recado-logo-notice svg{width:26px;height:26px}.recado-logo-notice span{font-size:11px}.recado-logo-notice small{display:none}}
+
+.tab-label{position:relative;display:inline-block}.tab-shared{position:absolute;top:calc(100% + 1px);left:50%;transform:translateX(-50%);font-size:7px;line-height:9px;font-weight:500;letter-spacing:.04em;color:inherit;white-space:nowrap;pointer-events:none}

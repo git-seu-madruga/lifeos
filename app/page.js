@@ -236,7 +236,7 @@ export default function Home() {
               aria-current={t.id === tabId ? "page" : undefined}
               onClick={() => { if(suppressClick.current||touchReorder)return;setTabId(t.id); setSelected(null); }}
             >
-              <TabIcon id={t.id}/><span>{t.label}</span>
+              <TabIcon id={t.id}/><span className="tab-label">{t.label}{['compras','financas','aniversarios'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span>
             </button>
           </span>
         ))}
