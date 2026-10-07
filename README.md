@@ -16,10 +16,9 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
-- Cartões de Hábitos ficam sempre em HOJE e permitem apenas marcar, sem confirmação. Para desmarcar ou corrigir, use o resumo mensal.
-- Removida a navegação diária dos cartões. No resumo permanecem mês/ano, com seletor de mês e ano sem dias.
-- Alterar marcações anteriores a hoje no resumo mensal exige confirmação, tanto para marcar quanto para desmarcar. Hoje continua direto. Exclusão de hábitos, encerramento e recuperação continuam com confirmação.
-- Resumo anual continua somente leitura, abrindo o mês correspondente ao clicar. Mantém o histórico e a edição do período encerrado após recuperar.
+- Recados recebe campo MM/AAAA e seletor visual de mês/ano, como Hábitos, além das setas existentes. Digitar apenas o mês e sair do campo completa o ano atual.
+- HOJE retorna ao mês atual e seleciona o dia de hoje. O calendário diário continua disponível para abrir mensagens de cada data.
+- Mantém todas as alterações anteriores de Hábitos, aviso de recado não lido e confirmação de envio.
 
 ## 2. Contas, privacidade e contextos
 
@@ -100,7 +99,7 @@ Salvar uma cópia da capa no Notion vem marcado; o arquivo vai para Capa. Desmar
 
 Um recado de cada conta para a outra por dia, considerando America/Sao_Paulo. Texto obrigatório, título opcional, emojis e uma imagem JPG/PNG/WebP/GIF até 4 MB. Não há envio retroativo nem edição após o envio. A confirmação de envio permite revisar antes de salvar definitivamente.
 
-Somente o destinatário marca como lido; o app salva também o horário. O calendário permite reler dias anteriores. O coração do cabeçalho indica somente o recebido de hoje não lido. Abertura/retorno ao foco e atualização manual verificam o aviso, sem varredura periódica em segundo plano. Um recado que chegar enquanto você permanece no app será reconhecido na próxima atualização ou retorno ao foco.
+Somente o destinatário marca como lido; o app salva também o horário. O calendário permite reler dias anteriores. Use o campo MM/AAAA, o seletor visual de mês e ano ou as setas para navegar; HOJE volta ao mês e dia atuais. O coração do cabeçalho indica somente o recebido de hoje não lido. Abertura/retorno ao foco e atualização manual verificam o aviso, sem varredura periódica em segundo plano. Um recado que chegar enquanto você permanece no app será reconhecido na próxima atualização ou retorno ao foco.
 
 Texto e título do rascunho são guardados localmente por usuário quando o armazenamento está disponível; a imagem não enviada precisa ser selecionada de novo após recarregar. Aguarde a confirmação de salvamento antes de fechar.
 
