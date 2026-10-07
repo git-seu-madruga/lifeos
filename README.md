@@ -16,9 +16,9 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
-- Compras, Finanças e Aniversários exibem **COMPARTILHADO** abaixo do nome da aba, em fonte pequena dentro da altura existente da barra.
-- Mantém coração de recado recebido hoje não lido, confirmação antes de enviar, backup manual, menu da conta e correção do erro ao sair.
-- Este README continua sendo o guia único atualizado do aplicativo.
+- Marcar/desmarcar rapidamente um hábito não mantém o indicador de salvamento preso quando o estado volta ao já salvo.
+- Remarcar o mesmo hábito no mesmo dia reutiliza a marcação existente, evitando o conflito por um novo ID local. A última escolha continua sendo salva; não é necessário desmarcar e esperar como contorno.
+- Mantém identificação COMPARTILHADO nas três abas, aviso de Recados, confirmação de envio e todas as funções anteriores.
 
 ## 2. Contas, privacidade e contextos
 
