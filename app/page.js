@@ -136,7 +136,7 @@ export default function Home() {
     }
     const [first, ...rest] = item.text.trim().split("\n");
     const notes = rest.join("\n").trim();
-    const ctx = context === "all" ? "work" : context;
+    const ctx = context === "all" ? "personal" : context;
     const newId = uid(kind === "task" ? "t" : "pr");
     if (kind === "task") {
       setTasks((prev) => [...prev, {

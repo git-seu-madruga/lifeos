@@ -40,6 +40,8 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   const [openId, setOpenId] = useState(null);
   const [createdProjectId,setCreatedProjectId]=useState(null);
   useEffect(()=>()=>setProjects(previous=>previous.filter(project=>!project._untouchedDraft)),[setProjects]);
+  // A seleção também pode ser fechada pelas abas e filtros externos ao editor.
+  useEffect(()=>{setProjects(previous=>previous.filter(project=>!project._untouchedDraft||project.id===selected));},[selected,setProjects]);
   function closeProject(){setProjects(previous=>previous.filter(project=>!(project.id===selected&&project._untouchedDraft)));setCreatedProjectId(null);onSelect(null);}
   const [view, setView] = useState("lista");
   const [nt, setNt] = useState({ title: "", ms: "", ctx: null });
@@ -70,7 +72,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
 
   function addProject() {
     const id = uid("pr");
-    setProjects((prev) => [...prev, { id, _untouchedDraft:true, name: "Novo projeto", status: SUB_STATUS[sub] || "active", area: "", context: context === "all" ? "work" : context, due: null, description: "", milestones: [] }]);
+    setProjects((prev) => [...prev, { id, _untouchedDraft:true, name: "Novo projeto", status: SUB_STATUS[sub] || "active", area: "", context: context === "all" ? "personal" : context, due: null, description: "", milestones: [] }]);
     setCreatedProjectId(id);
     onSelect(id);
   }
@@ -82,7 +84,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
 
   // ---------- Lista de projetos ----------
   if (!project) {
-    const shown = projects.filter((p) => p.status === SUB_STATUS[sub] && (context === "all" || p.context === context));
+    const shown = projects.filter((p) => !p._untouchedDraft && p.status === SUB_STATUS[sub] && (context === "all" || p.context === context));
     return (
       <section>
         <div className="head-row">
@@ -159,7 +161,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
       <div className="field-row pd-fields">
         <div className="field"><span className="label">Contexto</span>
           <select value={project.context} onChange={(e) => setProjectContext(e.target.value)}>
-            <option value="work">Trabalho</option><option value="personal">Pessoal</option>
+            <option value="personal">Pessoal</option><option value="work">Trabalho</option>
           </select>
         </div>
         <div className="field"><span className="label">Status</span>

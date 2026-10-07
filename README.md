@@ -6,7 +6,7 @@ Documento único da versão atual. Este README substitui os arquivos INSTRUCOES 
 
 1. Aguarde **Salvo no Notion** antes de atualizar. Se houver erro de salvamento, preserve o texto e resolva o erro primeiro.
 2. Extraia o ZIP. Envie o **conteúdo da pasta lifeos** para a raiz do repositório, substituindo os arquivos existentes. Não crie uma segunda pasta lifeos dentro do projeto.
-3. Mantenha as variáveis e os bancos já configurados. Esta revisão do aviso de Recados não exige novos bancos, campos ou variáveis.
+3. Mantenha as variáveis e os bancos já configurados. Esta revisão não exige novos bancos ou variáveis. O campo Inativa é acrescentado automaticamente ao banco de categorias financeiras.
 4. Faça o deploy na Vercel e atualize a página/app instalado.
 5. Remova do repositório os antigos arquivos INSTRUCOES-*.md: o envio pelo navegador não remove arquivos que deixaram de existir no ZIP. Todas as instruções atuais estão aqui.
 
@@ -16,9 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
-- Recados recebe campo MM/AAAA e seletor visual de mês/ano, como Hábitos, além das setas existentes. Digitar apenas o mês e sair do campo completa o ano atual.
-- HOJE retorna ao mês atual e seleciona o dia de hoje. O calendário diário continua disponível para abrir mensagens de cada data.
-- Mantém todas as alterações anteriores de Hábitos, aviso de recado não lido e confirmação de envio.
+- Projetos abertos e fechados sem preenchimento desaparecem imediatamente, inclusive ao voltar pelas abas ou filtros. Rascunhos intocados não aparecem na lista nem são enviados ao Notion.
+- Mantém todas as alterações anteriores, incluindo Pessoal como contexto padrão para novos projetos e tarefas.
 
 ## 2. Contas, privacidade e contextos
 
@@ -59,7 +58,7 @@ Em Compras, uma lista existente com o mesmo nome, sem diferenciar maiúsculas, r
 
 ### Projetos e tarefas
 
-Projetos abrem a partir de blocos. O título recebe foco ao criar; entradas novas sem nenhuma alteração são descartadas ao fechar. Projetos têm status Ativo, Pausado, Concluído e Cancelado, exclusão com confirmação, anexos e marcos. O prazo de um marco não pode ultrapassar o prazo final do projeto, quando definido; o marco é referência de cronograma e não gera indicador de atraso.
+Projetos e tarefas novos usam Pessoal por padrão em Todos; Trabalho selecionado explicitamente e contexto herdado de projeto são respeitados. Pessoal aparece primeiro nos campos de contexto. Projetos abrem a partir de blocos. O título recebe foco ao criar; entradas novas sem nenhuma alteração são descartadas ao fechar. Projetos têm status Ativo, Pausado, Concluído e Cancelado, exclusão com confirmação, anexos e marcos. O prazo de um marco não pode ultrapassar o prazo final do projeto, quando definido; o marco é referência de cronograma e não gera indicador de atraso.
 
 Tarefas têm Não iniciada, Em andamento, On hold e Concluída, prioridade, datas, projeto/marco opcionais, anotações e anexos. Não há status Cancelada nem páginas relacionadas. Os resumos acompanham os filtros e a busca; os contornos indicam os grupos exibidos. Tarefas concluídas recentes aparecem primeiro. Exclusões não têm histórico no LifeOS; a remoção de páginas é feita pela lixeira do Notion.
 
@@ -71,7 +70,7 @@ Uma entrada por dia e usuário. Navegue pelo calendário, setas ou campo de data
 
 Cadastre categorias de Entrada e Saída; elas aparecem em colunas separadas e ordem alfabética. Cada lançamento usa uma categoria, data completa, valor em R$ e observação opcional. O valor ganha duas casas decimais ao sair do campo. O gráfico de fluxo permite abrir a edição pelo nome, sem arraste das barras.
 
-Filtre pelo mês, ano ou intervalo DD/MM/AAAA. Hoje volta ao mês atual. Saldo restante é calculado automaticamente à direita; déficit aparece à esquerda em vermelho e com valor negativo. Não é uma categoria cadastrada. Renomear categorias mantém o vínculo dos lançamentos; exclusões devem seguir as confirmações e restrições indicadas no app.
+Filtre pelo mês, ano ou intervalo DD/MM/AAAA. Hoje volta ao mês atual. Saldo restante é calculado automaticamente à direita; déficit aparece à esquerda em vermelho e com valor negativo. Não é uma categoria cadastrada. Renomear categorias mantém o vínculo dos lançamentos. Retirar oculta a categoria das opções para novos lançamentos, mantendo registros e totais históricos; Mostrar categorias inativas permite reativar. Recriar o mesmo nome e tipo reativa a original após confirmação. O editor de um lançamento antigo permite manter sua categoria inativa. Criar/editar fora do mês atual pede confirmação, considerando também a data original ao mover um lançamento. Exclusões individuais sempre pedem confirmação, com aviso adicional fora do mês atual.
 
 ### Aniversários
 
@@ -179,6 +178,7 @@ Use o ID do banco de dados antes de ?v=; o valor v é a visualização. Textos d
 
 | Propriedade | Tipo | Observação |
 | --- | --- | --- |
+| Inativa | Caixa de seleção | Criada automaticamente; mantém o histórico |
 | Nome | Título |  |
 | Tipo | Selecionar | Entrada, Saída |
 

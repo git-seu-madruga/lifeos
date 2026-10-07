@@ -70,7 +70,7 @@ export default function TaskDetail({ task, projects, update, onDelete, onClose, 
           <div className="field">
             <span className="label">Contexto</span>
             <select value={task.context} disabled={Boolean(proj)} onChange={(e) => set({ context: e.target.value })}>
-              <option value="work">Trabalho</option><option value="personal">Pessoal</option>
+              <option value="personal">Pessoal</option><option value="work">Trabalho</option>
             </select>
             {proj && <span className="muted small ctx-note">Definido pelo projeto “{proj.name}”</span>}
           </div>
