@@ -16,6 +16,7 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- A lista e o editor de projetos usam árvores visuais separadas, removendo o campo de título ao voltar e evitando títulos residuais acumulados.
 - Projetos abertos e fechados sem preenchimento desaparecem imediatamente, inclusive ao voltar pelas abas ou filtros. Rascunhos intocados não aparecem na lista nem são enviados ao Notion.
 - Mantém todas as alterações anteriores, incluindo Pessoal como contexto padrão para novos projetos e tarefas.
 

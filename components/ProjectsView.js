@@ -86,7 +86,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   if (!project) {
     const shown = projects.filter((p) => !p._untouchedDraft && p.status === SUB_STATUS[sub] && (context === "all" || p.context === context));
     return (
-      <section>
+      <section key="project-list">
         <div className="head-row">
           <div>
             <h1 className="section-title">Projetos</h1>
@@ -154,7 +154,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   const openTask = tasks.find((t) => t.id === openId);
 
   return (
-    <section>
+    <section key={`project-editor-${project.id}`}>
       <button className="ghost" onClick={closeProject}>← Projetos</button>
 
       <EntryTitle key={project.id} newEntry={project.id===createdProjectId} placeholder="Novo projeto" className="panel-title pd-name" value={project.name} onChange={(e) => updateProject(project.id, { name: e.target.value })} aria-label="Nome do projeto" />
