@@ -13,6 +13,21 @@ try{
  const savedHooks={useState:React.useState,useEffect:React.useEffect},RealDate=global.Date,realInterval=global.setInterval,realClear=global.clearInterval;let clock='2026-10-05T15:00:00Z',callback,slot=0;const slots=[];
  global.Date=class extends RealDate{constructor(...args){super(...(args.length?args:[clock]));}static now(){return new RealDate(clock).getTime();}};
  React.useState=initial=>{const index=slot++;if(!slots[index])slots[index]={value:typeof initial==='function'?initial():initial};return [slots[index].value,next=>{slots[index].value=typeof next==='function'?next(slots[index].value):next;}];};React.useEffect=effect=>{effect();};global.setInterval=fn=>{callback=fn;return 1;};global.clearInterval=()=>{};global.window={addEventListener(){},removeEventListener(){}};global.document={addEventListener(){},removeEventListener(){}};
- try{slot=0;View({habits:[],logs:[],setHabits(){},context:'personal',configured:true});assert.equal(slots[1].value,'2026-10-05');clock='2026-10-06T15:00:00Z';callback();assert.equal(slots[0].value,'2026-10-06');assert.equal(slots[1].value,'2026-10-06','Hoje acompanha a virada do dia');slot=0;View({habits:[],logs:[],setHabits(){},context:'personal',configured:true});slots[1].value='2026-10-01';clock='2026-10-07T15:00:00Z';callback();assert.equal(slots[1].value,'2026-10-01','Consulta antiga permanece selecionada');}finally{Object.assign(React,savedHooks);global.Date=RealDate;global.setInterval=realInterval;global.clearInterval=realClear;delete global.window;delete global.document;}
+ try{
+  slot=0;View({habits:[],logs:[],setHabits(){},context:'personal',configured:true});assert.equal(slots[0].value,'2026-10-05');
+  clock='2026-10-06T15:00:00Z';callback();assert.equal(slots[0].value,'2026-10-06','Cards follow the new day');assert.equal(slots[1].value,'2026-10','Monthly summary remains selected');
+  let state={habits:[habit],habitLogs:[]},confirmations=0,approve=true;window.confirm=()=>{confirmations++;return approve;};
+  const update=fn=>{state=fn(state);};
+  function tree(){slot=0;return View({habits:state.habits,logs:state.habitLogs,setHabits:update,configured:true});}
+  function buttons(node,result=[]){if(!node)return result;if(Array.isArray(node)){node.forEach(n=>buttons(n,result));return result;}if(typeof node==='object'&&node.props){if(node.type==='button')result.push(node);buttons(node.props.children,result);}return result;}
+  let nodes=buttons(tree()),card=nodes.find(n=>n.props.className==='habit-check-card');card.props.onClick();assert.equal(state.habitLogs.length,1);assert.equal(state.habitLogs[0].date,'2026-10-06');assert.equal(confirmations,0);
+  card.props.onClick();assert.equal(state.habitLogs.length,1,'Repeated card click never unchecks today');
+  nodes=buttons(tree());const day6=nodes.find(n=>n.props['aria-label']?.includes('06/10/2026'));day6.props.onClick();assert.equal(state.habitLogs.length,0);assert.equal(confirmations,0,'Today can be corrected in monthly summary without confirmation');
+  nodes=buttons(tree());const day5=nodes.find(n=>n.props['aria-label']?.includes('05/10/2026'));approve=false;day5.props.onClick();assert.equal(state.habitLogs.length,0);assert.equal(confirmations,1,'Past marking requires confirmation');
+  approve=true;day5.props.onClick();assert.equal(state.habitLogs.length,1);nodes=buttons(tree());approve=false;nodes.find(n=>n.props['aria-label']?.includes('05/10/2026')).props.onClick();assert.equal(state.habitLogs.length,1,'Cancelling past uncheck preserves completion');
+  approve=true;nodes.find(n=>n.props['aria-label']?.includes('05/10/2026')).props.onClick();assert.equal(state.habitLogs.length,0);
+  assert.ok(!nodes.some(n=>n.props['aria-label']==='Dia anterior'),'No daily navigation');
+  slots[1].value='2026-09';clock='2026-10-07T15:00:00Z';callback();assert.equal(slots[0].value,'2026-10-07');assert.equal(slots[1].value,'2026-09','Browsing past months does not change today cards');
+ }finally{Object.assign(React,savedHooks);global.Date=RealDate;global.setInterval=realInterval;global.clearInterval=realClear;delete global.window;delete global.document;}
  console.log('PASSOU: cores e ícones, marcação/desmarcação por dia, histórico preservado, início e dias futuros, calendário bissexto, progresso e cards concluídos.');
 }finally{fs.rmSync(folder,{recursive:true,force:true});}

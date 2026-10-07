@@ -16,9 +16,10 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
-- Marcar/desmarcar rapidamente um hábito não mantém o indicador de salvamento preso quando o estado volta ao já salvo.
-- Remarcar o mesmo hábito no mesmo dia reutiliza a marcação existente, evitando o conflito por um novo ID local. A última escolha continua sendo salva; não é necessário desmarcar e esperar como contorno.
-- Mantém identificação COMPARTILHADO nas três abas, aviso de Recados, confirmação de envio e todas as funções anteriores.
+- Cartões de Hábitos ficam sempre em HOJE e permitem apenas marcar, sem confirmação. Para desmarcar ou corrigir, use o resumo mensal.
+- Removida a navegação diária dos cartões. No resumo permanecem mês/ano, com seletor de mês e ano sem dias.
+- Alterar marcações anteriores a hoje no resumo mensal exige confirmação, tanto para marcar quanto para desmarcar. Hoje continua direto. Exclusão de hábitos, encerramento e recuperação continuam com confirmação.
+- Resumo anual continua somente leitura, abrindo o mês correspondente ao clicar. Mantém o histórico e a edição do período encerrado após recuperar.
 
 ## 2. Contas, privacidade e contextos
 
@@ -83,7 +84,7 @@ A tela principal mostra blocos de listas. Clique para abrir e volte para a tela 
 
 ### Hábitos
 
-Crie hábitos com cor da paleta e ícone. As marcações são diárias, com destaque de cor e barra de progresso. O acompanhamento mensal/anual permite consultar o histórico. Encerrar e recuperar exigem confirmação. Encerrados ficam ocultos até Mostrar hábitos encerrados; recuperar mantém as marcações, sem preencher os dias em que ficou oculto. Nome repetido gera aviso e permite recuperar o hábito existente. Excluir é diferente de encerrar e remove suas marcações após confirmação.
+Crie hábitos com cor da paleta e ícone. Os cartões principais mostram sempre hoje e permitem marcar sem confirmação. Desmarcar/corrigir é feito no resumo mensal, com confirmação para dias anteriores a hoje. As marcações têm destaque de cor e barra de progresso. O acompanhamento mensal/anual permite consultar o histórico. Encerrar e recuperar exigem confirmação. Encerrados ficam ocultos até Mostrar hábitos encerrados; recuperar mantém as marcações, sem preencher os dias em que ficou oculto. Nome repetido gera aviso e permite recuperar o hábito existente. Excluir é diferente de encerrar e remove suas marcações após confirmação.
 
 ### Entretenimento
 
