@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Excluir projeto também exclui todos os seus marcos e tarefas, inclusive concluídas e tarefas adicionadas por outra instância. A confirmação explica a remoção. Cancelado e Concluído preservam os dados e o histórico.
+
 - Na linha Nova tarefa neste projeto, projetos compartilhados exigem escolher explicitamente Péricles ou Letícia. Não há responsável pré-selecionado; após adicionar, a seleção é limpa para a próxima tarefa.
 - Projetos e tarefas compartilhados têm selo dourado com ícone de pessoas; as tarefas também mostram o responsável. O campo de compartilhamento tem destaque no editor.
 
@@ -68,7 +70,7 @@ Marque Compartilhado no editor para permitir que ambos vejam e editem o registro
 
 Tarefas vinculadas seguem obrigatoriamente o compartilhamento do projeto; cada tarefa compartilhada pode ter seu próprio responsável. Tarefas avulsas escolhem livremente o compartilhamento. Alterar o projeto para compartilhado ou privado atualiza seus marcos e tarefas, inclusive filhos acrescentados por outra instância. Ao tornar um projeto privado, uma confirmação informa o nome do criador original, para quem ele e seus filhos retornarão; os responsáveis das tarefas são removidos. Mudar o responsável não transfere a propriedade. Uma tarefa avulsa tornada privada também volta a ficar acessível somente ao seu criador original, informado na confirmação. Cancelar não altera o registro. Registros antigos permanecem privados por padrão.
 
-Projetos e tarefas novos usam Pessoal por padrão em Todos; Trabalho selecionado explicitamente e contexto herdado de projeto são respeitados. Pessoal aparece primeiro nos campos de contexto. Projetos abrem a partir de blocos. O título recebe foco ao criar; entradas novas sem nenhuma alteração são descartadas ao fechar. Projetos têm status Ativo, Pausado, Concluído e Cancelado, exclusão com confirmação, anexos e marcos. O prazo de um marco não pode ultrapassar o prazo final do projeto, quando definido; o marco é referência de cronograma e não gera indicador de atraso.
+Projetos e tarefas novos usam Pessoal por padrão em Todos; Trabalho selecionado explicitamente e contexto herdado de projeto são respeitados. Pessoal aparece primeiro nos campos de contexto. Projetos abrem a partir de blocos. O título recebe foco ao criar; entradas novas sem nenhuma alteração são descartadas ao fechar. Projetos têm status Ativo, Pausado, Concluído e Cancelado, exclusão com confirmação (remove também todas as tarefas e marcos, inclusive concluídos), anexos e marcos. Cancelado e Concluído mantêm o histórico. O prazo de um marco não pode ultrapassar o prazo final do projeto, quando definido; o marco é referência de cronograma e não gera indicador de atraso.
 
 Tarefas têm Não iniciada, Em andamento, On hold e Concluída, prioridade, datas, projeto/marco opcionais, anotações e anexos. Não há status Cancelada nem páginas relacionadas. Os resumos acompanham os filtros e a busca; os contornos indicam os grupos exibidos. Tarefas concluídas recentes aparecem primeiro. Exclusões não têm histórico no LifeOS; a remoção de páginas é feita pela lixeira do Notion.
 

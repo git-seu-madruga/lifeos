@@ -67,9 +67,9 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
   }
   function deleteProject() {
     const count = tasks.filter(t => t.project === project.id).length;
-    if (!window.confirm(`Excluir “${project.name}” e seus anexos? Não dá para desfazer. ${count} tarefa(s) serão mantidas sem projeto e sem marco.`)) return;
+    if (!window.confirm(`Excluir “${project.name}”, seus marcos, anexos e todas as suas tarefas (${count} carregadas)? Tarefas concluídas também serão excluídas. Não dá para desfazer no app. Para preservar o histórico, use Cancelado ou Concluído.`)) return;
     setProjects(prev => prev.filter(p => p.id !== project.id));
-    setTasks(prev => prev.map(t => t.project === project.id ? { ...t, project: null, milestone: null } : t));
+    setTasks(prev => prev.filter(t => t.project !== project.id));
     setProjectError("");
     onSelect(null);
   }

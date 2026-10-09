@@ -129,7 +129,7 @@ global.fetch=async(url,options={})=>{
  await assert.rejects(()=>notionLib.ownedPage('projects',state.tasks[0].id),error=>error.status===403);
  const deleted={diary:[],inbox:[],projects:[],tasks:state.tasks.map(task=>({...task,project:null,milestone:null}))};
  await synchronize(state,deleted);
- ({state}=await notionLib.readSnapshot());assert.equal(state.projects.length,0);assert.equal(state.tasks.length,2);assert.equal(state.tasks[0].project,null);
+ ({state}=await notionLib.readSnapshot());assert.equal(state.projects.length,0);assert.equal(state.tasks.length,0,'Excluir projeto remove tarefas vinculadas');
  const empty={projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true};await synchronize(state,empty);({state}=await notionLib.readSnapshot());assert.equal(state.tasks.length,0);
 
  const inboxNext={...state,inbox:[{id:'inbox-local',text:'Primeira linha\nSegunda linha\nTerceira linha',createdAt:Date.now()}]};
@@ -316,13 +316,25 @@ global.fetch=async(url,options={})=>{
   a=(await notionLib.readSnapshot(false,A)).state;assert.equal(a.tasks.filter(v=>v.project===project.id).length,2);assert.ok(a.tasks.filter(v=>v.project===project.id).every(v=>!v.shared));
   await assert.rejects(()=>save(a,{...a,tasks:a.tasks.map(v=>v.project===project.id?{...v,shared:true,responsible:A.email}:v)},A),e=>e.status===422);
  }
+ // Cascade deletion also finds children absent from the client's snapshot.
+ {
+  const A={id:'google:user-A',email:'periclesbernardes@gmail.com',name:'Péricles'};const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
+  const save=async(before,after)=>{const d=compactSyncState(before,after);return synchronize(d.base,d.next,A,async()=>{},true);};
+  let state=(await notionLib.readSnapshot(false,A)).state;const project=state.projects.find(p=>p.name==='Projeto do casal');const child=state.tasks.find(t=>t.project===project.id);
+  await save(state,{...state,projects:state.projects.map(p=>p.id===project.id?{...p,status:'done'}:p)});state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.tasks.filter(t=>t.project===project.id).length,2,'Concluir preserva tarefas');
+  await save(state,{...state,projects:state.projects.map(p=>p.id===project.id?{...p,status:'cancelled'}:p)});state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.tasks.filter(t=>t.project===project.id).length,2,'Cancelar preserva tarefas');
+  const stale=structuredClone(state);await save(state,{...state,tasks:[...state.tasks,{...child,id:'later-child',_notionId:undefined,title:'Tarefa concorrente'}]});
+  const next={...stale,projects:stale.projects.filter(p=>p.id!==project.id),tasks:stale.tasks.filter(t=>t.project!==project.id)};const start=calls.length;await save(stale,next);
+  const actual=(await notionLib.readSnapshot(false,A)).state;assert.ok(!actual.projects.some(p=>p.id===project.id));assert.ok(!actual.tasks.some(t=>t.project===project.id));assert.ok(!actual.tasks.some(t=>t.title==='Tarefa concorrente'));assert.equal(actual.tasks.length,stale.tasks.filter(t=>t.project!==project.id).length,'Tarefas de outros projetos permanecem');
+  const deletions=calls.slice(start).filter(c=>c.body?.in_trash);assert.equal(deletions.at(-1).route,'/pages/'+project.id,'Projeto é excluído após os filhos');await save(stale,next);
+ }
  const copyRoute=require(path.join(temp,'app/api/notion/media-cover/route')).POST;
  const copied=await copyRoute(new Request('https://lifeos.test/api/notion/media-cover',{method:'POST',headers:{cookie,origin:'https://lifeos.test','content-type':'application/json'},body:JSON.stringify({url:'https://covers.openlibrary.org/b/id/123-M.jpg',name:'Duna'})}));assert.equal(copied.status,200);const coverResult=await copied.json();assert.equal(auth.unseal(coverResult.uploadProof).user,'google:test-pericles');assert.ok(coverResult.uploadId);
  const copyDenied=await copyRoute(new Request('https://lifeos.test/api/notion/media-cover',{method:'POST',body:'{}'}));assert.equal(copyDenied.status,401);
  const copyOrigin=await copyRoute(new Request('https://lifeos.test/api/notion/media-cover',{method:'POST',headers:{cookie,origin:'https://evil.test'},body:'{}'}));assert.equal(copyOrigin.status,403);
  const get=require(path.join(temp,'app/api/notion/route')).GET;
  const denied=await get(request);assert.equal(denied.status,401);assert.equal(calls.some(call=>call.route.includes('undefined')),false);
- console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão preservando tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');
+ console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão de projeto com tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');
  fs.rmSync(temp,{recursive:true});
 })().catch(error=>{console.error(error);process.exitCode=1;});
 
