@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Pétalas um pouco mais largas, preservando espaço entre os contornos. Pressão/BPM e peso/gordura podem ser registrados diretamente nos cartões da tela, sem abrir uma janela.
+
 - Layout aproximado da referência aprovada: pétalas compactas com borda interna côncava, hábitos em tons pastel e painel do ciclo rosa claro. A área da Letícia continua editável pelas duas contas nesta fase.
 
 - Pétalas orgânicas com contorno especial após preencher; escolhas próprias de cada aspecto no painel lateral colorido, com salvamento automático, sem abrir formulário.
@@ -424,8 +426,8 @@ Na Vercel, adicione **NOTION_WELLNESS_DATABASE_ID** com o ID do banco Bem-estar 
 
 - Meu dia: escolha a data pelo campo DD/MM/AAAA/calendário, setas ou Hoje. Selecione uma pétala no círculo e escolha uma opção no quadrinho lateral. A escolha é salva automaticamente e ilumina o contorno da pétala. Limpar escolha remove a seleção daquele aspecto; os demais dados do dia são preservados. Não abre outra tela. Os registros de dias passados podem ser editados; datas futuras são bloqueadas. Campos não preenchidos permanecem sem registro. Água, energia, estresse, duração do sono e exercício e observações continuam disponíveis em Mais registros e observações. Salvar envia pelo fluxo incremental existente, com rascunho local protegido e indicação Salvo no Notion. Cancelar descarta apenas o formulário aberto.
 - Hábitos: confirme que as marcações e os resumos anteriores permanecem, incluindo hábitos encerrados e confirmações. Os atalhos de seção rolam até cada painel.
-- Pressão e BPM: registre data, pressão em um único campo com máscara (124/76) e BPM. O horário não é necessário. Podem existir várias medições no dia: o cartão mostra a média aritmética da sistólica, da diastólica e do BPM no dia mais recente com registros. Os gráficos também mostram médias diárias. A média é calculada, não substitui as medições salvas. Ver histórico permite editar ou excluir com confirmação. Os registros antigos com horário são preservados, mas o horário deixa de aparecer nos formulários e no cartão. Os gráficos usam séries separadas, sem diagnóstico ou classificação automática.
-- Peso e gordura: registre quando houver uma nova medição; peso obrigatório, percentual de gordura opcional. Não há exigência diária. Histórico permite editar/excluir.
+- Pressão e BPM: preencha diretamente no cartão data, pressão em um único campo com máscara (124/76) e BPM, e clique Salvar medição. O horário não é necessário. Podem existir várias medições no dia: o cartão mostra a média aritmética da sistólica, da diastólica e do BPM no dia mais recente com registros. Os gráficos também mostram médias diárias. A média é calculada, não substitui as medições salvas. Ver histórico permite editar ou excluir com confirmação. Os registros antigos com horário são preservados, mas o horário deixa de aparecer nos formulários e no cartão. Os gráficos usam séries separadas, sem diagnóstico ou classificação automática.
+- Peso e gordura: preencha diretamente no cartão e clique Salvar medidas quando houver uma nova medição; peso obrigatório, percentual de gordura opcional. Não há exigência diária. Histórico permite editar/excluir. Os formulários de inclusão só criam o registro ao clicar Salvar; Limpar descarta o preenchimento. Edições no histórico continuam no formulário de edição.
 - Ciclo da Letícia: registre menstruação, fluxo, cólicas e observações na data selecionada. Entre na outra conta, atualize e confirme que aparece o mesmo registro. Dia/medidas/hábitos de uma conta não aparecem para a outra.
 - Deixe Salvo no Notion aparecer antes de fechar. Alterações feitas em outra instância são carregadas pelo fluxo de retorno ao foco existente; formulários abertos impedem sobrescrita automática. Edições concorrentes conflitantes mostram erro e preservam o rascunho para revisão.
 
