@@ -16,7 +16,7 @@ import EntertainmentView from "../components/EntertainmentView";
 import Login from "../components/Login";
 import ModalLayer from '../components/ModalLayer';
 import {useAppBackNavigation,useBackLayer,BackNotice} from '../lib/useBackNavigation';
-import HabitsView from '../components/HabitsView';
+import WellnessView from '../components/WellnessView';
 import ShoppingView from '../components/ShoppingView';
 import TabIcon from '../components/TabIcon';
 import {shoppingFromInbox} from '../lib/shopping';
@@ -52,7 +52,7 @@ export default function Home() {
   const suppressClick = useRef(false);
   useEffect(()=>{
     let order=NAV.map(tab=>tab.id);
-    try { order=normalizeTabOrder(JSON.parse(localStorage.getItem('lifeos-tab-order')),order); } catch {}
+    try { order=normalizeTabOrder((JSON.parse(localStorage.getItem('lifeos-tab-order'))||[]).map(id=>id==='habitos'?'bemestar':id),order); } catch {}
     setTabOrder(order);setTabId(order[0]);setOrderReady(true);
   },[]);
   useEffect(()=>{if(orderReady)try{localStorage.setItem('lifeos-tab-order',JSON.stringify(tabOrder));}catch{}},[tabOrder,orderReady]);
@@ -77,7 +77,7 @@ export default function Home() {
   const [newTaskId, setNewTaskId] = useState(null);
 
 
-  const personalOnly = ["financas", "diario", "aniversarios", "habitos", "entretenimento", "recados"].includes(tabId);
+  const personalOnly = ["financas", "diario", "aniversarios", "bemestar", "entretenimento", "recados"].includes(tabId);
   const effectiveContext = personalOnly ? "personal" : context;
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
@@ -250,7 +250,7 @@ export default function Home() {
         {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}
 
         {!saving&&['compras','aniversarios','financas'].includes(tabId)&&(()=>{const keys=tabId==='compras'?['shopping']:tabId==='aniversarios'?['contacts']:['categories','transactions'];const latest=keys.map(key=>remote.sharedActivity?.[key]).filter(Boolean).sort((a,b)=>b.at.localeCompare(a.at))[0];return latest?<p className="muted small shared-editor">Última alteração no LifeOS por {latest.name} · {new Date(latest.at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}</p>:null;})()}
-        {!["diario","financas","aniversarios","compras","habitos","entretenimento","recados"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
+        {!["diario","financas","aniversarios","compras","bemestar","entretenimento","recados"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button
               key={s.id}
@@ -282,8 +282,8 @@ export default function Home() {
           <EntertainmentView sections={remote.mediaSections||[]} items={remote.media||[]} setEntertainment={remote.setEntertainment} configured={remote.mediaConfigured}/>
         ) : tabId === "recados" ? (
           <RecadosView todayRequest={recadoTodayRequest} user={remote.user} onReadComplete={remote.noteRead} inboxRequest={recadoInbox} onInboxHandled={()=>setRecadoInbox(null)} onInboxSent={deleteInbox}/>
-        ) : tabId === "habitos" ? (
-          <HabitsView habits={remote.habits||[]} logs={remote.habitLogs||[]} setHabits={remote.setHabits} context="personal" configured={remote.habitsConfigured}/>
+        ) : tabId === "bemestar" ? (
+          <WellnessView remote={remote}/>
         ) : tabId === "compras" ? (
           <ShoppingView lists={remote.shopping || []} setLists={remote.setShopping} selected={shoppingSelected} onSelect={setShoppingSelected} context={context} configured={remote.shoppingConfigured} creating={shoppingCreating} onCreate={()=>setShoppingCreating(true)} onCreated={()=>setShoppingCreating(false)}/>
         ) : tabId === "aniversarios" ? (

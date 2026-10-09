@@ -27,7 +27,7 @@ global.fetch=async(url,options={})=>{
   syncCount++;if(gate)await gate;
   if(failure){failure=false;return Response.json({error:'Falha simulada'},{status:502});}
   const {next,base,partial}=JSON.parse(options.body),bindings={},files={};
-  for(const item of [...(next.mediaSections||[]),...(next.media||[]),...next.projects,...next.projects.flatMap(project=>project.milestones),...next.tasks,...next.inbox,...next.diary,...(next.shopping || []),...next.categories,...next.transactions,...(next.habits||[]),...(next.habitLogs||[])]){
+  for(const item of [...(next.mediaSections||[]),...(next.media||[]),...next.projects,...next.projects.flatMap(project=>project.milestones),...next.tasks,...next.inbox,...next.diary,...(next.shopping || []),...next.categories,...next.transactions,...(next.habits||[]),...(next.habitLogs||[]),...(next.wellness||[]),...(next.cycle||[])]){
    bindings[item.id]=item._notionId||`remote-${item.id}`;
    for(const file of item.attachments||[])if(file.uploadId)files[file.id]={id:file.id,name:file.name,notion:{type:'file',name:file.name,file:{url:'https://files.test/ref'}},pageId:bindings[item.id],index:0,kind:(next.media||[]).includes(item)?'media':next.diary.includes(item)?'diary':next.tasks.includes(item)?'tasks':'projects',url:'https://files.test/ref'};
   }
@@ -101,9 +101,10 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  await hook.flush();await tick();await tick();assert.equal(hook.tasks.find(t=>t.id==='t').title,'Texto digitado durante consulta');assert.equal(hook.pending,false);
  const beforeDirty=readCount;failure=true;hook.setTasks(previous=>previous.map(task=>task.id==='t'?{...task,title:'Preservar após falha'}:task));await assert.rejects(()=>hook.flush(),/Falha simulada/);clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(readCount,beforeDirty,'Dirty state is not overwritten by a resume read');assert.equal(hook.tasks.find(t=>t.id==='t').title,'Preservar após falha');await hook.flush();await tick();await tick();assert.equal(readCount,beforeDirty+1,'Deferred query runs after saving');
  const beforeFailureTime=hook.refreshedAt;readFailure=true;clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(hook.error,'Consulta indisponível');assert.equal(hook.refreshedAt,beforeFailureTime,'Failed query does not update the time');assert.equal(hook.ready,true);clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(hook.error,'');
+ const well={id:'well-test',name:'Peso',date:'2026-10-09',type:'body',data:{weight:136,fat:28.4}};hook.setWellness(p=>({...p,wellness:[well],cycle:[{...well,id:'cycle-test',type:'cycle',data:{subject:'leticiacost3@gmail.com',menstruation:'Não',flow:'—',cramps:'Nenhuma'}}]}));await hook.flush();await tick();assert.equal(hook.wellness[0].data.weight,136);assert.equal(hook.wellness[0]._notionId,'remote-well-test');assert.equal(hook.cycle[0]._notionId,'remote-cycle-test');assert.equal(remote.wellness.length,1);assert.equal(hook.pending,false);
  await hook.logout();await tick();assert.equal(hook.authenticated,false);assert.equal(hook.ready,false);
  // Editors can dispose untouched drafts after logout cleared the account state.
- for(const setter of ['setProjects','setTasks','setInbox','setDiary','setShopping','setContacts','setHabits','setFinance','setEntertainment']){
+ for(const setter of ['setProjects','setTasks','setInbox','setDiary','setShopping','setContacts','setHabits','setFinance','setEntertainment','setWellness']){
   assert.doesNotThrow(()=>hook[setter](()=>{throw Error('Stale editor must not edit a closed session');}));
  }
  await tick();assert.equal(hook.projects,null);assert.equal(hook.tasks,null);

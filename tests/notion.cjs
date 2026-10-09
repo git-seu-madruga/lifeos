@@ -22,9 +22,10 @@ const {diffState,hasChanges}=require(path.join(temp,'lib/notionDiff'));
 process.env.NOTION_DIARY_DATABASE_ID='diary-test-db';
 process.env.NOTION_INBOX_DATABASE_ID='inbox-test-db';
 process.env.NOTION_FINANCE_CATEGORIES_DATABASE_ID='finance-categories-test';process.env.NOTION_FINANCE_TRANSACTIONS_DATABASE_ID='finance-transactions-test';
-const databases={mediaSections:"media-sections-test",media:"media-test",habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
+const databases={wellness:"wellness-test",cycle:"cycle-test",mediaSections:"media-sections-test",media:"media-test",habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
 const sourceIds=Object.fromEntries(Object.keys(databases).map(k=>[k,randomUUID()]));
 const specs={
+ wellness:{Nome:"title",Data:"date",Tipo:"rich_text",Dados:"rich_text"},cycle:{Nome:"title",Data:"date",Tipo:"rich_text",Dados:"rich_text"},
  mediaSections:{'Nome':'title','Tipo':'rich_text','Ícone':'rich_text','Cor':'rich_text'},media:{'Nome':'title','Seção':'relation','Autor':'rich_text','Status':'select','Avaliação':'number','Comentário':'rich_text','URL da capa':'rich_text','Link de origem':'rich_text','Fonte':'rich_text','Capa':'files'},
  habits:{'Nome':'title','Contexto':'select','Cor':'rich_text','Ícone':'rich_text','Início':'date'},habitLogs:{'Nome':'title','Hábito':'relation','Data':'date'},
  shopping:{'Nome':'title','Contexto':'select','Itens':'rich_text'},
@@ -98,7 +99,7 @@ global.fetch=async(url,options={})=>{
  const cookie=auth.sessionCookie({id:'google:test-pericles',email:'periclesbernardes@gmail.com',name:'Péricles'}).split(';')[0];
  const logged=new Request('https://lifeos.test/api/notion',{headers:{cookie}});auth.authorize(logged);
  assert.equal(auth.authenticated(new Request('https://lifeos.test/api',{headers:{cookie:cookie+'bad'}})),false);
- let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{mediaSections:[],media:[],mediaConfigured:false,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false,habits:[],habitLogs:[],habitsConfigured:false});
+ let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{wellness:[],cycle:[],wellnessConfigured:false,cycleConfigured:false,mediaSections:[],media:[],mediaConfigured:false,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false,habits:[],habitLogs:[],habitsConfigured:false});
  const base=state;
  const file=new File(['arquivo de teste'],'ref.txt',{type:'text/plain'});
  const uploaded=await notionLib.uploadFile(file);
@@ -327,6 +328,26 @@ global.fetch=async(url,options={})=>{
   const next={...stale,projects:stale.projects.filter(p=>p.id!==project.id),tasks:stale.tasks.filter(t=>t.project!==project.id)};const start=calls.length;await save(stale,next);
   const actual=(await notionLib.readSnapshot(false,A)).state;assert.ok(!actual.projects.some(p=>p.id===project.id));assert.ok(!actual.tasks.some(t=>t.project===project.id));assert.ok(!actual.tasks.some(t=>t.title==='Tarefa concorrente'));assert.equal(actual.tasks.length,stale.tasks.filter(t=>t.project!==project.id).length,'Tarefas de outros projetos permanecem');
   const deletions=calls.slice(start).filter(c=>c.body?.in_trash);assert.equal(deletions.at(-1).route,'/pages/'+project.id,'Projeto é excluído após os filhos');await save(stale,next);
+ }
+ // Bem-estar: dados privados e ciclo exclusivo da Letícia, compartilhado nesta versão.
+ {
+  process.env.NOTION_WELLNESS_DATABASE_ID=databases.wellness;process.env.NOTION_CYCLE_DATABASE_ID=databases.cycle;
+  const A={id:'google:well-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:well-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+  const {compactSyncState}=require(path.join(temp,'lib/notionDiff')),day=require(path.join(temp,'lib/habits')).habitToday();
+  const save=async(before,after,user)=>{const d=compactSyncState(before,after);return synchronize(d.base,d.next,user,async()=>{},true);};
+  let a=(await notionLib.readSnapshot(false,A)).state;
+  const daily={id:'well-day-A-'+day,name:'Meu dia',date:day,type:'day',data:{humor:'Bem',hours:8}},measurement={id:'well-pressure-A',name:'Pressão',date:day,type:'pressure',data:{systolic:124,diastolic:76,bpm:62,time:'08:10'}},cycle={id:'well-cycle-leticia-'+day,name:'Ciclo da Letícia',date:day,type:'cycle',data:{subject:B.email,menstruation:'Não',flow:'—',cramps:'Nenhuma'}};
+  const original=structuredClone(a),desired={...a,wellness:[daily,measurement],cycle:[cycle]};await save(a,desired,A);await save(original,desired,A);
+  a=(await notionLib.readSnapshot(false,A)).state;let b=(await notionLib.readSnapshot(false,B)).state;
+  assert.equal(a.wellness.length,2,'Retry must not duplicate measurements');assert.equal(b.wellness.length,0,'Private measures invisible to second account');assert.equal(a.cycle.length,1);assert.deepEqual(a.cycle,b.cycle,'Both accounts see the same Letícia record');
+  await assert.rejects(()=>save(b,{...b,wellness:a.wellness},B),e=>e.status===403);
+  await save(b,{...b,cycle:b.cycle.map(p=>({...p,data:{...p.data,flow:'Leve'}}))},B);
+  const stale=structuredClone(a);await assert.rejects(()=>save(stale,{...stale,cycle:stale.cycle.map(p=>({...p,data:{...p.data,flow:'Intenso'}}))},A),e=>e.status===409);
+  a=(await notionLib.readSnapshot(false,A)).state;assert.equal(a.cycle[0].data.flow,'Leve');
+  await assert.rejects(()=>save(a,{...a,cycle:a.cycle.map(p=>({...p,data:{...p.data,subject:A.email}}))},A),/Letícia/);
+  await assert.rejects(()=>save(a,{...a,wellness:[...a.wellness,{...measurement,id:'invalid',data:{...measurement.data,bpm:-1}}]},A),/válidos/);
+  const start=calls.length;await save(a,{...a,wellness:a.wellness.map(p=>p.type==='pressure'?{...p,data:{...p.data,bpm:64}}:p)},A);assert.ok(!calls.slice(start).some(c=>c.route.includes('/query')&&!c.body.filter),'Incremental saves never enumerate whole bank');
+  a=(await notionLib.readSnapshot(false,A)).state;await save(a,{...a,wellness:a.wellness.filter(p=>p.type!=='pressure')},A);assert.equal((await notionLib.readSnapshot(false,A)).state.wellness.length,1);
  }
  const copyRoute=require(path.join(temp,'app/api/notion/media-cover/route')).POST;
  const copied=await copyRoute(new Request('https://lifeos.test/api/notion/media-cover',{method:'POST',headers:{cookie,origin:'https://lifeos.test','content-type':'application/json'},body:JSON.stringify({url:'https://covers.openlibrary.org/b/id/123-M.jpg',name:'Duna'})}));assert.equal(copied.status,200);const coverResult=await copied.json();assert.equal(auth.unseal(coverResult.uploadProof).user,'google:test-pericles');assert.ok(coverResult.uploadId);

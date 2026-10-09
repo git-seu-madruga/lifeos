@@ -6,7 +6,7 @@ Documento único da versão atual. Este README substitui os arquivos INSTRUCOES 
 
 1. Aguarde **Salvo no Notion** antes de atualizar. Se houver erro de salvamento, preserve o texto e resolva o erro primeiro.
 2. Extraia o ZIP. Envie o **conteúdo da pasta lifeos** para a raiz do repositório, substituindo os arquivos existentes. Não crie uma segunda pasta lifeos dentro do projeto.
-3. Mantenha as variáveis e os bancos já configurados. Esta revisão não exige novos bancos ou variáveis. O campo Inativa é acrescentado automaticamente ao banco de categorias financeiras.
+3. Mantenha as variáveis e os bancos já configurados. Esta revisão acrescenta dois bancos: **Bem-estar** e **Ciclo da Letícia**. Configure-os conforme a seção Bem-estar abaixo antes do deploy. Os bancos e registros atuais de hábitos permanecem os mesmos.
 4. Faça o deploy na Vercel e atualize a página/app instalado.
 5. Remova do repositório os antigos arquivos INSTRUCOES-*.md: o envio pelo navegador não remove arquivos que deixaram de existir no ZIP. Todas as instruções atuais estão aqui.
 
@@ -24,21 +24,22 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 - Descompartilhar exige confirmação com o nome do proprietário para quem o registro ficará privado. Cancelar preserva o compartilhamento e o responsável.
 - Projetos compartilhados não têm responsável. Cada tarefa compartilhada tem seu próprio responsável obrigatório, com o usuário logado como padrão ao criar.
 - Inclui a correção de seleção de texto, calendários, descarte de tarefas vazias, notificação de Recados, sincronização incremental e todas as alterações anteriores.
-- Não exige novos bancos ou variáveis. Os campos necessários continuam sendo acrescentados automaticamente aos bancos existentes.
+- Bem-estar incorpora Hábitos, com os mesmos dados, marcações, confirmações e resumos. Acrescenta registros do dia, pressão/BPM e medidas de peso/gordura, além do ciclo da Letícia visível e editável pelos dois usuários nesta fase.
 
 ## 2. Contas, privacidade e contextos
 
 | Área | Acesso |
 | --- | --- |
-| Inbox, Diário, Hábitos e registros, Entretenimento | Privado de cada conta |
+| Inbox, Diário, Hábitos e registros, Bem-estar (dia e medidas), Entretenimento | Privado de cada conta |
 | Projetos, Marcos e Tarefas | Privado por padrão; compartilhamento opcional entre as duas contas |
 | Compras, Aniversários, Finanças | Compartilhado entre as duas contas |
+| Ciclo da Letícia | Dados sempre dela; ambos podem ver e editar nesta versão de testes |
 | Recados | Mensagens entre as duas contas, com leitura confirmada pelo destinatário |
 | Backup e restauração | Apenas a conta principal; inclui dados das duas contas |
 
 Contas autorizadas: **periclesbernardes@gmail.com** e **leticiacost3@gmail.com**. Os dados privados antigos sem proprietário pertencem à primeira conta.
 
-Pessoal/Trabalho é uma classificação, não separação de usuário. Projetos, Tarefas e Compras têm ambos os contextos. Diário, Finanças, Aniversários, Hábitos, Entretenimento e Recados usam Pessoal fixo, com Todos e Trabalho bloqueados.
+Pessoal/Trabalho é uma classificação, não separação de usuário. Projetos, Tarefas e Compras têm ambos os contextos. Diário, Finanças, Aniversários, Bem-estar (incluindo Hábitos), Entretenimento e Recados usam Pessoal fixo, com Todos e Trabalho bloqueados.
 
 A separação é aplicada pelo servidor do LifeOS. Quem tiver acesso direto aos bancos completos no Notion terá o acesso concedido pelo próprio Notion. Compras, Finanças e Aniversários mostram nome e horário da última edição feita pelo app; edições diretas no Notion não identificam a conta Google.
 
@@ -389,3 +390,44 @@ Após restaurar, atualize instâncias abertas. Se houver rascunho conflitante, c
 Node.js compatível com Next.js 15. Instale com **npm ci**. Configure variáveis localmente sem publicar segredos. Use **npm run dev**, **npm test** e **npm run build**. Para login local, configure origem/callback OAuth correspondentes. Não há deploy automático executado por esta entrega: a publicação é feita pelo seu GitHub/Vercel.
 
 Se uma versão anterior acrescentou Responsável ao banco Projetos, essa coluna pode permanecer: o app não a usa mais. Não é necessário apagá-la para atualizar.
+
+## Bem-estar — primeira versão de testes
+
+A aba Bem-estar substitui Hábitos na navegação, preservando sua posição no dispositivo. Não apague nem recrie os bancos Hábitos e Registros de hábitos: nenhum histórico é migrado ou zerado. O componente e as regras anteriores são mantidos: cartões marcam somente hoje, sem desmarcar; correções pelo resumo mensal; alterações passadas pedem confirmação; resumo anual é leitura e abre o mês; exclusão, encerramento e recuperação continuam com confirmação. As datas do painel Meu dia não alteram o dia dos cartões de hábitos.
+
+### Criar os dois novos bancos no Notion
+
+Dentro da página LifeOS, crie dois bancos de dados completos e dê acesso à conexão interna LifeOS:
+
+1. **Bem-estar**: registros diários, pressão/BPM e peso/gordura privados de cada usuário.
+2. **Ciclo da Letícia**: um registro por data, sempre referente à Letícia; ambos os usuários podem ler e editar nesta fase de testes. Não são dois ciclos separados. A futura restrição de edição ainda não foi ativada.
+
+Os dois bancos usam as mesmas propriedades:
+
+| Propriedade | Tipo no Notion |
+| --- | --- |
+| Nome | Título |
+| Data | Data |
+| Tipo | Texto |
+| Dados | Texto |
+
+O app cria automaticamente os campos técnicos LifeOS ID e os campos de proprietário/editor. Não preencha nem modifique Dados manualmente: esse campo contém o registro estruturado em JSON. Não há relações obrigatórias com outros bancos.
+
+Na Vercel, adicione **NOTION_WELLNESS_DATABASE_ID** com o ID do banco Bem-estar e **NOTION_CYCLE_DATABASE_ID** com o ID do banco Ciclo da Letícia. Use o ID do banco, não o da visualização após `?v=`. Mantenha todas as demais variáveis. Se o banco tiver múltiplas fontes, informe também NOTION_WELLNESS_DATA_SOURCE_ID ou NOTION_CYCLE_DATA_SOURCE_ID. Faça novo deploy.
+
+### Como testar
+
+- Meu dia: escolha a data pelo campo DD/MM/AAAA/calendário, setas ou Hoje. Selecione um aspecto no círculo e use Preencher / editar. Os registros de dias passados podem ser editados; datas futuras são bloqueadas. Campos não preenchidos permanecem sem registro. Água, energia, estresse e observações estão no formulário. Salvar envia pelo fluxo incremental existente, com rascunho local protegido e indicação Salvo no Notion. Cancelar descarta apenas o formulário aberto.
+- Hábitos: confirme que as marcações e os resumos anteriores permanecem, incluindo hábitos encerrados e confirmações. Os atalhos de seção rolam até cada painel.
+- Pressão e BPM: registre data, horário, pressão sistólica, diastólica e frequência cardíaca. Podem existir várias medições no dia. Ver histórico permite editar ou excluir com confirmação. Os gráficos usam séries separadas, sem diagnóstico ou classificação automática.
+- Peso e gordura: registre quando houver uma nova medição; peso obrigatório, percentual de gordura opcional. Não há exigência diária. Histórico permite editar/excluir.
+- Ciclo da Letícia: registre menstruação, fluxo, cólicas e observações na data selecionada. Entre na outra conta, atualize e confirme que aparece o mesmo registro. Dia/medidas/hábitos de uma conta não aparecem para a outra.
+- Deixe Salvo no Notion aparecer antes de fechar. Alterações feitas em outra instância são carregadas pelo fluxo de retorno ao foco existente; formulários abertos impedem sobrescrita automática. Edições concorrentes conflitantes mostram erro e preservam o rascunho para revisão.
+
+### Backup após acrescentar bancos
+
+Os dois bancos entram automaticamente nos novos backups completos quando configurados. Um backup antigo que não contém esses bancos não pode ser restaurado automaticamente sobre o novo conjunto; o app bloqueia essa restauração para evitar perder dados. Crie um novo backup após configurar e validar esta versão.
+
+### Validação da entrega
+
+Testes locais cobrem isolamento dos registros, ciclo compartilhado com identidade fixa da Letícia, reenvio sem duplicação, conflito entre contas, validação das medidas, edição/exclusão e salvamento incremental. O build de produção é verificado. A integração real e o layout em Android/iPhone devem ser conferidos após seu deploy.
