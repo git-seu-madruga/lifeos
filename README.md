@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- O painel Meu dia usa a altura disponível ao lado do ciclo: círculo de pétalas maior e opções abaixo, aproveitando a largura inteira do cartão. O círculo do ciclo também foi ampliado. No celular, os tamanhos se adaptam ao espaço disponível.
+
 - Menstruação, fluxo e cólicas são escolhidos diretamente no cartão do ciclo, com salvamento automático. Editar detalhes permite observações, revisão e exclusão. Campos ainda não escolhidos não recebem respostas presumidas; selecionar Não em menstruação deixa Sem fluxo.
 
 - Sono com botões 6h ou menos, 7h, 8h e 9h ou mais e qualidade separada. Dores com intensidade e local opcionais separados. Opções de exercício e intestino têm descrições mais claras; mente inclui Sobrecarregada. Os dados antigos continuam preservados.
