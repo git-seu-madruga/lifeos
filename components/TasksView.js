@@ -90,7 +90,7 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
   function addTask() {
     const id = `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
     const project = projects.find((p) => p.id === projEff);
-    setTasks((prev) => [...prev, { id, _untouchedDraft:true,shared:!!project?.shared,responsible:project?.shared?(user?.email||project.responsible):'', title: "Nova tarefa", status: "todo", due: null, start: null, completedAt: null, priority: "medium", context: project?.context || (context === "all" ? "personal" : context), project: project?.id || null, milestone: null, attachments: [], notes: "", followUp: null, waitingOn: "" }]);
+    setTasks((prev) => [...prev, { id, _untouchedDraft:true,shared:!!project?.shared,responsible:project?.shared?(user?.email):'', title: "Nova tarefa", status: "todo", due: null, start: null, completedAt: null, priority: "medium", context: project?.context || (context === "all" ? "personal" : context), project: project?.id || null, milestone: null, attachments: [], notes: "", followUp: null, waitingOn: "" }]);
     setCreatedId(id);
     setOpenId(id);
   }

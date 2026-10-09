@@ -59,7 +59,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
       setProjectError("Um marco ultrapassa o prazo final do projeto. Ajuste o marco antes de antecipar o prazo final.");
       return;
     }
-    if('shared' in patch){setTasks(prev=>prev.map(t=>t.project===id?{...t,shared:!!next.shared,responsible:next.shared?(t.responsible||user?.email||next.responsible):''}:t));}
+    if('shared' in patch){setTasks(prev=>prev.map(t=>t.project===id?{...t,shared:!!next.shared,responsible:next.shared?(t.responsible||user?.email):''}:t));}
     setProjectError("");
     setProjects(prev => prev.map(p => p.id === id ? next : p));
   }
@@ -105,7 +105,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
             const msDone = p.milestones.filter((m) => m.done).length;
             return (
               <button key={p.id} className="pcard" onClick={() => onSelect(p.id)}>
-                <span className="pcard-name">{p.name}</span>{p.shared&&<span className="chip">Compartilhado · {responsibleName(p.responsible)}</span>}
+                <span className="pcard-name">{p.name}</span>{p.shared&&<span className="chip">Compartilhado</span>}
                 {context === "all" && <span className="chip">{CTX[p.context]}</span>}
                 <span className="muted small">{p.area || "Sem área"}{due && ` · ${due.text}`}</span>
                 <Bar pct={s.pct} />
@@ -136,7 +136,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
     if (!nt.title.trim()) return;
     updateProject(project.id,{_untouchedDraft:false});
     setTasks((prev) => [...prev, {
-      id: uid("t"), shared:!!project.shared,responsible:project.shared?(user?.email||project.responsible):'', title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
+      id: uid("t"), shared:!!project.shared,responsible:project.shared?(user?.email):'', title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
       project: project.id, milestone: nt.ms || null, attachments: [], notes: "", followUp: null, waitingOn: "",
     }]);
     setNt({ ...nt, title: "" });
@@ -161,7 +161,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
       <button className="ghost" onClick={closeProject}>← Projetos</button>
 
       <EntryTitle key={project.id} newEntry={project.id===createdProjectId} placeholder="Novo projeto" className="panel-title pd-name" value={project.name} onChange={(e) => updateProject(project.id, { name: e.target.value })} aria-label="Nome do projeto" />
-      <SharingFields item={project} user={user} onChange={patch=>updateProject(project.id,patch)}/>
+      <SharingFields project item={project} user={user} onChange={patch=>updateProject(project.id,patch)}/>
       <div className="field-row pd-fields">
         <div className="field"><span className="label">Contexto</span>
           <select value={project.context} onChange={(e) => setProjectContext(e.target.value)}>

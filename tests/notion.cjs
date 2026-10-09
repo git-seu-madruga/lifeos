@@ -303,10 +303,10 @@ global.fetch=async(url,options={})=>{
   const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
   const save=async(before,after,user)=>{const d=compactSyncState(before,after);return synchronize(d.base,d.next,user,async()=>{},true);};
   let a=(await notionLib.readSnapshot(false,A)).state;
-  const p={id:'shared-test-project',shared:true,responsible:A.email,name:'Projeto do casal',status:'active',context:'personal',area:'',due:null,description:'',milestones:[{id:'shared-test-ms',title:'Marco compartilhado',done:false,due:null}],attachments:[]};
+  const p={id:'shared-test-project',shared:true,name:'Projeto do casal',status:'active',context:'personal',area:'',due:null,description:'',milestones:[{id:'shared-test-ms',title:'Marco compartilhado',done:false,due:null}],attachments:[]};
   const t={id:'shared-test-task',shared:true,responsible:B.email,title:'Tarefa do casal',status:'todo',priority:'medium',context:'personal',project:p.id,milestone:'shared-test-ms',start:null,due:null,waitingOn:'',followUp:null,notes:'',completedAt:null,attachments:[]};
   await save(a,{...a,projects:[...a.projects,p],tasks:[...a.tasks,t]},A);
-  let b=(await notionLib.readSnapshot(false,B)).state;const project=b.projects.find(v=>v.name===p.name),task=b.tasks.find(v=>v.title===t.title);assert.ok(project&&task&&project.milestones.length===1,'As duas contas veem projeto, marcos e tarefas compartilhados');
+  let b=(await notionLib.readSnapshot(false,B)).state;const project=b.projects.find(v=>v.name===p.name),task=b.tasks.find(v=>v.title===t.title);assert.equal(project?._ownerEmail,A.email);assert.equal(task?._ownerEmail,A.email);assert.equal(project?.responsible,undefined,'Projeto compartilhado não tem responsável');assert.ok(project&&task&&project.milestones.length===1,'As duas contas veem projeto, marcos e tarefas compartilhados');
   const originalOwner=rows.get(project.id).properties['LifeOS Usuário'];await save(b,{...b,tasks:b.tasks.map(v=>v.id===task.id?{...v,notes:'Editada por Letícia'}:v)},B);assert.deepEqual(rows.get(project.id).properties['LifeOS Usuário'],originalOwner);
   b=(await notionLib.readSnapshot(false,B)).state;await assert.rejects(()=>save(b,{...b,tasks:b.tasks.map(v=>v.id===task.id?{...v,responsible:'intruso@example.com'}:v)},B),e=>e.status===422);
   a=(await notionLib.readSnapshot(false,A)).state;

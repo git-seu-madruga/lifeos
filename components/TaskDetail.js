@@ -83,7 +83,7 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
             <span className="label">Projeto</span>
             <select value={task.project || ""} onChange={(e) => {
               const p = projects.find((x) => x.id === e.target.value);
-              set({ project: p ? p.id : null, milestone: null, ...(p ? { context: p.context,shared:!!p.shared,responsible:p.shared?(task.responsible||user?.email||p.responsible):'' } : {}) });
+              set({ project: p ? p.id : null, milestone: null, ...(p ? { context: p.context,shared:!!p.shared,responsible:p.shared?(task.responsible||user?.email):'' } : {}) });
             }}>
               <option value="">Sem projeto</option>
               {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}

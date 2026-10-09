@@ -16,13 +16,10 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
-- Painéis não fecham ao selecionar/arrastar texto de dentro para fora. O clique direto no fundo, Fechar e Voltar continuam funcionando.
-
-- O recado não lido substitui somente o ícone do logo por um coração rosa, sem fundo ou contorno. LifeOS continua escrito normalmente. Só o coração abre Recados; após confirmar a leitura e sincronizar, retorna o ícone comum sem ação.
-- Tarefas novas intocadas são descartadas ao fechar. Entradas antigas sem título mostram Sem título e continuam acessíveis para editar/excluir. O espaço da linha ou cartão abre a tarefa; controles e o botão de projeto continuam independentes.
-- Projetos e tarefas podem ser compartilhados entre as duas contas, com responsável obrigatório e usuário logado como padrão. Tarefas vinculadas e marcos seguem o compartilhamento do projeto.
-- Calendários têm ícones maiores, sem caixa visível, com toda a área do ícone clicável.
-- Inclui a sincronização incremental e todas as correções anteriores. Não exige novos bancos ou variáveis. O app acrescenta os novos campos aos bancos existentes automaticamente.
+- Descompartilhar exige confirmação com o nome do proprietário para quem o registro ficará privado. Cancelar preserva o compartilhamento e o responsável.
+- Projetos compartilhados não têm responsável. Cada tarefa compartilhada tem seu próprio responsável obrigatório, com o usuário logado como padrão ao criar.
+- Inclui a correção de seleção de texto, calendários, descarte de tarefas vazias, notificação de Recados, sincronização incremental e todas as alterações anteriores.
+- Não exige novos bancos ou variáveis. Os campos necessários continuam sendo acrescentados automaticamente aos bancos existentes.
 
 ## 2. Contas, privacidade e contextos
 
@@ -64,9 +61,9 @@ Em Compras, uma lista existente com o mesmo nome, sem diferenciar maiúsculas, r
 
 ### Projetos e tarefas
 
-Marque Compartilhado no editor para permitir que ambos vejam e editem o registro. Escolha Péricles ou Letícia no campo Responsável; ele começa com o usuário logado. A responsabilidade organiza o trabalho e não restringe a edição do item compartilhado.
+Marque Compartilhado no editor para permitir que ambos vejam e editem o registro. Nas tarefas compartilhadas, escolha Péricles ou Letícia no campo Responsável; ele começa com o usuário logado. Projetos não têm responsável fixo. A responsabilidade organiza o trabalho e não restringe a edição do item compartilhado.
 
-Tarefas vinculadas seguem obrigatoriamente o compartilhamento do projeto; cada tarefa compartilhada pode ter seu próprio responsável. Tarefas avulsas escolhem livremente o compartilhamento. Alterar o projeto para compartilhado ou privado atualiza seus marcos e tarefas, inclusive filhos acrescentados por outra instância. Ao tornar um projeto privado, ele e seus filhos pertencem ao criador original do projeto; mudar o responsável não transfere a propriedade. Uma tarefa avulsa tornada privada também volta a ficar acessível somente ao seu criador original. Registros antigos permanecem privados por padrão.
+Tarefas vinculadas seguem obrigatoriamente o compartilhamento do projeto; cada tarefa compartilhada pode ter seu próprio responsável. Tarefas avulsas escolhem livremente o compartilhamento. Alterar o projeto para compartilhado ou privado atualiza seus marcos e tarefas, inclusive filhos acrescentados por outra instância. Ao tornar um projeto privado, uma confirmação informa o nome do criador original, para quem ele e seus filhos retornarão; os responsáveis das tarefas são removidos. Mudar o responsável não transfere a propriedade. Uma tarefa avulsa tornada privada também volta a ficar acessível somente ao seu criador original, informado na confirmação. Cancelar não altera o registro. Registros antigos permanecem privados por padrão.
 
 Projetos e tarefas novos usam Pessoal por padrão em Todos; Trabalho selecionado explicitamente e contexto herdado de projeto são respeitados. Pessoal aparece primeiro nos campos de contexto. Projetos abrem a partir de blocos. O título recebe foco ao criar; entradas novas sem nenhuma alteração são descartadas ao fechar. Projetos têm status Ativo, Pausado, Concluído e Cancelado, exclusão com confirmação, anexos e marcos. O prazo de um marco não pode ultrapassar o prazo final do projeto, quando definido; o marco é referência de cronograma e não gera indicador de atraso.
 
@@ -137,7 +134,6 @@ Use o ID do banco de dados antes de ?v=; o valor v é a visualização. Textos d
 | Propriedade | Tipo | Observação |
 | --- | --- | --- |
 | Compartilhado | Caixa de seleção | Acrescentado automaticamente; desmarcado = privado |
-| Responsável | Texto | Acrescentado automaticamente; email de uma das duas contas |
 | Nome | Título |  |
 | Status | Selecionar ou Status | Ativo, Pausado, Concluído, Cancelado |
 | Contexto | Selecionar | Pessoal, Trabalho |
@@ -288,7 +284,7 @@ Use o ID do banco de dados antes de ?v=; o valor v é a visualização. Textos d
 | Lido | Caixa de seleção |  |
 | Lido em | Data |  |
 
-O app acrescenta propriedades técnicas: **LifeOS ID**, **LifeOS Usuário** nas áreas privadas, **LifeOS Último editor** e **LifeOS Editado em** nas compartilhadas. Não altere esses campos. Ano, Plataformas e Concluído em de Entretenimento, Encerrado de Hábitos e Observação financeira podem ser acrescentados automaticamente quando ausentes. Compartilhado de Projetos, Marcos e Tarefas e Responsável de Projetos e Tarefas também são acrescentados automaticamente. Os outros campos de negócio devem ter os nomes/tipos acima.
+O app acrescenta propriedades técnicas: **LifeOS ID**, **LifeOS Usuário** nas áreas privadas, **LifeOS Último editor** e **LifeOS Editado em** nas compartilhadas. Não altere esses campos. Ano, Plataformas e Concluído em de Entretenimento, Encerrado de Hábitos e Observação financeira podem ser acrescentados automaticamente quando ausentes. Compartilhado de Projetos, Marcos e Tarefas e Responsável de Tarefas também são acrescentados automaticamente. Os outros campos de negócio devem ter os nomes/tipos acima.
 
 Registros privados criados diretamente no Notion sem LifeOS Usuário pertencem à conta principal. Para a segunda conta, prefira criar pelo aplicativo. Em Inbox, preencha Conteúdo: Nome é apenas o título resumido. Em Diário, preencha Data e Conteúdo, evitando duplicar um dia do mesmo usuário. Aniversários usa números separados para admitir ano desconhecido.
 
@@ -386,3 +382,5 @@ Após restaurar, atualize instâncias abertas. Se houver rascunho conflitante, c
 ## 9. Desenvolvimento local
 
 Node.js compatível com Next.js 15. Instale com **npm ci**. Configure variáveis localmente sem publicar segredos. Use **npm run dev**, **npm test** e **npm run build**. Para login local, configure origem/callback OAuth correspondentes. Não há deploy automático executado por esta entrega: a publicação é feita pelo seu GitHub/Vercel.
+
+Se uma versão anterior acrescentou Responsável ao banco Projetos, essa coluna pode permanecer: o app não a usa mais. Não é necessário apagá-la para atualizar.
