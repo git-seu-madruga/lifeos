@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Clicar fora dos pontos dentro do gráfico limpa a seleção, restaura as informações originais e retorna o botão para Ver histórico, tanto em pressão quanto em peso.
+
 - Selecionar um ponto nos gráficos de pressão ou peso muda o botão para Editar registro e abre a medição selecionada. Pontos de pressão que representam várias medições abrem somente os registros daquela data, para escolher qual editar ou excluir. Sem seleção, Ver histórico mantém a lista completa.
 
 - Nove pétalas: sono, humor, mente, dores, exercício, intestino, energia, água e estresse. Dores aceita vários locais; energia e estresse usam escala de 1 a 5. Removidos os textos de opcionalidade, aprox. nas horas e Mais registros do dia. Exclusão confirmada restrita às pétalas. Nenhuma alteração de banco ou variável no Notion/Vercel é necessária.
