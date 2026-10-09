@@ -16,14 +16,20 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
-- Remove a subguia redundante Recados acima do título com coração. O acesso pela aba principal permanece.
-- Mantém todas as alterações anteriores, incluindo as correções dos títulos de projetos e das Finanças.
+- Painéis não fecham ao selecionar/arrastar texto de dentro para fora. O clique direto no fundo, Fechar e Voltar continuam funcionando.
+
+- O recado não lido substitui somente o ícone do logo por um coração rosa, sem fundo ou contorno. LifeOS continua escrito normalmente. Só o coração abre Recados; após confirmar a leitura e sincronizar, retorna o ícone comum sem ação.
+- Tarefas novas intocadas são descartadas ao fechar. Entradas antigas sem título mostram Sem título e continuam acessíveis para editar/excluir. O espaço da linha ou cartão abre a tarefa; controles e o botão de projeto continuam independentes.
+- Projetos e tarefas podem ser compartilhados entre as duas contas, com responsável obrigatório e usuário logado como padrão. Tarefas vinculadas e marcos seguem o compartilhamento do projeto.
+- Calendários têm ícones maiores, sem caixa visível, com toda a área do ícone clicável.
+- Inclui a sincronização incremental e todas as correções anteriores. Não exige novos bancos ou variáveis. O app acrescenta os novos campos aos bancos existentes automaticamente.
 
 ## 2. Contas, privacidade e contextos
 
 | Área | Acesso |
 | --- | --- |
-| Inbox, Projetos, Marcos, Tarefas, Diário, Hábitos e registros, Entretenimento | Privado de cada conta |
+| Inbox, Diário, Hábitos e registros, Entretenimento | Privado de cada conta |
+| Projetos, Marcos e Tarefas | Privado por padrão; compartilhamento opcional entre as duas contas |
 | Compras, Aniversários, Finanças | Compartilhado entre as duas contas |
 | Recados | Mensagens entre as duas contas, com leitura confirmada pelo destinatário |
 | Backup e restauração | Apenas a conta principal; inclui dados das duas contas |
@@ -57,6 +63,10 @@ No desktop, fica à esquerda; no celular, pode ser aberto/recolhido. O campo cre
 Em Compras, uma lista existente com o mesmo nome, sem diferenciar maiúsculas, recebe os novos itens no início. Os itens acrescentados manualmente também entram no início. Em Recados, o Inbox só é removido depois que o envio é confirmado pelo Notion. Cancelamentos/erros de conversão preservam a entrada. Não há conversão para Finanças, Hábitos ou Entretenimento.
 
 ### Projetos e tarefas
+
+Marque Compartilhado no editor para permitir que ambos vejam e editem o registro. Escolha Péricles ou Letícia no campo Responsável; ele começa com o usuário logado. A responsabilidade organiza o trabalho e não restringe a edição do item compartilhado.
+
+Tarefas vinculadas seguem obrigatoriamente o compartilhamento do projeto; cada tarefa compartilhada pode ter seu próprio responsável. Tarefas avulsas escolhem livremente o compartilhamento. Alterar o projeto para compartilhado ou privado atualiza seus marcos e tarefas, inclusive filhos acrescentados por outra instância. Ao tornar um projeto privado, ele e seus filhos pertencem ao criador original do projeto; mudar o responsável não transfere a propriedade. Uma tarefa avulsa tornada privada também volta a ficar acessível somente ao seu criador original. Registros antigos permanecem privados por padrão.
 
 Projetos e tarefas novos usam Pessoal por padrão em Todos; Trabalho selecionado explicitamente e contexto herdado de projeto são respeitados. Pessoal aparece primeiro nos campos de contexto. Projetos abrem a partir de blocos. O título recebe foco ao criar; entradas novas sem nenhuma alteração são descartadas ao fechar. Projetos têm status Ativo, Pausado, Concluído e Cancelado, exclusão com confirmação, anexos e marcos. O prazo de um marco não pode ultrapassar o prazo final do projeto, quando definido; o marco é referência de cronograma e não gera indicador de atraso.
 
@@ -106,6 +116,10 @@ Texto e título do rascunho são guardados localmente por usuário quando o arma
 
 As edições comuns são salvas automaticamente. O botão Atualizar relê o Notion; não é obrigatório clicar para cada edição. Envio/leitura de Recados usa salvamento imediato. O horário no cabeçalho indica a última leitura bem-sucedida dos dados, enquanto Salvo no Notion indica a gravação.
 
+Durante o salvamento, o app envia apenas os registros envolvidos, suas versões anteriores para detectar conflitos e as dependências necessárias (por exemplo, o projeto e seus marcos de uma tarefa). Imagens e arquivos já enviados não são reenviados. O servidor usa leitura por ID e consultas filtradas, sem varrer bancos inteiros a cada edição. Novas entradas de Diário e marcações de Hábitos consultam a data envolvida para preservar a unicidade e recuperar falhas parciais.
+
+A carga inicial e o botão Atualizar continuam lendo os dados necessários à visão geral. Esta revisão não implementa paginação das telas nem leitura incremental no retorno ao foco; essas leituras gerais ainda podem crescer com o acervo. Clientes antigos permanecem compatíveis com o servidor, mas só passam a enviar dados reduzidos depois de atualizar a página/app.
+
 Ao voltar para uma aba do navegador ou app em segundo plano, o LifeOS consulta os dados em primeiro plano, com intervalo mínimo entre verificações. Não faz consultas periódicas comuns enquanto está escondido. Formulários abertos, edições pendentes ou salvamentos em andamento adiam a substituição dos dados para preservar texto local. Uma consulta em andamento não sobrescreve edições feitas durante ela.
 
 Não há tela inicial de carregamento a cada retorno: a interface permanece montada e o indicador Atualizar mostra atividade. Se ocorrer conflito, preserve seu texto e revise a atualização; descarte de alterações pendentes exige confirmação. Rascunho local não substitui a confirmação de salvamento: o sistema pode suspender o aplicativo ao trocar de app.
@@ -122,6 +136,8 @@ Use o ID do banco de dados antes de ?v=; o valor v é a visualização. Textos d
 
 | Propriedade | Tipo | Observação |
 | --- | --- | --- |
+| Compartilhado | Caixa de seleção | Acrescentado automaticamente; desmarcado = privado |
+| Responsável | Texto | Acrescentado automaticamente; email de uma das duas contas |
 | Nome | Título |  |
 | Status | Selecionar ou Status | Ativo, Pausado, Concluído, Cancelado |
 | Contexto | Selecionar | Pessoal, Trabalho |
@@ -134,6 +150,7 @@ Use o ID do banco de dados antes de ?v=; o valor v é a visualização. Textos d
 
 | Propriedade | Tipo | Observação |
 | --- | --- | --- |
+| Compartilhado | Caixa de seleção | Automático; segue o projeto |
 | Nome | Título |  |
 | Projeto | Relação | → Projetos; uma página |
 | Prazo | Data |  |
@@ -144,6 +161,8 @@ Use o ID do banco de dados antes de ?v=; o valor v é a visualização. Textos d
 
 | Propriedade | Tipo | Observação |
 | --- | --- | --- |
+| Compartilhado | Caixa de seleção | Acrescentado automaticamente; desmarcado = privado |
+| Responsável | Texto | Acrescentado automaticamente; email de uma das duas contas |
 | Nome | Título |  |
 | Status | Selecionar ou Status | Não iniciada, Em andamento, On hold, Concluída |
 | Prioridade | Selecionar | Alta, Média, Baixa |
@@ -269,7 +288,7 @@ Use o ID do banco de dados antes de ?v=; o valor v é a visualização. Textos d
 | Lido | Caixa de seleção |  |
 | Lido em | Data |  |
 
-O app acrescenta propriedades técnicas: **LifeOS ID**, **LifeOS Usuário** nas áreas privadas, **LifeOS Último editor** e **LifeOS Editado em** nas compartilhadas. Não altere esses campos. Ano, Plataformas e Concluído em de Entretenimento, Encerrado de Hábitos e Observação financeira podem ser acrescentados automaticamente quando ausentes. Os outros campos de negócio devem ter os nomes/tipos acima.
+O app acrescenta propriedades técnicas: **LifeOS ID**, **LifeOS Usuário** nas áreas privadas, **LifeOS Último editor** e **LifeOS Editado em** nas compartilhadas. Não altere esses campos. Ano, Plataformas e Concluído em de Entretenimento, Encerrado de Hábitos e Observação financeira podem ser acrescentados automaticamente quando ausentes. Compartilhado de Projetos, Marcos e Tarefas e Responsável de Projetos e Tarefas também são acrescentados automaticamente. Os outros campos de negócio devem ter os nomes/tipos acima.
 
 Registros privados criados diretamente no Notion sem LifeOS Usuário pertencem à conta principal. Para a segunda conta, prefira criar pelo aplicativo. Em Inbox, preencha Conteúdo: Nome é apenas o título resumido. Em Diário, preencha Data e Conteúdo, evitando duplicar um dia do mesmo usuário. Aniversários usa números separados para admitir ano desconhecido.
 

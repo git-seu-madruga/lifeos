@@ -1,4 +1,5 @@
 "use client";
+import {responsibleName} from "../lib/sharing";
 import LinkText, {TextLinks} from "./LinkText";
 
 import { patchTask, newestCompleted } from "../lib/tasks";
@@ -39,7 +40,7 @@ function dateInfo(t) {
   return dueLabel(t.due);
 }
 
-export default function TasksView({ tasks, setTasks, projects, context, sub, onOpenProject }) {
+export default function TasksView({ user, tasks, setTasks, projects, context, sub, onOpenProject }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("due");
   const [quick, setQuick] = useState(null);
@@ -53,7 +54,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
 
   const byProject = sub === "projeto";
   const pn = (id) => projects.find((p) => p.id === id)?.name || "";
-  const scoped = useMemo(() => tasks.filter((t) => context === "all" || t.context === context), [tasks, context]);
+  const scoped = useMemo(() => tasks.filter((t) => !t._untouchedDraft && (context === "all" || t.context === context)), [tasks, context]);
   const update = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch) : t)));
 
   const visibleProjects = projects.filter((p) => context === "all" || p.context === context);
@@ -89,7 +90,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
   function addTask() {
     const id = `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
     const project = projects.find((p) => p.id === projEff);
-    setTasks((prev) => [...prev, { id, _untouchedDraft:true, title: "Nova tarefa", status: "todo", due: null, start: null, completedAt: null, priority: "medium", context: project?.context || (context === "all" ? "personal" : context), project: project?.id || null, milestone: null, attachments: [], notes: "", followUp: null, waitingOn: "" }]);
+    setTasks((prev) => [...prev, { id, _untouchedDraft:true,shared:!!project?.shared,responsible:project?.shared?(user?.email||project.responsible):'', title: "Nova tarefa", status: "todo", due: null, start: null, completedAt: null, priority: "medium", context: project?.context || (context === "all" ? "personal" : context), project: project?.id || null, milestone: null, attachments: [], notes: "", followUp: null, waitingOn: "" }]);
     setCreatedId(id);
     setOpenId(id);
   }
@@ -150,14 +151,15 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
                 {g.items.map((t) => {
                   const di = dateInfo(t);
                   return (
-                    <li key={t.id} className={"row" + (isClosed(t) ? " done" : "")}>
+                    <li key={t.id} onClick={e=>{if(!e.target.closest('button,input,a,select'))setOpenId(t.id);}} className={"row" + (isClosed(t) ? " done" : "")}>
                       <input type="checkbox" className="check" checked={t.status === "done"} aria-label={`Concluir: ${t.title}`}
                         onChange={() => update(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
                       <button className="row-title" onClick={() => setOpenId(t.id)}>
-                        {t.title}
+                        {t.title?.trim() || "Sem título"}
                         {t.status === "hold" && t.waitingOn && <span className="row-project">Aguardando: <LinkText text={t.waitingOn}/></span>}
                       </button>
                       <span className="row-meta">
+                        {t.shared&&<span className="chip shared-responsible">{responsibleName(t.responsible)||"Compartilhada"}</span>}
                         {(t.attachments || []).length > 0 && <span className="muted small" title="Anexos">📎 {t.attachments.length}</span>}
                         {t.project && <button className="proj" onClick={() => onOpenProject(t.project)} title="Abrir projeto">{pn(t.project)}</button>}
                         <span className={`prio prio-${t.priority}`}>{PRIO_LABEL[t.priority]}</span>
@@ -173,7 +175,7 @@ export default function TasksView({ tasks, setTasks, projects, context, sub, onO
         );
       })}
 
-      <ModalLayer open={!!current} onClose={closeTask}>{current && <TaskDetail key={current.id} newEntry={current.id===createdId} task={current} projects={projects} update={update} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={closeTask} />}</ModalLayer>
+      <ModalLayer open={!!current} onClose={closeTask}>{current && <TaskDetail user={user} key={current.id} newEntry={current.id===createdId} task={current} projects={projects} update={update} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={closeTask} />}</ModalLayer>
     </section>
   );
 }

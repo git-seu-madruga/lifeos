@@ -1,4 +1,6 @@
 "use client";
+import SharingFields from "./SharingFields";
+import {responsibleName} from "../lib/sharing";
 import EntryTitle from "./EntryTitle";
 import LinkText, {TextLinks} from "./LinkText";
 import ProjectAttachments from "./ProjectAttachments";
@@ -36,7 +38,7 @@ function Bar({ pct }) {
   return <div className="bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${pct}%` }} /></div>;
 }
 
-export default function ProjectsView({ tasks, setTasks, projects, setProjects, context, sub, selected, onSelect }) {
+export default function ProjectsView({ user, tasks, setTasks, projects, setProjects, context, sub, selected, onSelect }) {
   const [openId, setOpenId] = useState(null);
   const [createdProjectId,setCreatedProjectId]=useState(null);
   useEffect(()=>()=>setProjects(previous=>previous.filter(project=>!project._untouchedDraft)),[setProjects]);
@@ -57,6 +59,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
       setProjectError("Um marco ultrapassa o prazo final do projeto. Ajuste o marco antes de antecipar o prazo final.");
       return;
     }
+    if('shared' in patch){setTasks(prev=>prev.map(t=>t.project===id?{...t,shared:!!next.shared,responsible:next.shared?(t.responsible||user?.email||next.responsible):''}:t));}
     setProjectError("");
     setProjects(prev => prev.map(p => p.id === id ? next : p));
   }
@@ -102,7 +105,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
             const msDone = p.milestones.filter((m) => m.done).length;
             return (
               <button key={p.id} className="pcard" onClick={() => onSelect(p.id)}>
-                <span className="pcard-name">{p.name}</span>
+                <span className="pcard-name">{p.name}</span>{p.shared&&<span className="chip">Compartilhado · {responsibleName(p.responsible)}</span>}
                 {context === "all" && <span className="chip">{CTX[p.context]}</span>}
                 <span className="muted small">{p.area || "Sem área"}{due && ` · ${due.text}`}</span>
                 <Bar pct={s.pct} />
@@ -131,21 +134,21 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
   }
   function addTask() {
     if (!nt.title.trim()) return;
-    updateProject(project.id,{});
+    updateProject(project.id,{_untouchedDraft:false});
     setTasks((prev) => [...prev, {
-      id: uid("t"), title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
+      id: uid("t"), shared:!!project.shared,responsible:project.shared?(user?.email||project.responsible):'', title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
       project: project.id, milestone: nt.ms || null, attachments: [], notes: "", followUp: null, waitingOn: "",
     }]);
     setNt({ ...nt, title: "" });
   }
 
   const renderTask = (t) => (
-    <li key={t.id} className={"row" + (t.status === "done" ? " done" : "")}>
+    <li key={t.id} onClick={e=>{if(!e.target.closest('button,input,a,select'))setOpenId(t.id);}} className={"row" + (t.status === "done" ? " done" : "")}>
       <input type="checkbox" className="check" checked={t.status === "done"} aria-label={`Concluir: ${t.title}`}
         onChange={() => updateTask(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
-      <button className="row-title" onClick={() => setOpenId(t.id)}>{t.title}</button>
+      <button className="row-title" onClick={() => setOpenId(t.id)}>{t.title?.trim()||"Sem título"}</button>
       <span className="row-meta">
-        <span className="chip">{STATUS_LABEL[t.status]}</span>
+        {t.shared&&<span className="chip">{responsibleName(t.responsible)}</span>}<span className="chip">{STATUS_LABEL[t.status]}</span>
       </span>
     </li>
   );
@@ -158,6 +161,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
       <button className="ghost" onClick={closeProject}>← Projetos</button>
 
       <EntryTitle key={project.id} newEntry={project.id===createdProjectId} placeholder="Novo projeto" className="panel-title pd-name" value={project.name} onChange={(e) => updateProject(project.id, { name: e.target.value })} aria-label="Nome do projeto" />
+      <SharingFields item={project} user={user} onChange={patch=>updateProject(project.id,patch)}/>
       <div className="field-row pd-fields">
         <div className="field"><span className="label">Contexto</span>
           <select value={project.context} onChange={(e) => setProjectContext(e.target.value)}>
@@ -242,7 +246,7 @@ export default function ProjectsView({ tasks, setTasks, projects, setProjects, c
       <ProjectAttachments key={project.id} items={project.attachments || []} onChange={(attachments) => updateProject(project.id, { attachments })} />
       <button className="danger" onClick={deleteProject}>Excluir projeto</button>
 
-      <ModalLayer open={!!openTask} onClose={()=>setOpenId(null)}>{openTask && <TaskDetail key={openTask.id} task={openTask} projects={projects} update={updateTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setOpenId(null)} />}</ModalLayer>
+      <ModalLayer open={!!openTask} onClose={()=>setOpenId(null)}>{openTask && <TaskDetail user={user} key={openTask.id} task={openTask} projects={projects} update={updateTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setOpenId(null)} />}</ModalLayer>
     </section>
   );
 }

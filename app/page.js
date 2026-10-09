@@ -185,7 +185,7 @@ export default function Home() {
       </div>
     <div className="app">
       <header className="topbar">
-        {recadoNotice?<button className="recado-logo-notice" aria-label="Há um recado de hoje não lido. Abrir Recados" title="Seu recado de hoje chegou ❤️" onClick={()=>{setBackupOpen(false);setTabId('recados');setRecadoTodayRequest(value=>value+1);}}><TabIcon id="recados"/><span>Recado de hoje<small>Um carinho esperando por você</small></span></button>:<Brand/>}
+        <Brand notice={!!recadoNotice} onNotice={()=>{setBackupOpen(false);setTabId('recados');setRecadoTodayRequest(value=>value+1);}}/>
 
         <div className="segmented" role="group" aria-label="Contexto">
           {CONTEXTS.map((c) => (
@@ -266,13 +266,13 @@ export default function Home() {
 
         {tabId === "tarefas" ? (
           tasks && projects ? (
-            <TasksView tasks={tasks} setTasks={setTasks} projects={projects} context={context} sub={subId} onOpenProject={openProject} />
+            <TasksView user={remote.user} tasks={tasks} setTasks={setTasks} projects={projects} context={context} sub={subId} onOpenProject={openProject} />
           ) : (
             <p className="empty">Carregando…</p>
           )
         ) : tabId === "projetos" ? (
           tasks && projects ? (
-            <ProjectsView tasks={tasks} setTasks={setTasks} projects={projects} setProjects={setProjects} context={context} sub={subId} selected={selected} onSelect={setSelected} />
+            <ProjectsView user={remote.user} tasks={tasks} setTasks={setTasks} projects={projects} setProjects={setProjects} context={context} sub={subId} selected={selected} onSelect={setSelected} />
           ) : (
             <p className="empty">Carregando…</p>
           )
@@ -297,7 +297,7 @@ export default function Home() {
     </div>
     <BackNotice/>
     <ModalLayer open={!!shoppingInbox} onClose={()=>setShoppingInbox(null)}>{shoppingInbox&&<div className="overlay overlay-context"><div className="panel finance-modal" role="dialog" aria-modal="true" aria-label="Contexto da lista de compras"><h2>Contexto da lista</h2><p className="muted">Escolha onde criar a lista ou acrescentar os itens à lista de mesmo nome.</p><label>Contexto<select className="search" value={shoppingContext} onChange={e=>setShoppingContext(e.target.value)}><option value="personal">Pessoal</option><option value="work">Trabalho</option></select></label><div className="finance-period"><button className="primary" onClick={()=>moveShoppingInbox(shoppingInbox,shoppingContext)}>Mover para lista</button><button className="ghost" onClick={()=>setShoppingInbox(null)}>Cancelar</button></div></div></div>}</ModalLayer>
-    <ModalLayer open={!!newTask&&!!projects} onClose={()=>setNewTaskId(null)}>{newTask && projects && <TaskDetail key={newTask.id} task={newTask} projects={projects} update={updateNewTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setNewTaskId(null)} />}</ModalLayer>
+    <ModalLayer open={!!newTask&&!!projects} onClose={()=>setNewTaskId(null)}>{newTask && projects && <TaskDetail user={remote.user} key={newTask.id} task={newTask} projects={projects} update={updateNewTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setNewTaskId(null)} />}</ModalLayer>
     </div>
   );
 }

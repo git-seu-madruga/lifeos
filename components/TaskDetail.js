@@ -1,4 +1,5 @@
 "use client";
+import SharingFields from "./SharingFields";
 import EntryTitle from "./EntryTitle";
 import LinkText, {TextLinks} from "./LinkText";
 import ProjectAttachments from "./ProjectAttachments";
@@ -8,7 +9,7 @@ import { addDaysISO } from "../lib/dates";
 
 const STATUS = [["todo", "Não iniciada"], ["doing", "Em andamento"], ["hold", "On hold"], ["done", "Concluída"]];
 
-export default function TaskDetail({ task, projects, update, onDelete, onClose, newEntry=false }) {
+export default function TaskDetail({ user, task, projects, update, onDelete, onClose, newEntry=false }) {
 
 
   const set = (patch) => update(task.id, patch);
@@ -28,6 +29,7 @@ export default function TaskDetail({ task, projects, update, onDelete, onClose, 
           <button className="ghost" onClick={onClose}>Fechar</button>
         </div>
 
+        <SharingFields item={task} user={user} onChange={set} locked={!!proj}/>
         <div className="field">
           <span className="label">Status</span>
           <div className="seg-row">
@@ -81,7 +83,7 @@ export default function TaskDetail({ task, projects, update, onDelete, onClose, 
             <span className="label">Projeto</span>
             <select value={task.project || ""} onChange={(e) => {
               const p = projects.find((x) => x.id === e.target.value);
-              set({ project: p ? p.id : null, milestone: null, ...(p ? { context: p.context } : {}) });
+              set({ project: p ? p.id : null, milestone: null, ...(p ? { context: p.context,shared:!!p.shared,responsible:p.shared?(task.responsible||user?.email||p.responsible):'' } : {}) });
             }}>
               <option value="">Sem projeto</option>
               {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}

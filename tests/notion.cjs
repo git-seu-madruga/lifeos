@@ -67,7 +67,8 @@ global.fetch=async(url,options={})=>{
  if(route.startsWith('/data_sources/')){
   const id=route.split('/')[2],kind=kindBySource(id);assert.ok(kind);
   if(route.endsWith('/query')){
-   const list=[...rows.values()].filter(row=>row.parent.data_source_id===id&&!row.in_trash);
+   const matches=(row,filter)=>{if(!filter)return true;if(filter.or)return filter.or.some(f=>matches(row,f));const value=row.properties[filter.property];if(filter.rich_text)return notionLib.plain(value?.rich_text)===filter.rich_text.equals;if(filter.date)return value?.date?.start===filter.date.equals;if(filter.relation)return (value?.relation||[]).some(p=>p.id===filter.relation.contains);throw Error('Filtro de teste não suportado');};
+   const list=[...rows.values()].filter(row=>row.parent.data_source_id===id&&!row.in_trash&&matches(row,body.filter));
    const start=body.start_cursor?Number(body.start_cursor):0,size=paginate?1:100,end=start+size;
    return reply({results:list.slice(start,end),has_more:end<list.length,next_cursor:end<list.length?String(end):null});
   }
@@ -263,6 +264,58 @@ global.fetch=async(url,options={})=>{
  assert.equal((await notionLib.readSnapshot(false,B)).state.media.length,0);
  delete process.env.NOTION_MEDIA_DATABASE_ID;delete process.env.NOTION_MEDIA_SECTIONS_DATABASE_ID;
  }
+ // Sparse saves preserve unrelated rows and retain conflict/access checks.
+ {
+  const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
+  const startState=(await notionLib.readSnapshot()).state;
+  const added={...startState,inbox:[...startState.inbox,{id:'delta-inbox',text:'Entrada incremental'}]};
+  const delta=compactSyncState(startState,added);assert.equal(delta.next.inbox.length,1);assert.equal(delta.next.tasks.length,0);
+  let start=calls.length;await synchronize(delta.base,delta.next,null,async()=>{},true);
+  assert.ok(calls.slice(start).filter(c=>c.route.endsWith('/query')).every(c=>c.body.filter),'Toda consulta incremental usa filtro');
+  const full=(await notionLib.readSnapshot()).state;
+  assert.equal(full.inbox.length,startState.inbox.length+1);assert.deepEqual(full.tasks,startState.tasks);
+  const entry=full.inbox.find(p=>p.text==='Entrada incremental');
+  const changed={...full,inbox:full.inbox.map(p=>p.id===entry.id?{...p,text:'Texto editado'}:p)};
+  const edit=compactSyncState(full,changed);start=calls.length;await synchronize(edit.base,edit.next,null,async()=>{},true);
+  assert.equal(calls.slice(start).filter(c=>c.route.endsWith('/query')).length,0,'Edição por ID não varre o banco');
+  await assert.rejects(()=>synchronize(edit.base,{...edit.next,inbox:edit.next.inbox.map(p=>({...p,text:'Edição antiga'}))},null,async()=>{},true),e=>e.status===409);
+  const done=(await notionLib.readSnapshot()).state;const deletion=compactSyncState(done,{...done,inbox:done.inbox.filter(p=>p.id!==entry.id)});await synchronize(deletion.base,deletion.next,null,async()=>{},true);
+  assert.equal((await notionLib.readSnapshot()).state.inbox.length,startState.inbox.length);
+  const lots={...startState,inbox:Array.from({length:1000},(_,n)=>({id:'bulk-'+n,text:'x'.repeat(1000)}))};
+  const tiny=compactSyncState(lots,{...lots,inbox:lots.inbox.map((p,n)=>n===3?{...p,text:'mudou'}:p)});
+  assert.ok(JSON.stringify(tiny).length<3000,'Payload não cresce com mil registros intocados');
+ }
+ {
+  const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
+  const A={id:'google:user-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:user-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+  const before=(await notionLib.readSnapshot(false,A)).state;
+  const project={id:'delta-related-project',name:'Projeto incremental',status:'active',context:'personal',area:'',due:null,description:'',milestones:[{id:'delta-related-milestone',title:'Referência',due:null,done:false}],attachments:[]};
+  const task={id:'delta-related-task',title:'Tarefa incremental',status:'todo',priority:'medium',context:'personal',project:project.id,milestone:project.milestones[0].id,start:null,due:null,waitingOn:'',followUp:null,notes:'',completedAt:null,attachments:[]};
+  const delta=compactSyncState(before,{...before,projects:[...before.projects,project],tasks:[...before.tasks,task]});await synchronize(delta.base,delta.next,A,async()=>{},true);
+  const saved=(await notionLib.readSnapshot(false,A)).state,linked=saved.tasks.find(p=>p.title===task.title);assert.ok(linked?.project&&linked.milestone,'Novas relações são resolvidas no mesmo salvamento');
+  const edit=compactSyncState(saved,{...saved,tasks:saved.tasks.map(p=>p.id===linked.id?{...p,notes:'Atualizada'}:p)});
+  assert.equal(edit.next.projects.length,1);await synchronize(edit.base,edit.next,A,async()=>{},true);
+  await assert.rejects(()=>synchronize(edit.base,edit.next,B,async()=>{},true),e=>e.status===403);
+ }
+ // Shared projects and tasks: visibility, ownership, assignee and concurrent children.
+ {
+  const A={id:'google:user-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:user-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+  const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
+  const save=async(before,after,user)=>{const d=compactSyncState(before,after);return synchronize(d.base,d.next,user,async()=>{},true);};
+  let a=(await notionLib.readSnapshot(false,A)).state;
+  const p={id:'shared-test-project',shared:true,responsible:A.email,name:'Projeto do casal',status:'active',context:'personal',area:'',due:null,description:'',milestones:[{id:'shared-test-ms',title:'Marco compartilhado',done:false,due:null}],attachments:[]};
+  const t={id:'shared-test-task',shared:true,responsible:B.email,title:'Tarefa do casal',status:'todo',priority:'medium',context:'personal',project:p.id,milestone:'shared-test-ms',start:null,due:null,waitingOn:'',followUp:null,notes:'',completedAt:null,attachments:[]};
+  await save(a,{...a,projects:[...a.projects,p],tasks:[...a.tasks,t]},A);
+  let b=(await notionLib.readSnapshot(false,B)).state;const project=b.projects.find(v=>v.name===p.name),task=b.tasks.find(v=>v.title===t.title);assert.ok(project&&task&&project.milestones.length===1,'As duas contas veem projeto, marcos e tarefas compartilhados');
+  const originalOwner=rows.get(project.id).properties['LifeOS Usuário'];await save(b,{...b,tasks:b.tasks.map(v=>v.id===task.id?{...v,notes:'Editada por Letícia'}:v)},B);assert.deepEqual(rows.get(project.id).properties['LifeOS Usuário'],originalOwner);
+  b=(await notionLib.readSnapshot(false,B)).state;await assert.rejects(()=>save(b,{...b,tasks:b.tasks.map(v=>v.id===task.id?{...v,responsible:'intruso@example.com'}:v)},B),e=>e.status===422);
+  a=(await notionLib.readSnapshot(false,A)).state;
+  const extra={...task,id:'shared-concurrent-child',_notionId:undefined,title:'Tarefa criada na outra instância',notes:'',milestone:null};await save(b,{...b,tasks:[...b.tasks,extra]},B);
+  await save(a,{...a,projects:a.projects.map(v=>v.id===project.id?{...v,shared:false,responsible:''}:v),tasks:a.tasks.map(v=>v.project===project.id?{...v,shared:false,responsible:''}:v)},A);
+  b=(await notionLib.readSnapshot(false,B)).state;assert.ok(!b.projects.some(v=>v.id===project.id));assert.ok(!b.tasks.some(v=>v.project===project.id),'Descompartilhar protege também os filhos criados em outra instância');
+  a=(await notionLib.readSnapshot(false,A)).state;assert.equal(a.tasks.filter(v=>v.project===project.id).length,2);assert.ok(a.tasks.filter(v=>v.project===project.id).every(v=>!v.shared));
+  await assert.rejects(()=>save(a,{...a,tasks:a.tasks.map(v=>v.project===project.id?{...v,shared:true,responsible:A.email}:v)},A),e=>e.status===422);
+ }
  const copyRoute=require(path.join(temp,'app/api/notion/media-cover/route')).POST;
  const copied=await copyRoute(new Request('https://lifeos.test/api/notion/media-cover',{method:'POST',headers:{cookie,origin:'https://lifeos.test','content-type':'application/json'},body:JSON.stringify({url:'https://covers.openlibrary.org/b/id/123-M.jpg',name:'Duna'})}));assert.equal(copied.status,200);const coverResult=await copied.json();assert.equal(auth.unseal(coverResult.uploadProof).user,'google:test-pericles');assert.ok(coverResult.uploadId);
  const copyDenied=await copyRoute(new Request('https://lifeos.test/api/notion/media-cover',{method:'POST',body:'{}'}));assert.equal(copyDenied.status,401);
@@ -272,3 +325,4 @@ global.fetch=async(url,options={})=>{
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão preservando tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');
  fs.rmSync(temp,{recursive:true});
 })().catch(error=>{console.error(error);process.exitCode=1;});
+

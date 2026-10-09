@@ -6,7 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "test": "node tests/notion.cjs && node tests/client-sync.cjs && node tests/diary.cjs && node tests/finance.cjs && node tests/birthdays.cjs && node tests/shopping.cjs && node tests/habits.cjs && node tests/google.cjs && node tests/pwa.cjs && node tests/media.cjs && node tests/mobile-tabs.cjs && node tests/links.cjs && node tests/back-navigation.cjs && node tests/inbox-mobile.cjs && node tests/recados.cjs && node tests/backup.cjs && node tests/recado-notification.cjs"
+    "test": "node tests/notion.cjs && node tests/client-sync.cjs && node tests/diary.cjs && node tests/finance.cjs && node tests/birthdays.cjs && node tests/shopping.cjs && node tests/habits.cjs && node tests/google.cjs && node tests/pwa.cjs && node tests/media.cjs && node tests/mobile-tabs.cjs && node tests/links.cjs && node tests/back-navigation.cjs && node tests/inbox-mobile.cjs && node tests/recados.cjs && node tests/backup.cjs && node tests/recado-notification.cjs && node tests/tasks-ui.cjs && node tests/backdrop-gesture.cjs"
   },
   "dependencies": {
     "google-auth-library": "^10.9.1",

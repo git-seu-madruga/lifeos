@@ -26,12 +26,12 @@ global.fetch=async(url,options={})=>{
  if(url==='/api/notion/sync'){
   syncCount++;if(gate)await gate;
   if(failure){failure=false;return Response.json({error:'Falha simulada'},{status:502});}
-  const {next}=JSON.parse(options.body),bindings={},files={};
+  const {next,base,partial}=JSON.parse(options.body),bindings={},files={};
   for(const item of [...(next.mediaSections||[]),...(next.media||[]),...next.projects,...next.projects.flatMap(project=>project.milestones),...next.tasks,...next.inbox,...next.diary,...(next.shopping || []),...next.categories,...next.transactions,...(next.habits||[]),...(next.habitLogs||[])]){
    bindings[item.id]=item._notionId||`remote-${item.id}`;
    for(const file of item.attachments||[])if(file.uploadId)files[file.id]={id:file.id,name:file.name,notion:{type:'file',name:file.name,file:{url:'https://files.test/ref'}},pageId:bindings[item.id],index:0,kind:(next.media||[]).includes(item)?'media':next.diary.includes(item)?'diary':next.tasks.includes(item)?'tasks':'projects',url:'https://files.test/ref'};
   }
-  remote={...next,user:testUser};return Response.json({bindings,files});
+  if(partial){for(const kind of Object.keys(next)){const ids=new Set([...(base[kind]||[]),...next[kind]].map(item=>item.id));remote[kind]=[...(remote[kind]||[]).filter(item=>!ids.has(item.id)),...next[kind]];}}else remote={...next,user:testUser};return Response.json({bindings,files});
  }
  throw new Error(`Rota inesperada ${url}`);
 };
@@ -77,6 +77,9 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  const beforeDrafts=syncCount;
  const draftTask={id:'untouched-task',_untouchedDraft:true,title:'Nova tarefa',status:'todo',priority:'medium',context:'personal',project:null,milestone:null,due:null,start:null,followUp:null,waitingOn:'',notes:'',completedAt:null,attachments:[]};
  const draftProject={id:'untouched-project',_untouchedDraft:true,name:'Novo projeto',status:'active',context:'personal',area:'',due:null,description:'',milestones:[],attachments:[]};
+ const {promoteDraftEdits}=require(path.join(folder,'lib/entryDrafts'));
+ assert.equal(promoteDraftEdits([draftTask],[{...draftTask,due:null}])[0]._untouchedDraft,true,'Blur sem mudança não salva tarefa vazia');
+ assert.equal(promoteDraftEdits([draftProject],[{...draftProject,due:null}])[0]._untouchedDraft,true,'Blur sem mudança não salva projeto vazio');
  hook.setTasks(previous=>[...previous,draftTask]);hook.setProjects(previous=>[...previous,draftProject]);await tick();assert.equal(hook.pending,false);await hook.flush();assert.equal(syncCount,beforeDrafts);
  hook.setTasks(previous=>previous.map(task=>task.id==='t'?{...task,notes:'Edição paralela'}:task));await hook.flush();await tick();assert.equal(remote.tasks.some(task=>task.id==='untouched-task'),false);assert.equal(remote.projects.some(project=>project.id==='untouched-project'),false);
  const draftCopy=await readPrivateDraft('notion-draft:'+testUser.id,testUser.draftKey);assert.equal(draftCopy.next.tasks.some(task=>task.id==='untouched-task'),false);assert.equal(draftCopy.next.projects.some(project=>project.id==='untouched-project'),false);

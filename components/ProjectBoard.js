@@ -1,5 +1,6 @@
 "use client";
 
+import {responsibleName} from "../lib/sharing";
 import { useState } from "react";
 import { formatDateInput } from "../lib/dateInput";
 
@@ -31,9 +32,9 @@ export default function ProjectBoard({ milestones, tasks, onMove, onOpen }) {
             <div className="col-head"><strong>{c.title}</strong><span className="muted small">{items.length}</span></div>
             {due && <span className="small muted">{due}</span>}
             {items.map((t) => (
-              <div key={t.id} className="kcard" draggable onDragStart={(e) => e.dataTransfer.setData("text/plain", t.id)}>
-                <button className="kcard-title" onClick={() => onOpen(t.id)}>{t.title}</button>
-                <span className="chip">{STATUS_LABEL[t.status]}</span>
+              <div key={t.id} className="kcard" onClick={e=>{if(!e.target.closest('button,input,a,select'))onOpen(t.id);}} draggable onDragStart={(e) => e.dataTransfer.setData("text/plain", t.id)}>
+                <button className="kcard-title" onClick={() => onOpen(t.id)}>{t.title?.trim()||"Sem título"}</button>
+                {t.shared&&<span className="chip">{responsibleName(t.responsible)}</span>}<span className="chip">{STATUS_LABEL[t.status]}</span>
                 <select value={t.milestone || ""} onChange={(e) => onMove(t.id, e.target.value || null)} aria-label={`Mover: ${t.title}`}>
                   <option value="">Sem marco</option>
                   {milestones.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}

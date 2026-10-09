@@ -10,7 +10,7 @@ export async function POST(request) {
   try {
     const user=authorize(request);checkOrigin(request);
     if (Number(request.headers.get('content-length') || 0) > 4 * 1024 * 1024) throw new AppError('Solicitação muito grande.',413);
-    const { base, next,revision } = await request.json();
-    return json(await withWriteLock(async guard=>{const routing=JSON.parse(await redis(['GET',ROUTING_KEY])||'{}');if((revision||'')!==(routing.version||''))throw new AppError('Os bancos foram restaurados em outra instância. Seu texto foi preservado. Atualize os dados antes de continuar.',409);return {...await withDatabaseRouting(routing,()=>synchronize(base,next,user,guard)),sharedActivity:await sharedActivity()};}));
+    const { base, next,revision,partial } = await request.json();
+    return json(await withWriteLock(async guard=>{const routing=JSON.parse(await redis(['GET',ROUTING_KEY])||'{}');if((revision||'')!==(routing.version||''))throw new AppError('Os bancos foram restaurados em outra instância. Seu texto foi preservado. Atualize os dados antes de continuar.',409);return {...await withDatabaseRouting(routing,()=>synchronize(base,next,user,guard,partial===true)),sharedActivity:await sharedActivity()};}));
   } catch(error) { return failure(error); }
 }
