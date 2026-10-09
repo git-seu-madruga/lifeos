@@ -1,5 +1,5 @@
 "use client";
-import {responsibleName} from "../lib/sharing";
+import SharedBadge from "./SharedBadge";
 import LinkText, {TextLinks} from "./LinkText";
 
 import { patchTask, newestCompleted } from "../lib/tasks";
@@ -159,7 +159,7 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
                         {t.status === "hold" && t.waitingOn && <span className="row-project">Aguardando: <LinkText text={t.waitingOn}/></span>}
                       </button>
                       <span className="row-meta">
-                        {t.shared&&<span className="chip shared-responsible">{responsibleName(t.responsible)||"Compartilhada"}</span>}
+                        {t.shared&&<SharedBadge responsible={t.responsible}/>}
                         {(t.attachments || []).length > 0 && <span className="muted small" title="Anexos">📎 {t.attachments.length}</span>}
                         {t.project && <button className="proj" onClick={() => onOpenProject(t.project)} title="Abrir projeto">{pn(t.project)}</button>}
                         <span className={`prio prio-${t.priority}`}>{PRIO_LABEL[t.priority]}</span>

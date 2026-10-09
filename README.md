@@ -16,6 +16,9 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Na linha Nova tarefa neste projeto, projetos compartilhados exigem escolher explicitamente Péricles ou Letícia. Não há responsável pré-selecionado; após adicionar, a seleção é limpa para a próxima tarefa.
+- Projetos e tarefas compartilhados têm selo dourado com ícone de pessoas; as tarefas também mostram o responsável. O campo de compartilhamento tem destaque no editor.
+
 - Descompartilhar exige confirmação com o nome do proprietário para quem o registro ficará privado. Cancelar preserva o compartilhamento e o responsável.
 - Projetos compartilhados não têm responsável. Cada tarefa compartilhada tem seu próprio responsável obrigatório, com o usuário logado como padrão ao criar.
 - Inclui a correção de seleção de texto, calendários, descarte de tarefas vazias, notificação de Recados, sincronização incremental e todas as alterações anteriores.
@@ -61,7 +64,7 @@ Em Compras, uma lista existente com o mesmo nome, sem diferenciar maiúsculas, r
 
 ### Projetos e tarefas
 
-Marque Compartilhado no editor para permitir que ambos vejam e editem o registro. Nas tarefas compartilhadas, escolha Péricles ou Letícia no campo Responsável; ele começa com o usuário logado. Projetos não têm responsável fixo. A responsabilidade organiza o trabalho e não restringe a edição do item compartilhado.
+Marque Compartilhado no editor para permitir que ambos vejam e editem o registro. Nas tarefas compartilhadas, escolha Péricles ou Letícia no campo Responsável; ele começa com o usuário logado. Projetos não têm responsável fixo. Na linha de criação rápida dentro de um projeto compartilhado, o responsável deve ser escolhido antes de adicionar: não há seleção automática, e o campo é limpo após cada tarefa. A responsabilidade organiza o trabalho e não restringe a edição do item compartilhado.
 
 Tarefas vinculadas seguem obrigatoriamente o compartilhamento do projeto; cada tarefa compartilhada pode ter seu próprio responsável. Tarefas avulsas escolhem livremente o compartilhamento. Alterar o projeto para compartilhado ou privado atualiza seus marcos e tarefas, inclusive filhos acrescentados por outra instância. Ao tornar um projeto privado, uma confirmação informa o nome do criador original, para quem ele e seus filhos retornarão; os responsáveis das tarefas são removidos. Mudar o responsável não transfere a propriedade. Uma tarefa avulsa tornada privada também volta a ficar acessível somente ao seu criador original, informado na confirmação. Cancelar não altera o registro. Registros antigos permanecem privados por padrão.
 

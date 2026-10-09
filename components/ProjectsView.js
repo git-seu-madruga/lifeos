@@ -1,6 +1,7 @@
 "use client";
 import SharingFields from "./SharingFields";
-import {responsibleName} from "../lib/sharing";
+import SharedBadge from "./SharedBadge";
+import {RESPONSIBLES} from "../lib/sharing";
 import EntryTitle from "./EntryTitle";
 import LinkText, {TextLinks} from "./LinkText";
 import ProjectAttachments from "./ProjectAttachments";
@@ -46,9 +47,10 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
   useEffect(()=>{setProjects(previous=>previous.filter(project=>!project._untouchedDraft||project.id===selected));},[selected,setProjects]);
   function closeProject(){setProjects(previous=>previous.filter(project=>!(project.id===selected&&project._untouchedDraft)));setCreatedProjectId(null);onSelect(null);}
   const [view, setView] = useState("lista");
-  const [nt, setNt] = useState({ title: "", ms: "", ctx: null });
+  const [nt, setNt] = useState({ title: "", ms: "", ctx: null, responsible:"" });
 
   const [projectError, setProjectError] = useState("");
+  useEffect(()=>{setNt({title:"",ms:"",ctx:null,responsible:""});},[selected]);
 
   const project = projects.find((p) => p.id === selected && (context === "all" || p.context === context));
   useBackLayer(!!project,closeProject,10);
@@ -105,7 +107,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
             const msDone = p.milestones.filter((m) => m.done).length;
             return (
               <button key={p.id} className="pcard" onClick={() => onSelect(p.id)}>
-                <span className="pcard-name">{p.name}</span>{p.shared&&<span className="chip">Compartilhado</span>}
+                <span className="pcard-name">{p.name}</span>{p.shared&&<SharedBadge project/>}
                 {context === "all" && <span className="chip">{CTX[p.context]}</span>}
                 <span className="muted small">{p.area || "Sem área"}{due && ` · ${due.text}`}</span>
                 <Bar pct={s.pct} />
@@ -134,12 +136,13 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
   }
   function addTask() {
     if (!nt.title.trim()) return;
+    if(project.shared&&!RESPONSIBLES.some(p=>p.email===nt.responsible)){setProjectError("Escolha o responsável pela nova tarefa.");return;}
     updateProject(project.id,{_untouchedDraft:false});
     setTasks((prev) => [...prev, {
-      id: uid("t"), shared:!!project.shared,responsible:project.shared?(user?.email):'', title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
+      id: uid("t"), shared:!!project.shared,responsible:project.shared?nt.responsible:'', title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
       project: project.id, milestone: nt.ms || null, attachments: [], notes: "", followUp: null, waitingOn: "",
     }]);
-    setNt({ ...nt, title: "" });
+    setNt({ ...nt, title: "",responsible:"" });
   }
 
   const renderTask = (t) => (
@@ -148,7 +151,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
         onChange={() => updateTask(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
       <button className="row-title" onClick={() => setOpenId(t.id)}>{t.title?.trim()||"Sem título"}</button>
       <span className="row-meta">
-        {t.shared&&<span className="chip">{responsibleName(t.responsible)}</span>}<span className="chip">{STATUS_LABEL[t.status]}</span>
+        {t.shared&&<SharedBadge responsible={t.responsible}/>}<span className="chip">{STATUS_LABEL[t.status]}</span>
       </span>
     </li>
   );
@@ -240,7 +243,8 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
           <option value="">Sem marco</option>
           {ms.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
         </select>
-        <button className="ghost" onClick={addTask}>+ Tarefa</button>
+        {project.shared&&<select required aria-label="Responsável pela nova tarefa" value={nt.responsible} onChange={e=>setNt({...nt,responsible:e.target.value})}><option value="" disabled>Escolha o responsável…</option>{RESPONSIBLES.map(p=><option key={p.email} value={p.email}>{p.name}</option>)}</select>}
+        <button className="ghost" onClick={addTask} disabled={!nt.title.trim()||(project.shared&&!nt.responsible)}>+ Tarefa</button>
       </div>
 
       <ProjectAttachments key={project.id} items={project.attachments || []} onChange={(attachments) => updateProject(project.id, { attachments })} />

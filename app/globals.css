@@ -576,3 +576,8 @@ textarea:focus+.text-links,input:focus+.text-links{display:none;}
 .month-picker-control>.month-calendar-button{width:36px;height:36px;border:0;background:transparent;padding:0;color:var(--muted)}
 
 .kcard{cursor:pointer}
+
+.shared-badge{display:inline-flex;align-items:center;gap:6px;color:var(--gold);background:rgba(230,184,75,.13);border:1px solid rgba(230,184,75,.48);font-weight:600;padding:4px 8px;line-height:1.3;white-space:normal}
+.shared-badge svg{flex:none}.sharing-highlight{color:var(--gold);background:rgba(230,184,75,.10);border:1px solid rgba(230,184,75,.40);border-radius:7px;padding:5px 9px;width:fit-content}.sharing-highlight input{accent-color:var(--gold)}
+.addrow>select[aria-label="Responsável pela nova tarefa"]{min-width:180px}
+@media(max-width:600px){.addrow>select[aria-label="Responsável pela nova tarefa"]{min-width:0;flex:1 1 100%}}

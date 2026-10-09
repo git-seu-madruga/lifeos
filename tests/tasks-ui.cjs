@@ -1,9 +1,9 @@
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),swc=require('next/dist/build/swc'),React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
 const folder=path.resolve('.tasks-ui-test');
 for(const dir of ['lib','components']){fs.mkdirSync(path.join(folder,dir),{recursive:true});for(const name of fs.readdirSync(dir)){if(!name.endsWith('.js'))continue;fs.writeFileSync(path.join(folder,dir,name),swc.transformSync(fs.readFileSync(path.join(dir,name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'automatic'}},target:'es2022'},module:{type:'commonjs'}}).code);}}
-const saved={useState:React.useState,useMemo:React.useMemo,useEffect:React.useEffect};
+const saved={useState:React.useState,useMemo:React.useMemo,useEffect:React.useEffect,useRef:React.useRef};
 let slots=[],index=0;
-React.useState=value=>{const i=index++;if(!(i in slots))slots[i]=typeof value==='function'?value():value;return [slots[i],v=>{slots[i]=typeof v==='function'?v(slots[i]):v;}];};React.useMemo=fn=>fn();React.useEffect=()=>{};
+React.useState=value=>{const i=index++;if(!(i in slots))slots[i]=typeof value==='function'?value():value;return [slots[i],v=>{slots[i]=typeof v==='function'?v(slots[i]):v;}];};React.useMemo=fn=>fn();React.useEffect=()=>{};React.useRef=value=>({current:value});
 const walk=(node,result=[])=>{if(Array.isArray(node)){node.forEach(n=>walk(n,result));return result;}if(node?.props){result.push(node);walk(node.props.children,result);}return result;};
 try{
  const View=require(path.join(folder,'components/TasksView')).default;
@@ -23,6 +23,13 @@ try{
  const unshare=()=>walk(Fields({item:shared,user,onChange:p=>patch=p})).find(e=>e.type==='input').props.onChange({target:{checked:false}});
  unshare();assert.equal(patch,undefined,'Cancelar mantém compartilhamento');assert.ok(message.includes('Péricles'),'Confirmação informa proprietário original, não responsável');approve=true;unshare();assert.equal(patch.shared,false);assert.equal(patch.responsible,'');
  const projectFields=walk(Fields({item:shared,user,project:true,onChange:p=>patch=p}));assert.ok(!projectFields.some(e=>e.type==='select'),'Projeto não possui responsável');patch=undefined;approve=false;projectFields.find(e=>e.type==='input').props.onChange({target:{checked:false}});assert.equal(patch,undefined);assert.ok(message.includes('todas as suas tarefas')&&message.includes('Péricles'));approve=true;projectFields.find(e=>e.type==='input').props.onChange({target:{checked:false}});assert.deepEqual(patch,{shared:false});
+ const ProjectView=require(path.join(folder,'components/ProjectsView')).default;slots=[];
+ let projectList=[{...projects[0],status:'active',area:'',due:null,description:'',attachments:[]}];const projectTree=()=>{index=0;return walk(ProjectView({user,tasks,setTasks:fn=>tasks=fn(tasks),projects:projectList,setProjects:fn=>projectList=fn(projectList),context:'all',sub:'ativos',selected:'p',onSelect(){}}));};
+ const taskCount=tasks.length;let quick=projectTree();assert.equal(quick.find(e=>e.props['aria-label']==='Responsável pela nova tarefa').props.value,'','Linha não pré-seleciona o usuário');
+ quick.find(e=>e.props['aria-label']==='Título da nova tarefa').props.onChange({target:{value:'Tarefa atribuída'}});quick=projectTree();assert.equal(quick.find(e=>e.type==='button'&&e.props.children==='+ Tarefa').props.disabled,true);quick.find(e=>e.type==='button'&&e.props.children==='+ Tarefa').props.onClick();assert.equal(tasks.length,taskCount,'Sem responsável não cria tarefa, inclusive por Enter');
+ projectTree().find(e=>e.props['aria-label']==='Responsável pela nova tarefa').props.onChange({target:{value:'periclesbernardes@gmail.com'}});projectTree().find(e=>e.type==='button'&&e.props.children==='+ Tarefa').props.onClick();assert.equal(tasks.at(-1).responsible,'periclesbernardes@gmail.com');assert.equal(tasks.at(-1).shared,true);assert.equal(projectTree().find(e=>e.props['aria-label']==='Responsável pela nova tarefa').props.value,'','Próxima tarefa exige nova escolha');
+ projectList=projectList.map(p=>({...p,shared:false}));assert.ok(!projectTree().some(e=>e.props['aria-label']==='Responsável pela nova tarefa'),'Projeto privado dispensa responsável');
+ const Badge=require(path.join(folder,'components/SharedBadge')).default;assert.ok(renderToStaticMarkup(React.createElement(Badge,{responsible:user.email})).includes('Compartilhada')&&renderToStaticMarkup(React.createElement(Badge,{responsible:user.email})).includes('Letícia'));
  const Brand=require(path.join(folder,'components/Brand')).default;const notice=renderToStaticMarkup(React.createElement(Brand,{notice:true})),normal=renderToStaticMarkup(React.createElement(Brand));assert.ok(notice.includes('brand-heart')&&notice.includes('Life')&&notice.includes('brand-os'));assert.ok(!normal.includes('<button'),'Logo comum não tem ação');
  console.log('PASSOU: tarefas intocadas descartadas sem acúmulo, área da linha abre tarefa sem título, projeto independente, responsável padrão e logo normal sem ação.');
 }finally{Object.assign(React,saved);fs.rmSync(folder,{recursive:true,force:true});}
