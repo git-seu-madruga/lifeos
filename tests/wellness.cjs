@@ -2,16 +2,27 @@ const fs=require('fs'),path=require('path'),assert=require('node:assert/strict')
 const root=path.resolve('.wellness-test');
 for(const dir of ['lib','components']){fs.mkdirSync(path.join(root,dir),{recursive:true});for(const name of fs.readdirSync(dir)){if(!name.endsWith('.js'))continue;fs.writeFileSync(path.join(root,dir,name),swc.transformSync(fs.readFileSync(path.join(dir,name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'automatic'}},target:'es2022'},module:{type:'commonjs'}}).code);}}
 try{
- const {validateWellness,upsertWellness,latestMeasurements}=require(path.join(root,'lib/wellness')),day=require(path.join(root,'lib/habits')).habitToday();
+ const {validateWellness,upsertWellness,latestMeasurements,dailyPressure,maskPressure,parsePressure}=require(path.join(root,'lib/wellness')),day=require(path.join(root,'lib/habits')).habitToday();
  const pressure={id:'p1',name:'Pressão',date:day,type:'pressure',data:{time:'09:00',systolic:124,diastolic:76,bpm:62}};
  assert.equal(validateWellness(pressure),'');assert.ok(validateWellness({...pressure,data:{...pressure.data,bpm:0}}));assert.ok(validateWellness({...pressure,date:'2999-01-01'}));assert.ok(validateWellness({...pressure,date:'2026-02-30'}));
+ assert.equal(validateWellness({...pressure,data:{systolic:124,diastolic:76,bpm:62}}),'','Horário não é obrigatório');
+ assert.equal(maskPressure('12476'),'124/76');assert.equal(maskPressure('124/100'),'124/100');assert.equal(maskPressure('98/65'),'98/65');assert.deepEqual(parsePressure('124/76'),{systolic:124,diastolic:76});assert.equal(parsePressure('124/'),null);
+ const another={...pressure,id:'p2',data:{systolic:126,diastolic:78,bpm:66}};let avg=dailyPressure([pressure,another]);assert.equal(avg[0].count,2);assert.deepEqual(avg[0].data,{systolic:125,diastolic:77,bpm:64});assert.equal(dailyPressure([pressure])[0].data.systolic,124);assert.equal(dailyPressure([{...another,date:'2026-01-01'},pressure]).length,2);assert.equal(pressure.data.systolic,124,'Média não modifica registros originais');
  const body={...pressure,type:'body',data:{weight:136,fat:null}};assert.equal(validateWellness(body),'');assert.ok(validateWellness({...body,data:{weight:136,fat:101}}));assert.equal(validateWellness({...body,data:{weight:136,fat:28.4}}),'');
  const cycle={...pressure,type:'cycle',data:{subject:'leticiacost3@gmail.com',menstruation:'Sim',flow:'Leve',cramps:'Leve'}};assert.equal(validateWellness(cycle,'cycle'),'');assert.ok(validateWellness({...cycle,data:{...cycle.data,subject:'periclesbernardes@gmail.com'}},'cycle'));
  assert.equal(upsertWellness([pressure],{...pressure,data:{...pressure.data,bpm:64}}).length,1);assert.equal(latestMeasurements([pressure,{...pressure,id:'p2',data:{...pressure.data,time:'10:00'}}],'pressure')[0].id,'p2');
  const View=require(path.join(root,'components/WellnessView')).default;
  const html=renderToStaticMarkup(React.createElement(View,{remote:{user:{id:'test'},wellness:[pressure,body],cycle:[],setWellness(){},habits:[],habitLogs:[],habitsConfigured:true,wellnessConfigured:true,cycleConfigured:true}}));
  for(const label of ['Bem-estar','Ciclo da Letícia','Pressão e BPM','Peso e gordura','Seu progresso','Mostrar hábitos encerrados','Atualize quando houver uma nova medição'])assert.ok(html.includes(label),label);
+ assert.ok(html.includes('well-choices'));assert.ok(html.includes('Média de 1 medição'));assert.ok(!html.includes('Preencher / editar'));
  assert.ok(html.includes('well-petal'));assert.ok(html.includes('habit-matrix'));
+ // Inline choices write only the selected aspect and never open a modal.
+ const oldState=React.useState,oldRef=React.useRef,oldEffect=React.useEffect;
+ let index=0;const slots=[];React.useState=initial=>{const i=index++;if(!slots[i])slots[i]={value:typeof initial==='function'?initial():initial};return [slots[i].value,value=>slots[i].value=typeof value==='function'?value(slots[i].value):value];};
+ let state={wellness:[],cycle:[]};const props={remote:{user:{id:'A'},...state,setWellness:fn=>{state=fn(state);},habitsConfigured:true,wellnessConfigured:true,cycleConfigured:true}};
+ const render=()=>{index=0;return View({remote:{...props.remote,...state}});};
+ const buttons=(node,out=[])=>{if(Array.isArray(node))node.forEach(p=>buttons(p,out));else if(node?.props){if(node.type==='button')out.push(node);buttons(node.props.children,out);}return out;};
+ try{let tree=render();buttons(tree).find(p=>p.props.className==='well-choice'&&p.props.children[0]==='Boa').props.onClick();assert.equal(state.wellness[0].data.sono,'Boa');tree=render();assert.ok(buttons(tree).find(p=>p.props.className?.includes('well-petal recorded')||p.props.className?.includes('selected recorded')));assert.equal(slots[2].value,null,'Escolha lateral não abre formulário');buttons(tree).find(p=>p.props.className==='ghost well-clear').props.onClick();assert.equal(state.wellness[0].data.sono,'');assert.equal(state.wellness.length,1,'Reutiliza o registro do dia');}finally{React.useState=oldState;React.useRef=oldRef;React.useEffect=oldEffect;}
  const nav=require(path.join(root,'lib/nav')).NAV;assert.ok(nav.some(p=>p.id==='bemestar'));assert.ok(!nav.some(p=>p.id==='habitos'));
  console.log('PASSOU: validação de medidas e ciclo, datas, campos opcionais, histórico, painel e preservação do resumo de hábitos.');
 }finally{fs.rmSync(root,{recursive:true});}

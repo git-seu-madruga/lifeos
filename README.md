@@ -16,6 +16,9 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Pétalas orgânicas com contorno especial após preencher; escolhas próprias de cada aspecto no painel lateral colorido, com salvamento automático, sem abrir formulário.
+- Pressão em um campo com máscara (ex.: 124/76), BPM e data, sem horário obrigatório. O cartão e os gráficos mostram médias por dia; registros individuais permanecem no histórico.
+
 - Excluir projeto também exclui todos os seus marcos e tarefas, inclusive concluídas e tarefas adicionadas por outra instância. A confirmação explica a remoção. Cancelado e Concluído preservam os dados e o histórico.
 
 - Na linha Nova tarefa neste projeto, projetos compartilhados exigem escolher explicitamente Péricles ou Letícia. Não há responsável pré-selecionado; após adicionar, a seleção é limpa para a próxima tarefa.
@@ -417,9 +420,9 @@ Na Vercel, adicione **NOTION_WELLNESS_DATABASE_ID** com o ID do banco Bem-estar 
 
 ### Como testar
 
-- Meu dia: escolha a data pelo campo DD/MM/AAAA/calendário, setas ou Hoje. Selecione um aspecto no círculo e use Preencher / editar. Os registros de dias passados podem ser editados; datas futuras são bloqueadas. Campos não preenchidos permanecem sem registro. Água, energia, estresse e observações estão no formulário. Salvar envia pelo fluxo incremental existente, com rascunho local protegido e indicação Salvo no Notion. Cancelar descarta apenas o formulário aberto.
+- Meu dia: escolha a data pelo campo DD/MM/AAAA/calendário, setas ou Hoje. Selecione uma pétala no círculo e escolha uma opção no quadrinho lateral. A escolha é salva automaticamente e ilumina o contorno da pétala. Limpar escolha remove a seleção daquele aspecto; os demais dados do dia são preservados. Não abre outra tela. Os registros de dias passados podem ser editados; datas futuras são bloqueadas. Campos não preenchidos permanecem sem registro. Água, energia, estresse, duração do sono e exercício e observações continuam disponíveis em Mais registros e observações. Salvar envia pelo fluxo incremental existente, com rascunho local protegido e indicação Salvo no Notion. Cancelar descarta apenas o formulário aberto.
 - Hábitos: confirme que as marcações e os resumos anteriores permanecem, incluindo hábitos encerrados e confirmações. Os atalhos de seção rolam até cada painel.
-- Pressão e BPM: registre data, horário, pressão sistólica, diastólica e frequência cardíaca. Podem existir várias medições no dia. Ver histórico permite editar ou excluir com confirmação. Os gráficos usam séries separadas, sem diagnóstico ou classificação automática.
+- Pressão e BPM: registre data, pressão em um único campo com máscara (124/76) e BPM. O horário não é necessário. Podem existir várias medições no dia: o cartão mostra a média aritmética da sistólica, da diastólica e do BPM no dia mais recente com registros. Os gráficos também mostram médias diárias. A média é calculada, não substitui as medições salvas. Ver histórico permite editar ou excluir com confirmação. Os registros antigos com horário são preservados, mas o horário deixa de aparecer nos formulários e no cartão. Os gráficos usam séries separadas, sem diagnóstico ou classificação automática.
 - Peso e gordura: registre quando houver uma nova medição; peso obrigatório, percentual de gordura opcional. Não há exigência diária. Histórico permite editar/excluir.
 - Ciclo da Letícia: registre menstruação, fluxo, cólicas e observações na data selecionada. Entre na outra conta, atualize e confirme que aparece o mesmo registro. Dia/medidas/hábitos de uma conta não aparecem para a outra.
 - Deixe Salvo no Notion aparecer antes de fechar. Alterações feitas em outra instância são carregadas pelo fluxo de retorno ao foco existente; formulários abertos impedem sobrescrita automática. Edições concorrentes conflitantes mostram erro e preservam o rascunho para revisão.
