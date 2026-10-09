@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Layout aproximado da referência aprovada: pétalas compactas com borda interna côncava, hábitos em tons pastel e painel do ciclo rosa claro. A área da Letícia continua editável pelas duas contas nesta fase.
+
 - Pétalas orgânicas com contorno especial após preencher; escolhas próprias de cada aspecto no painel lateral colorido, com salvamento automático, sem abrir formulário.
 - Pressão em um campo com máscara (ex.: 124/76), BPM e data, sem horário obrigatório. O cartão e os gráficos mostram médias por dia; registros individuais permanecem no histórico.
 
