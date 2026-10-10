@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Links externos solicitam nova aba. No PWA instalado em Android, links HTTP/HTTPS sem fragmento tentam abrir o Chrome por um Android Intent, com endereço original como fallback. Links que chegam ao PWA usam launch_handler navigate-new onde suportado, preservando uma janela já aberta para edição. A decisão de capturar links continua sendo do navegador/sistema.
+
 - Login alternativo por QR Code, com aprovação explícita no celular conectado pelo Google, comparação de código nas duas telas e sessão temporária no computador. O menu da conta Google permite consultar e desconectar computadores autorizados.
 - QR de uso único com validade de dois minutos; sessão desktop de até 30 minutos e encerramento após dez minutos sem interação. O computador não grava rascunhos comuns ou de Recados no IndexedDB nesse modo. Os logins Google existentes mantêm seu funcionamento.
 - Inclui as melhorias anteriores de Bem-estar: nove pétalas, cartão central de escolhas no mobile/desktop, vários locais de dor e edição de pressão/peso a partir dos pontos do gráfico. Clicar fora do ponto restaura Ver histórico.
@@ -139,6 +141,17 @@ Ao voltar para uma aba do navegador ou app em segundo plano, o LifeOS consulta o
 Não há tela inicial de carregamento a cada retorno: a interface permanece montada e o indicador Atualizar mostra atividade. Se ocorrer conflito, preserve seu texto e revise a atualização; descarte de alterações pendentes exige confirmação. Rascunho local não substitui a confirmação de salvamento: o sistema pode suspender o aplicativo ao trocar de app.
 
 O PWA usa **standalone**, não fullscreen, para evitar o flickering observado no Android. Instale pelo menu do Chrome ou, no Safari/iPhone, Compartilhar → Adicionar à Tela de Início. As abas deslizam horizontalmente. Voltar fecha primeiro o painel aberto; nas abas principais, dois toques permitem sair onde o navegador/sistema suporta esse fluxo. Login Google abre uma janela separada e a sessão é reconhecida ao concluir.
+
+### Links no app instalado — versão de teste
+
+- Links externos clicados no LifeOS solicitam nova aba/janela, com proteção contra acesso à janela original. No Android instalado, tentamos abrir o Chrome diretamente via Android Intent em um toque normal. Há fallback para o endereço web quando a abertura não é permitida ou o Chrome não está disponível.
+- Links com fragmento (#), downloads, cliques com teclas modificadoras e links internos permanecem nativos. Anexos que passam pela rota autenticada do LifeOS não são desviados para um Intent; o navegador continua decidindo como abrir o arquivo. Login Google mantém sua janela própria.
+- No iPhone/iPad, a abertura externa é solicitada ao navegador; o PWA não pode impor que seja o Chrome nem garantir que não apareça uma visualização interna.
+- O manifest passa a declarar launch_handler com navigate-new. Onde houver suporte e associação de links, um link do LifeOS pode abrir no app instalado sem substituir uma janela já em edição. Esse membro controla como lançar o PWA, mas não força a associação de links. O comportamento após leitura pela câmera ainda depende do Android/iOS e do navegador. Não usamos campos de captura obsoletos nem associações nativas inventadas.
+- Depois do deploy, abra o LifeOS instalado para atualizar. Metadados do PWA podem levar tempo para ser atualizados pelo navegador. Caso a mudança não seja percebida, aguarde e teste novamente. Uma reinstalação pode atualizar o manifest, mas só a faça após confirmar que todas as alterações estão salvas no Notion.
+- Teste abrindo um link de comentário/projeto no Android, voltando ao LifeOS, e lendo o QR de login com a câmera. Confira também o comportamento no iPhone. Se um link voltar a abrir internamente, isso pode ser uma limitação do dispositivo, mesmo com a solicitação correta do app.
+
+Referências técnicas: [Android Intents](https://developer.chrome.com/docs/android/intents), [navegação em PWAs](https://developer.chrome.com/docs/capabilities/pwa-navigation-management) e [launch_handler](https://developer.mozilla.org/en-US/docs/Web/Progressive_web_apps/Manifest/Reference/launch_handler).
 
 ## 5. Notion: bancos e propriedades
 
