@@ -10,6 +10,7 @@ import { InstallApp } from "../components/PwaProvider";
 import Brand from '../components/Brand';
 import {useRecadoNotification} from '../lib/useRecadoNotification';
 import AccountMenu from '../components/AccountMenu';
+import QrSessions from '../components/QrSessions';
 import BackupView from '../components/BackupView';
 import RecadosView from "../components/RecadosView";
 import EntertainmentView from "../components/EntertainmentView";
@@ -59,7 +60,7 @@ export default function Home() {
   function reorderTab(from,to){setTabOrder(order=>moveTab(order,from,to));}
   const orderedTabs=tabOrder.map(id=>NAV.find(tab=>tab.id===id));
   const [subs, setSubs] = useState({});
-  const [backupOpen,setBackupOpen]=useState(false);
+  const [backupOpen,setBackupOpen]=useState(false),[sessionsOpen,setSessionsOpen]=useState(false);
   useBackLayer(backupOpen,()=>setBackupOpen(false),10);
   const [selected, setSelected] = useState(null);
   const remote = useNotionState();
@@ -170,7 +171,7 @@ export default function Home() {
   }
 
   if(!orderReady || remote.authenticated === null) return <p className="empty">Carregando LifeOS…</p>;
-  if(!remote.authenticated) return <Login onLogin={remote.login} configured={remote.configured} initialError={remote.error} />;
+  if(!remote.authenticated) return <Login onQrLogin={remote.qrLoginComplete} onLogin={remote.login} configured={remote.configured} initialError={remote.error} />;
   if(!ready) return <main className="login-shell"><div className="login-card"><h1><Brand/></h1><p>{remote.loading ? "Conectando ao Notion…" : "Não foi possível carregar os bancos."}</p>{remote.error && <p className="date-error" role="alert">{remote.error}</p>}<button className="primary" onClick={remote.load} disabled={remote.loading}>Tentar novamente</button><button className="ghost" onClick={()=>remote.logout().catch(()=>{})}>Sair</button></div></main>;
 
 
@@ -211,9 +212,10 @@ export default function Home() {
             </svg>
           </button>
           <span className="refreshed" title={refreshedAt?.toLocaleString("pt-BR")}>{time && `Dados atualizados às ${time}`}</span>
-          <AccountMenu user={remote.user} onLogout={()=>remote.logout().catch(()=>{})} onBackup={()=>setBackupOpen(true)}/>
+          {sessionsOpen&&<QrSessions onClose={()=>setSessionsOpen(false)}/>}<AccountMenu onSessions={()=>setSessionsOpen(true)} user={remote.user} onLogout={()=>remote.logout().catch(()=>{})} onBackup={()=>setBackupOpen(true)}/>
         </div>
       </header>
+      {remote.user?.temporary&&<p className="temporary-session-note">Sessão temporária · expira às {new Date(remote.user.expiresAt).toLocaleTimeString('pt-BR')} · rascunhos apenas na memória. Aguarde “Salvo no Notion” antes de sair.</p>}
 
       <div className="tabs-row" inert={backupOpen||remote.maintenance}><nav className={"tabs"+(touchReorder?" reordering":"")} aria-label="Seções">
         {orderedTabs.map((t) => (

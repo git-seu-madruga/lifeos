@@ -612,3 +612,16 @@ textarea:focus+.text-links,input:focus+.text-links{display:none;}
 .well-petal{width:26%;height:37%;left:37%;top:31.5%;transform:rotate(var(--angle)) translateY(-87%)}.well-petal-content{width:87%;height:63%;gap:6px}.well-petal-content>svg{width:30px;height:30px}.well-petal-content strong{font-size:clamp(11px,.9vw,15px)}.well-center{width:34%;height:34%;inset:33%}.well-center strong{font-size:clamp(12px,1.1vw,17px)}.well-center small{font-size:clamp(10px,.75vw,13px)}.well-day-actions{display:flex;justify-content:flex-end;margin-top:16px}.well-day-actions .ghost{font-size:11px;color:var(--muted);padding:6px 9px;border-color:transparent}.well-water-choice{display:flex;align-items:end;justify-content:center;flex-wrap:wrap;gap:10px;width:100%}.well-water-choice label{display:grid;gap:7px;text-align:left;font-size:12px}.well-water-choice .search{width:160px}.well-water-choice .date-error{flex-basis:100%}
 @media(max-width:700px){.well-petal-content>svg{width:25px;height:25px}.well-petal-content strong{font-size:11px}.well-center strong{font-size:12px}.well-center small{font-size:10px}}
 @media(max-width:380px){.well-petal-content>svg{width:20px;height:20px}.well-petal-content strong{font-size:9px}.well-center strong{font-size:11px}}
+
+/* Cartão de pétala central, mantendo as cores e escolhas da flor. */
+.wellness-view,.well-top,.well-card#well-day{min-width:0;max-width:100%}
+.well-card#well-day>.well-daily{width:100%;flex:0 0 auto;padding:20px 0;min-width:0}
+.well-petal-overlay{display:flex;align-items:center;justify-content:center;padding:20px;background:#091323a8;backdrop-filter:blur(4px)}
+.well-petal-overlay .well-aspect{position:relative;flex:none;align-self:auto;width:min(100%,440px);max-width:440px;max-height:calc(100dvh - 40px);overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;margin:0;padding:30px 24px 24px;border-radius:24px;box-shadow:0 20px 70px #0007;border-color:color-mix(in srgb,var(--aspect) 55%,#25364b);animation:well-petal-enter .18s ease-out}
+.well-petal-overlay .well-aspect-close{position:absolute;right:9px;top:8px;padding:3px 10px;font-size:25px;line-height:1.1;border-color:transparent;color:var(--aspect)}
+@keyframes well-petal-enter{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:scale(1)}}
+@media(max-width:700px){.well-petal-overlay{padding:14px}.well-petal-overlay .well-aspect{max-height:calc(100dvh - 28px);padding:30px 18px 20px}.well-card#well-day>.well-daily{padding:12px 0}}
+@media(prefers-reduced-motion:reduce){.well-petal-overlay .well-aspect{animation:none}}
+
+.qr-login{text-align:center}.qr-login h2,.qr-pair h2{font-size:21px}.qr-code{display:block;width:min(100%,280px);height:auto;margin:20px auto;border-radius:14px;background:white;padding:8px;box-sizing:border-box}.qr-number{display:block;font-size:32px;letter-spacing:5px;color:var(--accent);font-variant-numeric:tabular-nums;margin:16px 0}.qr-actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin:18px 0}.qr-pair>p{overflow-wrap:anywhere}.qr-pair>a{display:inline-block;margin-top:16px}.qr-login .small{line-height:1.6}.login-card .google-login+.google-login{margin-top:12px}
+.temporary-session-note{margin:4px 20px 10px;font-size:11px;color:var(--muted);line-height:1.5}
