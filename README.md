@@ -6,7 +6,7 @@ Documento único da versão atual. Este README substitui os arquivos INSTRUCOES 
 
 1. Aguarde **Salvo no Notion** antes de atualizar. Se houver erro de salvamento, preserve o texto e resolva o erro primeiro.
 2. Extraia o ZIP. Envie o **conteúdo da pasta lifeos** para a raiz do repositório, substituindo os arquivos existentes. Não crie uma segunda pasta lifeos dentro do projeto.
-3. Mantenha as variáveis e os bancos já configurados. Esta revisão acrescenta dois bancos: **Bem-estar** e **Ciclo da Letícia**. Configure-os conforme a seção Bem-estar abaixo antes do deploy. Os bancos e registros atuais de hábitos permanecem os mesmos.
+3. Mantenha as variáveis e os bancos já configurados. O login por QR Code usa o mesmo Google, Vercel e Upstash: não exige novos bancos, chaves ou callbacks. Caso ainda não tenha configurado Bem-estar e Ciclo da Letícia, siga a seção Bem-estar antes de usar esses cartões.
 4. Faça o deploy na Vercel e atualize a página/app instalado.
 5. Remova do repositório os antigos arquivos INSTRUCOES-*.md: o envio pelo navegador não remove arquivos que deixaram de existir no ZIP. Todas as instruções atuais estão aqui.
 
@@ -16,37 +16,11 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
-- Clicar fora dos pontos dentro do gráfico limpa a seleção, restaura as informações originais e retorna o botão para Ver histórico, tanto em pressão quanto em peso.
-
-- Selecionar um ponto nos gráficos de pressão ou peso muda o botão para Editar registro e abre a medição selecionada. Pontos de pressão que representam várias medições abrem somente os registros daquela data, para escolher qual editar ou excluir. Sem seleção, Ver histórico mantém a lista completa.
-
-- Nove pétalas: sono, humor, mente, dores, exercício, intestino, energia, água e estresse. Dores aceita vários locais; energia e estresse usam escala de 1 a 5. Removidos os textos de opcionalidade, aprox. nas horas e Mais registros do dia. Exclusão confirmada restrita às pétalas. Nenhuma alteração de banco ou variável no Notion/Vercel é necessária.
-
-- O painel Meu dia usa a altura disponível ao lado do ciclo: círculo de pétalas maior e opções abaixo, aproveitando a largura inteira do cartão. O círculo do ciclo também foi ampliado. No celular, os tamanhos se adaptam ao espaço disponível.
-
-- Menstruação, fluxo e cólicas são escolhidos diretamente no cartão do ciclo, com salvamento automático. Editar detalhes permite observações, revisão e exclusão. Campos ainda não escolhidos não recebem respostas presumidas; selecionar Não em menstruação deixa Sem fluxo.
-
-- Sono com botões 6h ou menos, 7h, 8h e 9h ou mais e qualidade separada. Dores com intensidade e múltiplos locais de dor. Opções de exercício e intestino têm descrições mais claras; mente inclui Sobrecarregada. Os dados antigos continuam preservados.
-
-- Médias de pressão e BPM arredondadas para inteiros. Máscara de pressão limitada a três dígitos na sistólica e dois na diastólica (000/00).
-- Gráfico único de pressão/BPM, com escala mmHg compartilhada por sistólica/diastólica à esquerda e escala BPM independente à direita. Peso/gordura também em gráfico único, com kg à esquerda e percentual à direita. Limites se ajustam aos últimos 12 dias/registros exibidos, com margem e intervalos legíveis.
-
-- Pétalas um pouco mais largas, preservando espaço entre os contornos. Pressão/BPM e peso/gordura podem ser registrados diretamente nos cartões da tela, sem abrir uma janela.
-
-- Layout aproximado da referência aprovada: pétalas compactas com borda interna côncava, hábitos em tons pastel e painel do ciclo rosa claro. A área da Letícia continua editável pelas duas contas nesta fase.
-
-- Pétalas orgânicas com contorno especial após preencher; escolhas próprias de cada aspecto no painel lateral colorido, com salvamento automático, sem abrir formulário.
-- Pressão em um campo com máscara (ex.: 124/76), BPM e data, sem horário obrigatório. O cartão e os gráficos mostram médias por dia; registros individuais permanecem no histórico.
-
-- Excluir projeto também exclui todos os seus marcos e tarefas, inclusive concluídas e tarefas adicionadas por outra instância. A confirmação explica a remoção. Cancelado e Concluído preservam os dados e o histórico.
-
-- Na linha Nova tarefa neste projeto, projetos compartilhados exigem escolher explicitamente Péricles ou Letícia. Não há responsável pré-selecionado; após adicionar, a seleção é limpa para a próxima tarefa.
-- Projetos e tarefas compartilhados têm selo dourado com ícone de pessoas; as tarefas também mostram o responsável. O campo de compartilhamento tem destaque no editor.
-
-- Descompartilhar exige confirmação com o nome do proprietário para quem o registro ficará privado. Cancelar preserva o compartilhamento e o responsável.
-- Projetos compartilhados não têm responsável. Cada tarefa compartilhada tem seu próprio responsável obrigatório, com o usuário logado como padrão ao criar.
-- Inclui a correção de seleção de texto, calendários, descarte de tarefas vazias, notificação de Recados, sincronização incremental e todas as alterações anteriores.
-- Bem-estar incorpora Hábitos, com os mesmos dados, marcações, confirmações e resumos. Acrescenta registros do dia, pressão/BPM e medidas de peso/gordura, além do ciclo da Letícia visível e editável pelos dois usuários nesta fase.
+- Login alternativo por QR Code, com aprovação explícita no celular conectado pelo Google, comparação de código nas duas telas e sessão temporária no computador. O menu da conta Google permite consultar e desconectar computadores autorizados.
+- QR de uso único com validade de dois minutos; sessão desktop de até 30 minutos e encerramento após dez minutos sem interação. O computador não grava rascunhos comuns ou de Recados no IndexedDB nesse modo. Os logins Google existentes mantêm seu funcionamento.
+- Inclui as melhorias anteriores de Bem-estar: nove pétalas, cartão central de escolhas no mobile/desktop, vários locais de dor e edição de pressão/peso a partir dos pontos do gráfico. Clicar fora do ponto restaura Ver histórico.
+- Hábitos continuam dentro de Bem-estar com as mesmas marcações e resumos. O ciclo da Letícia permanece editável pelas duas contas nesta fase.
+- Mantém projetos/tarefas compartilhados, responsáveis obrigatórios por tarefa, exclusão de projeto com seus marcos e tarefas, sincronização incremental e demais funcionalidades já configuradas.
 
 ## 2. Contas, privacidade e contextos
 
@@ -64,6 +38,21 @@ Contas autorizadas: **periclesbernardes@gmail.com** e **leticiacost3@gmail.com**
 Pessoal/Trabalho é uma classificação, não separação de usuário. Projetos, Tarefas e Compras têm ambos os contextos. Diário, Finanças, Aniversários, Bem-estar (incluindo Hábitos), Entretenimento e Recados usam Pessoal fixo, com Todos e Trabalho bloqueados.
 
 A separação é aplicada pelo servidor do LifeOS. Quem tiver acesso direto aos bancos completos no Notion terá o acesso concedido pelo próprio Notion. Compras, Finanças e Aniversários mostram nome e horário da última edição feita pelo app; edições diretas no Notion não identificam a conta Google.
+
+### Entrar no computador com QR Code
+
+1. Abra o endereço oficial do LifeOS no computador e selecione **Entrar com QR Code**.
+2. Leia o QR com a câmera do celular. A página de aprovação usa somente o domínio configurado em LIFEOS_APP_URL. O QR é gerado pelo próprio servidor, sem serviço externo de imagens.
+3. O navegador que abriu o link deve ter uma sessão Google válida do LifeOS. Se a câmera abrir um navegador diferente do PWA instalado, a sessão pode não ser compartilhada: entre pelo Google **somente no celular** nessa página e continue. As duas contas autorizadas continuam sendo as únicas aceitas.
+4. Confira o código de seis dígitos nas duas telas e toque **Autorizar este computador**. Recusar não dá acesso. Leia apenas o QR exibido no computador que está usando.
+5. O desktop entra automaticamente como quem aprovou, preservando as regras de acesso privadas e compartilhadas. Sessões QR não podem autorizar outros computadores nem gerenciar sessões de outras contas.
+6. A sessão expira após 30 minutos, sem renovação automática, ou dez minutos sem interação. Recarregar o app não aumenta esse prazo. O QR expira em dois minutos e não pode ser reutilizado; gere outro se necessário.
+7. No celular com login Google, abra seu nome → **Computadores autorizados** → **Desconectar**. A revogação bloqueia imediatamente novas requisições ao servidor; uma operação já em andamento pode terminar. A tela visível do computador verifica a sessão em até um minuto. Ao retornar do segundo plano, ela também verifica a validade.
+8. No computador, use **Sair** ao terminar. O cookie temporário não possui persistência programada, mas não confie apenas em fechar o navegador, pois ele pode restaurar sessões.
+
+**Rascunhos no computador público:** as edições e rascunhos de Recados ficam somente na memória da página, sem ler/importar rascunhos antigos do dispositivo e sem gravar novos rascunhos no IndexedDB. Espere a confirmação **Salvo no Notion** antes de fechar, atualizar ou deixar a sessão expirar; alterações ainda pendentes poderão ser perdidas. Os rascunhos criptografados das sessões Google normais permanecem como antes. Downloads de anexos ou capturas da tela não são apagados pelo app. O QR evita entrar na conta Google no desktop, mas não protege contra um computador comprometido.
+
+As verificações periódicas de sessão são leves: consultam sessão/Redis, sem reler bancos do Notion. Não há consultas periódicas dessas sessões em segundo plano. O prazo absoluto continua válido mesmo com o aplicativo escondido.
 
 ## 3. Uso diário
 
@@ -135,7 +124,7 @@ Um recado de cada conta para a outra por dia, considerando America/Sao_Paulo. Te
 
 Somente o destinatário marca como lido; o app salva também o horário. O calendário permite reler dias anteriores. Use o campo MM/AAAA, o seletor visual de mês e ano ou as setas para navegar; HOJE volta ao mês e dia atuais. O coração do cabeçalho indica somente o recebido de hoje não lido. Abertura/retorno ao foco e atualização manual verificam o aviso, sem varredura periódica em segundo plano. Um recado que chegar enquanto você permanece no app será reconhecido na próxima atualização ou retorno ao foco.
 
-Texto e título do rascunho são guardados localmente por usuário quando o armazenamento está disponível; a imagem não enviada precisa ser selecionada de novo após recarregar. Aguarde a confirmação de salvamento antes de fechar.
+Em sessões Google, texto e título do rascunho são guardados localmente por usuário quando o armazenamento está disponível; em sessões QR temporárias ficam somente na memória; a imagem não enviada precisa ser selecionada de novo após recarregar. Aguarde a confirmação de salvamento antes de fechar.
 
 ## 4. Salvamento, sincronização e app instalado
 
@@ -359,11 +348,11 @@ No Google Auth Platform, configure aplicativo Externo, identificação básica *
 - Origem: https://lifeos-two-kohl-18.vercel.app
 - Callback exato: https://lifeos-two-kohl-18.vercel.app/api/auth/google/callback
 
-Copie Client ID e Client secret para a Vercel. Domínios de Preview precisam de callback/configuração próprios. Não troque LIFEOS_SESSION_SECRET com rascunhos pendentes: ele também participa da proteção dos rascunhos. A sessão assinada usa cookie HttpOnly e tem validade de sete dias.
+Copie Client ID e Client secret para a Vercel. Domínios de Preview precisam de callback/configuração próprios. Não troque LIFEOS_SESSION_SECRET com rascunhos pendentes: ele também participa da proteção dos rascunhos. A sessão Google assinada usa cookie HttpOnly e tem validade de sete dias. Sessões autorizadas por QR usam cookie separado logicamente por modalidade, não persistente, prazo de 30 minutos e revogação no Redis.
 
 ### Upstash
 
-Use Redis dedicado ao LifeOS e token REST com escrita. Além da coordenação das gravações e autoria compartilhada, a versão atual guarda progresso/catálogo de backups e o mapeamento de bancos ativos após restauração. **Não limpe o Redis após restaurar.** Não é necessário outro Redis para esta revisão. Indisponibilidade da coordenação bloqueia gravações em vez de permitir operações concorrentes sem controle.
+Use Redis dedicado ao LifeOS e token REST com escrita. Além da coordenação das gravações e autoria compartilhada, a versão atual guarda pedidos QR temporários e sessões revogáveis com expiração, progresso/catálogo de backups e o mapeamento de bancos ativos após restauração. **Não limpe o Redis após restaurar.** Não é necessário outro Redis para esta revisão. Indisponibilidade da coordenação bloqueia gravações em vez de permitir operações concorrentes sem controle.
 
 ### Catálogos de entretenimento
 
@@ -439,7 +428,7 @@ Na Vercel, adicione **NOTION_WELLNESS_DATABASE_ID** com o ID do banco Bem-estar 
 
 ### Como testar
 
-- Meu dia: escolha a data pelo campo DD/MM/AAAA/calendário, setas ou Hoje. Selecione uma pétala no círculo e escolha uma opção no quadro abaixo do círculo. A escolha é salva automaticamente e ilumina o contorno da pétala. Limpar escolha remove a seleção daquele aspecto; os demais dados do dia são preservados. Não abre outra tela. Sono permite selecionar duração aproximada e qualidade separadamente. Dores permite intensidade e vários locais; Nenhuma limpa os locais. Uma duração de sono ou intensidade de dor já deixa a pétala marcada como preenchida. Limpar escolha limpa o aspecto inteiro (incluindo duração/intensidade), sem mexer nas outras pétalas. Os registros de dias passados podem ser editados; datas futuras são bloqueadas. Campos não preenchidos permanecem sem registro. Energia e estresse têm pétalas próprias, com marcações de 1 a 5. Água tem sua própria pétala com quantidade em litros. A área Mais registros do dia foi removida. Todos os preenchimentos são livres. O botão discreto Excluir registros do dia pede confirmação e remove somente o registro das pétalas da data selecionada; não altera hábitos, ciclo, pressão ou medidas corporais. Os campos antigos retirados da tela não são usados em novos preenchimentos. O salvamento usa o fluxo incremental existente, com rascunho local protegido e indicação Salvo no Notion.
+- Meu dia: escolha a data pelo campo DD/MM/AAAA/calendário, setas ou Hoje. Selecione uma pétala no círculo para abrir seu cartão central de escolhas. A escolha é salva automaticamente e ilumina o contorno da pétala. Limpar escolha remove a seleção daquele aspecto; os demais dados do dia são preservados. Clique fora do cartão ou em × para voltar ao círculo. Sono permite selecionar duração aproximada e qualidade separadamente. Dores permite intensidade e vários locais; Nenhuma limpa os locais. Uma duração de sono ou intensidade de dor já deixa a pétala marcada como preenchida. Limpar escolha limpa o aspecto inteiro (incluindo duração/intensidade), sem mexer nas outras pétalas. Os registros de dias passados podem ser editados; datas futuras são bloqueadas. Campos não preenchidos permanecem sem registro. Energia e estresse têm pétalas próprias, com marcações de 1 a 5. Água tem sua própria pétala com quantidade em litros. A área Mais registros do dia foi removida. Todos os preenchimentos são livres. O botão discreto Excluir registros do dia pede confirmação e remove somente o registro das pétalas da data selecionada; não altera hábitos, ciclo, pressão ou medidas corporais. Os campos antigos retirados da tela não são usados em novos preenchimentos. O salvamento usa o fluxo incremental existente, com rascunho local protegido e indicação Salvo no Notion.
 - Hábitos: confirme que as marcações e os resumos anteriores permanecem, incluindo hábitos encerrados e confirmações. Os atalhos de seção rolam até cada painel.
 - Pressão e BPM: preencha diretamente no cartão data, pressão em um único campo com máscara (124/76) e BPM, e clique Salvar medição. O horário não é necessário. Podem existir várias medições no dia: o cartão mostra a média aritmética da sistólica, da diastólica e do BPM no dia mais recente com registros. Os gráficos também mostram médias diárias. A média é calculada e arredondada ao inteiro mais próximo para exibição, sem substituir as medições salvas. Ver histórico permite editar ou excluir com confirmação. Os registros antigos com horário são preservados, mas o horário deixa de aparecer nos formulários e no cartão. As três séries ficam em um gráfico único: sistólica e diastólica usam a escala mmHg à esquerda; BPM usa sua própria escala à direita. Os limites são ajustados aos dados visíveis, sem diagnóstico ou classificação automática.
 - Peso e gordura: preencha diretamente no cartão e clique Salvar medidas quando houver uma nova medição; peso obrigatório, percentual de gordura opcional. Não há exigência diária. O gráfico único mostra peso (kg à esquerda) e gordura (% à direita), com limites independentes e ajustados aos registros. Valores de gordura não preenchidos são omitidos, sem convertê-los em zero. Toque em um ponto para ver seus valores. Histórico permite editar/excluir. Os formulários de inclusão só criam o registro ao clicar Salvar; Limpar descarta o preenchimento. Edições no histórico continuam no formulário de edição.

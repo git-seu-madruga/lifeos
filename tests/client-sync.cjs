@@ -19,6 +19,7 @@ const {readState,saveState,readPrivateDraft}=require(path.join(folder,'lib/stora
 const testUser={id:'google:test-user',email:'periclesbernardes@gmail.com',name:'Péricles',isLegacyOwner:true,draftKey:Buffer.alloc(32,7).toString('base64')};
 let sessionAuthenticated=false,sessionQueries=0;let remote={user:testUser,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true},syncCount=0,uploadCount=0,failure=false,gate=null,readCount=0,readGate=null,readFailure=false;
 global.fetch=async(url,options={})=>{
+ if(url==='/api/auth/qr')return Response.json({authenticated:true});
  if(url==='/api/backup')return Response.json({maintenance:false});
  if(url==='/api/session'){sessionQueries++;return Response.json({authenticated:sessionAuthenticated,configured:true,user:sessionAuthenticated?testUser:null});}
  if(url==='/api/notion'){readCount++;const snapshot=structuredClone(remote);if(readGate)await readGate;if(readFailure){readFailure=false;return Response.json({error:'Consulta indisponível'},{status:502});}return Response.json(snapshot);}
@@ -108,6 +109,8 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
   assert.doesNotThrow(()=>hook[setter](()=>{throw Error('Stale editor must not edit a closed session');}));
  }
  await tick();assert.equal(hook.projects,null);assert.equal(hook.tasks,null);
+ // QR sessions use the same sync flow without reading or writing persistent drafts.
+ global.document=window.document;testUser.id='google:public-test';testUser.temporary=true;testUser.draftKey=null;testUser.sessionId='a'.repeat(48);testUser.expiresAt=Date.now()+1800000;remote={...remote,user:testUser};sessionAuthenticated=true;await hook.qrLoginComplete();await tick();await tick();assert.equal(hook.ready,true);assert.equal(hook.user.temporary,true);hook.setInbox([{id:'public-entry',text:'Somente na memória',createdAt:Date.now()}]);await hook.flush();await tick();assert.equal(remote.inbox[0].text,'Somente na memória');assert.equal(await readState('notion-draft:'+testUser.id),undefined,'No IndexedDB draft for public sessions');failure=true;hook.setInbox(previous=>previous.map(item=>({...item,text:'Pendente sem persistência'})));await assert.rejects(()=>hook.flush(),/Falha simulada/);assert.equal(await readState('notion-draft:'+testUser.id),undefined);assert.ok(hook.pending);clockOffset+=600001;poll();await tick();assert.equal(hook.authenticated,false);assert.equal(hook.ready,false);assert.equal(hook.inbox,undefined,'Private data removed from rendered state at expiry');delete global.document;
  Date.now=originalNow;
  active=false;for(const slot of slots)slot?.cleanup?.();Object.assign(React,original);fs.rmSync(folder,{recursive:true});
  console.log('PASSOU: retorno ao foco sem consultas ocultas, eventos agrupados, horário real, preservação de edições durante consulta, consulta adiada após falha/salvamento; carga remota sem importar exemplos locais, upload, autosave, IDs, rascunho após falha, reenvio e edição durante salvamento.');
