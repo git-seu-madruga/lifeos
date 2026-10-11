@@ -348,6 +348,21 @@ global.fetch=async(url,options={})=>{
   await assert.rejects(()=>save(a,{...a,wellness:[...a.wellness,{...measurement,id:'invalid',data:{...measurement.data,bpm:-1}}]},A),/válidos/);
   const start=calls.length;await save(a,{...a,wellness:a.wellness.map(p=>p.type==='pressure'?{...p,data:{...p.data,bpm:64}}:p)},A);assert.ok(!calls.slice(start).some(c=>c.route.includes('/query')&&!c.body.filter),'Incremental saves never enumerate whole bank');
   a=(await notionLib.readSnapshot(false,A)).state;await save(a,{...a,wellness:a.wellness.filter(p=>p.type!=='pressure')},A);assert.equal((await notionLib.readSnapshot(false,A)).state.wellness.length,1);
+  a=(await notionLib.readSnapshot(false,A)).state;
+  const weight={id:'weight-one',name:'Peso e gordura',type:'body',date:day,data:{weight:80,fat:20}};
+  const old=structuredClone(a),want={...a,wellness:[...a.wellness,weight]};await save(a,want,A);await save(old,want,A);
+  await assert.rejects(()=>save(old,{...old,wellness:[...old.wellness,{...weight,id:'weight-other',data:{weight:90,fat:22}}]},A),e=>e.status===409);
+  a=(await notionLib.readSnapshot(false,A)).state;assert.equal(a.wellness.filter(p=>p.type==='body').length,1);
+  await save(a,{...a,wellness:a.wellness.map(p=>p.type==='body'?{...p,data:{...p.data,weight:81}}:p)},A);
+  a=(await notionLib.readSnapshot(false,A)).state;
+  const yesterday=new Date(Date.parse(day)-86400000).toISOString().slice(0,10);
+  await save(a,{...a,wellness:[...a.wellness,{...weight,id:'weight-yesterday',date:yesterday}]},A);
+  a=(await notionLib.readSnapshot(false,A)).state;
+  await assert.rejects(()=>save(a,{...a,wellness:a.wellness.map(p=>p.type==='body'&&p.date===yesterday?{...p,date:day}:p)},A),e=>e.status===409);
+  const secondPressure={...measurement,id:'another-pressure',data:{systolic:120,diastolic:70,bpm:60}};
+  await save(a,{...a,wellness:[...a.wellness,measurement,secondPressure]},A);
+  assert.equal((await notionLib.readSnapshot(false,A)).state.wellness.filter(p=>p.type==='pressure').length,2);
+
  }
  const copyRoute=require(path.join(temp,'app/api/notion/media-cover/route')).POST;
  const copied=await copyRoute(new Request('https://lifeos.test/api/notion/media-cover',{method:'POST',headers:{cookie,origin:'https://lifeos.test','content-type':'application/json'},body:JSON.stringify({url:'https://covers.openlibrary.org/b/id/123-M.jpg',name:'Duna'})}));assert.equal(copied.status,200);const coverResult=await copied.json();assert.equal(auth.unseal(coverResult.uploadProof).user,'google:test-pericles');assert.ok(coverResult.uploadId);

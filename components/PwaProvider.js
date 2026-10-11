@@ -1,4 +1,5 @@
 "use client";
+import {routeExternalClick} from '../lib/externalLinks';
 import { createContext, useContext, useEffect, useState } from 'react';
 const PwaContext = createContext(null);
 export default function PwaProvider({children}) {
@@ -21,6 +22,7 @@ export default function PwaProvider({children}) {
     }
     return () => {window.removeEventListener('beforeinstallprompt',before);window.removeEventListener('appinstalled',done);display.removeEventListener('change',check);full.removeEventListener('change',check);};
   }, []);
+  useEffect(()=>{const click=event=>routeExternalClick(event,{origin:window.location.origin,androidInstalled:installed&&/Android/i.test(navigator.userAgent),defer:fn=>window.setTimeout(fn,0)});document.addEventListener('click',click,true);return()=>document.removeEventListener('click',click,true);},[installed]);
   async function install() {
     if (!prompt) return;
     try { await prompt.prompt(); await prompt.userChoice; } finally {setPrompt(null);}

@@ -19,6 +19,7 @@ vm.runInNewContext(fs.readFileSync('public/sw.js','utf8'), {
   assert.match(await response.text(),/sem conexão/);
   const manifest=JSON.parse(fs.readFileSync('public/manifest.webmanifest','utf8'));
   assert.equal(manifest.start_url,'/');assert.equal(manifest.scope,'/');assert.equal(manifest.display,'standalone');assert.deepEqual(manifest.display_override,['standalone'],'Installed app must not prefer immersive fullscreen');
+  assert.deepEqual(manifest.launch_handler,{client_mode:'navigate-new'},'Incoming links must not replace an existing editing window');
   for (const icon of manifest.icons) assert.ok(fs.existsSync('public'+icon.src));
   console.log('PASS: PWA não intercepta APIs/autenticação; fallback offline e manifest válidos.');
 })().catch(error=>{console.error(error);process.exit(1);});
