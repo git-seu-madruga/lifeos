@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Corrigido o texto de autorização no celular: duração de 1 hora, bloqueio após 10 minutos e desbloqueio pelo código original, sem extensão do prazo.
+
 - Sessão por QR: até 1 hora, com bloqueio após 10 minutos sem interação e desbloqueio pelo código original apenas no navegador autorizado. Cinco erros seguidos encerram a sessão. O limite de 1 hora nunca é renovado.
 
 - Peso/% gordura aceita apenas um registro por data, por usuário. Para corrigir, edite pelo gráfico ou histórico. Pressão mantém várias medições por dia e suas médias.
