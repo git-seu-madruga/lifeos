@@ -16,13 +16,15 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Sessão por QR: até 1 hora, com bloqueio após 10 minutos sem interação e desbloqueio pelo código original apenas no navegador autorizado. Cinco erros seguidos encerram a sessão. O limite de 1 hora nunca é renovado.
+
 - Peso/% gordura aceita apenas um registro por data, por usuário. Para corrigir, edite pelo gráfico ou histórico. Pressão mantém várias medições por dia e suas médias.
 - Cada gráfico tem um toggle discreto BPM/% gordura: oculta ou mostra a série e escala da direita, ajustando os limites e a largura aos dados visíveis. Não altera nem exclui dados. Esta revisão não exige novos campos, bancos ou variáveis.
 
 - Links externos solicitam nova aba. No PWA instalado em Android, links HTTP/HTTPS sem fragmento tentam abrir o Chrome por um Android Intent, com endereço original como fallback. Links que chegam ao PWA usam launch_handler navigate-new onde suportado, preservando uma janela já aberta para edição. A decisão de capturar links continua sendo do navegador/sistema.
 
 - Login alternativo por QR Code, com aprovação explícita no celular conectado pelo Google, comparação de código nas duas telas e sessão temporária no computador. O menu da conta Google permite consultar e desconectar computadores autorizados.
-- QR de uso único com validade de dois minutos; sessão desktop de até 30 minutos e encerramento após dez minutos sem interação. O computador não grava rascunhos comuns ou de Recados no IndexedDB nesse modo. Os logins Google existentes mantêm seu funcionamento.
+- QR de uso único com validade de dois minutos; sessão desktop de até 1 hora e bloqueio após dez minutos sem interação. O computador não grava rascunhos comuns ou de Recados no IndexedDB nesse modo. Os logins Google existentes mantêm seu funcionamento.
 - Inclui as melhorias anteriores de Bem-estar: nove pétalas, cartão central de escolhas no mobile/desktop, vários locais de dor e edição de pressão/peso a partir dos pontos do gráfico. Clicar fora do ponto restaura Ver histórico.
 - Hábitos continuam dentro de Bem-estar com as mesmas marcações e resumos. O ciclo da Letícia permanece editável pelas duas contas nesta fase.
 - Mantém projetos/tarefas compartilhados, responsáveis obrigatórios por tarefa, exclusão de projeto com seus marcos e tarefas, sincronização incremental e demais funcionalidades já configuradas.
@@ -51,7 +53,8 @@ A separação é aplicada pelo servidor do LifeOS. Quem tiver acesso direto aos 
 3. O navegador que abriu o link deve ter uma sessão Google válida do LifeOS. Se a câmera abrir um navegador diferente do PWA instalado, a sessão pode não ser compartilhada: entre pelo Google **somente no celular** nessa página e continue. As duas contas autorizadas continuam sendo as únicas aceitas.
 4. Confira o código de seis dígitos nas duas telas e toque **Autorizar este computador**. Recusar não dá acesso. Leia apenas o QR exibido no computador que está usando.
 5. O desktop entra automaticamente como quem aprovou, preservando as regras de acesso privadas e compartilhadas. Sessões QR não podem autorizar outros computadores nem gerenciar sessões de outras contas.
-6. A sessão expira após 30 minutos, sem renovação automática, ou dez minutos sem interação. Recarregar o app não aumenta esse prazo. O QR expira em dois minutos e não pode ser reutilizado; gere outro se necessário.
+6. Guarde o código de seis números mostrado junto ao QR Code. A sessão dura até 1 hora a partir da autorização no celular, sem renovação. Após dez minutos sem interação, o conteúdo fica oculto e as APIs bloqueadas. Digite esse código para desbloquear somente neste navegador autorizado; ele sozinho não abre uma sessão em outro navegador/computador. O desbloqueio reinicia a inatividade, mas não estende a hora. Cinco códigos incorretos seguidos encerram a sessão e exigem nova autorização pelo celular. Recarregar o app não elimina o bloqueio nem aumenta a validade. O QR expira em dois minutos e não pode ser reutilizado. Sessões antigas, emitidas antes desta revisão, mantêm o prazo anterior e precisam de nova autorização se forem bloqueadas, pois não têm código de desbloqueio registrado.
+7. Enquanto bloqueado, os formulários já abertos e textos pendentes ficam na memória da aba, sem persistência neste computador. Ao desbloquear, o salvamento pode continuar. Fechar/recarregar a aba ou expirar a hora pode perder o que ainda não foi salvo; aguarde **Salvo no Notion** antes de se afastar. Sessões bloqueadas continuam na lista **Computadores autorizados** para revogação pelo celular.
 7. No celular com login Google, abra seu nome → **Computadores autorizados** → **Desconectar**. A revogação bloqueia imediatamente novas requisições ao servidor; uma operação já em andamento pode terminar. A tela visível do computador verifica a sessão em até um minuto. Ao retornar do segundo plano, ela também verifica a validade.
 8. No computador, use **Sair** ao terminar. O cookie temporário não possui persistência programada, mas não confie apenas em fechar o navegador, pois ele pode restaurar sessões.
 
@@ -364,7 +367,7 @@ No Google Auth Platform, configure aplicativo Externo, identificação básica *
 - Origem: https://lifeos-two-kohl-18.vercel.app
 - Callback exato: https://lifeos-two-kohl-18.vercel.app/api/auth/google/callback
 
-Copie Client ID e Client secret para a Vercel. Domínios de Preview precisam de callback/configuração próprios. Não troque LIFEOS_SESSION_SECRET com rascunhos pendentes: ele também participa da proteção dos rascunhos. A sessão Google assinada usa cookie HttpOnly e tem validade de sete dias. Sessões autorizadas por QR usam cookie separado logicamente por modalidade, não persistente, prazo de 30 minutos e revogação no Redis.
+Copie Client ID e Client secret para a Vercel. Domínios de Preview precisam de callback/configuração próprios. Não troque LIFEOS_SESSION_SECRET com rascunhos pendentes: ele também participa da proteção dos rascunhos. A sessão Google assinada usa cookie HttpOnly e tem validade de sete dias. Sessões autorizadas por QR usam cookie separado logicamente por modalidade, não persistente, prazo de 1 hora e revogação no Redis.
 
 ### Upstash
 
