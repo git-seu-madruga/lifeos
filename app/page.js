@@ -10,6 +10,7 @@ import { InstallApp } from "../components/PwaProvider";
 import Brand from '../components/Brand';
 import {useRecadoNotification} from '../lib/useRecadoNotification';
 import AccountMenu from '../components/AccountMenu';
+import QrLock from '../components/QrLock';
 import QrSessions from '../components/QrSessions';
 import BackupView from '../components/BackupView';
 import RecadosView from "../components/RecadosView";
@@ -172,6 +173,7 @@ export default function Home() {
 
   if(!orderReady || remote.authenticated === null) return <p className="empty">Carregando LifeOS…</p>;
   if(!remote.authenticated) return <Login onQrLogin={remote.qrLoginComplete} onLogin={remote.login} configured={remote.configured} initialError={remote.error} />;
+  if(remote.qrLocked&&!ready)return <QrLock onUnlock={remote.unlockQr} onExit={remote.endQr}/>;
   if(!ready) return <main className="login-shell"><div className="login-card"><h1><Brand/></h1><p>{remote.loading ? "Conectando ao Notion…" : "Não foi possível carregar os bancos."}</p>{remote.error && <p className="date-error" role="alert">{remote.error}</p>}<button className="primary" onClick={remote.load} disabled={remote.loading}>Tentar novamente</button><button className="ghost" onClick={()=>remote.logout().catch(()=>{})}>Sair</button></div></main>;
 
 
@@ -180,7 +182,7 @@ export default function Home() {
     : "";
 
   return (
-    <div className="shell app-viewport" data-app-viewport="">
+    <>{remote.qrLocked&&<QrLock onUnlock={remote.unlockQr} onExit={remote.endQr}/>}<div className="shell app-viewport" data-app-viewport="">
       <div className="left-rail" inert={remote.maintenance}>
       {ready && inbox && <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />}
       </div>
@@ -300,6 +302,6 @@ export default function Home() {
     <BackNotice/>
     <ModalLayer open={!!shoppingInbox} onClose={()=>setShoppingInbox(null)}>{shoppingInbox&&<div className="overlay overlay-context"><div className="panel finance-modal" role="dialog" aria-modal="true" aria-label="Contexto da lista de compras"><h2>Contexto da lista</h2><p className="muted">Escolha onde criar a lista ou acrescentar os itens à lista de mesmo nome.</p><label>Contexto<select className="search" value={shoppingContext} onChange={e=>setShoppingContext(e.target.value)}><option value="personal">Pessoal</option><option value="work">Trabalho</option></select></label><div className="finance-period"><button className="primary" onClick={()=>moveShoppingInbox(shoppingInbox,shoppingContext)}>Mover para lista</button><button className="ghost" onClick={()=>setShoppingInbox(null)}>Cancelar</button></div></div></div>}</ModalLayer>
     <ModalLayer open={!!newTask&&!!projects} onClose={()=>setNewTaskId(null)}>{newTask && projects && <TaskDetail user={remote.user} key={newTask.id} task={newTask} projects={projects} update={updateNewTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setNewTaskId(null)} />}</ModalLayer>
-    </div>
+    </div></>
   );
 }
