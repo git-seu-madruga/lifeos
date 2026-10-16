@@ -1,0 +1,5 @@
+Fluent Emoji — Microsoft Corporation
+Source: https://github.com/microsoft/fluentui-emoji
+License: MIT (see LICENSE.txt)
+
+LifeOS includes six original Flat vehicle emojis and derived body-color variants. Only body paint and its shadow fills are changed; original paths, windows, wheels and lights are retained. Original files are supplied alongside variants.

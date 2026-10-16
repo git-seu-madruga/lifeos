@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Ilustrações dos veículos substituídas por **Microsoft Fluent Emoji (Flat)**, incluídos no app. As cores da carroceria continuam personalizáveis.
+
 - Veículos agora é compartilhada entre as duas contas, com aviso na aba, identificação da última edição e contexto Pessoal fixo. Não exige outro banco nem nova variável além de NOTION_VEHICLES_DATABASE_ID já indicada para a nova aba.
 
 - Nova aba **Veículos**: carros/motos ilustrados com modelos e cores, abastecimentos, médias de consumo, categorias de despesas e lembretes por km/data. Um banco adicional: siga a seção Veículos abaixo. Dados compartilhados entre as duas contas, apenas no contexto Pessoal.
@@ -490,7 +492,7 @@ Na Vercel, adicione **NOTION_VEHICLES_DATABASE_ID** com o ID deste banco (não o
 
 Cadastre cada veículo com nome, tipo, placa, km atual/inicial e antecedência dos alertas. **Veículos, abastecimentos, despesas, categorias e lembretes são compartilhados entre as duas contas.** A aba exibe COMPARTILHADO abaixo de seu nome e mantém apenas Pessoal, com Todos e Trabalho bloqueados. Não há escolha de contexto dentro do cadastro. Registros eventualmente criados antes desta revisão também ficam compartilhados e são exibidos como Pessoal, inclusive os que tinham Trabalho. A última edição exibe nome e horário, seguindo o padrão das outras abas compartilhadas. A aba Finanças permanece independente: nenhuma despesa de veículo é lançada automaticamente nela.
 
-Modelos ilustrados disponíveis: **Hatch, Sedã, SUV e Picape**; motos **Street, Scooter, Trail e Esportiva**. Há oito cores prontas, com prévia imediata. O lápis no bloco permite mudar nome, modelo, cor e demais dados sem alterar lançamentos anteriores. As ilustrações são desenhadas no próprio app, sem uploads nem serviços externos.
+Modelos ilustrados disponíveis: **Hatch, Sedã, SUV e Picape**; motos **Street, Scooter, Trail e Esportiva**. Há oito cores prontas, com prévia imediata. O lápis no bloco permite mudar nome, modelo, cor e demais dados sem alterar lançamentos anteriores. As ilustrações usam o pacote **Microsoft Fluent Emoji, estilo Flat**, com arquivos SVG incluídos no app. A cor escolhida altera apenas a pintura e suas sombras, preservando vidros, pneus e faróis. O pacote oferece emojis de carro lateral, carro de frente, SUV, picape, motocicleta e scooter. Street, Trail e Esportiva mantêm seus cadastros e utilizam o mesmo emoji de motocicleta. Não há download externo de imagens durante o uso, nem novos serviços ou variáveis. Créditos, licença MIT, originais e variantes estão em public/emoji/fluent-vehicles. Fonte: https://github.com/microsoft/fluentui-emoji.
 
 ### Abastecimentos e médias
 
