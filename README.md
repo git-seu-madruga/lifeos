@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- **Importação de abastecimentos por CSV LifeOS**, com prévia, confirmação, controle de duplicações, lotes de cinco e retomada. Marcação **Abastecimento anterior não registrado** disponível na criação e edição; interrompe o intervalo incompleto sem apagar o histórico. Nenhuma alteração de banco ou variável é necessária.
+
 - Abastecimentos têm campo de posto com texto livre, escolha de favoritos e gerenciamento de cadastros compartilhados. Cadastro do veículo inclui ano, que também aparece no bloco da garagem. Nenhum campo ou banco adicional no Notion.
 
 - Abastecimentos agora aceitam Etanol e Gasolina em várias linhas, com litros e valor por linha. Etanol é o padrão em carros; Gasolina em motos. Cada abastecimento tem uma só data, km e marcação de tanque cheio, usando os totais de todas as linhas para despesas e consumo.
@@ -522,6 +524,52 @@ Em **Gerenciar postos**, cadastre nomes, marque ou desmarque favoritos, renomeie
 A tabela informa o tipo (Etanol, Gasolina ou ambos) e os totais, com os litros de cada componente quando houver mistura. Ao editar, todas as linhas são recuperadas para correção. Registros antigos sem tipo continuam válidos para as médias e aparecem como **Não informado**; não é atribuído um combustível retroativamente. Ao editar um deles, selecione o tipo da linha antes de salvar, mantendo os litros e valores já cadastrados. As linhas e os totais usam o mesmo campo Dados do banco existente: **não crie propriedades adicionais no Notion nem variáveis na Vercel**.
 
 A tabela mostra os cinco abastecimentos mais recentes; **Ver todos** abre o restante. O lápis permite editar e excluir com confirmação. Um abastecimento é um único lançamento: aparece também nas despesas como combustível, sem ser somado duas vezes.
+
+#### Abastecimento anterior não registrado
+
+Marque **Abastecimento anterior não registrado** ao criar ou editar o abastecimento que sucede uma lacuna no histórico. O intervalo que atravessa essa lacuna sai dos cálculos de consumo e custo/km; os gastos e lançamentos continuam no histórico. Se esse registro for de tanque cheio, ele se torna a nova referência. Se for parcial, o app aguarda o próximo tanque cheio para estabelecer uma referência, calculando novamente apenas a partir do cheio seguinte. A Última média fica vazia até fechar um novo intervalo após a interrupção. As médias de intervalos válidos anteriores continuam compondo a média geral; o campo não apaga nem zera todo o histórico. Desmarcar recalcula normalmente. A tabela identifica a marcação como **Nova referência**.
+
+#### Importar abastecimentos — primeira importação e futuras
+
+O botão **Importar CSV** fica no cartão **Abastecimentos**, ao lado de Abastecer, e permanece disponível para futuras importações. O importador funciona apenas para abastecimentos; não importa despesas de manutenção ou lembretes nesta revisão.
+
+**Seu histórico preparado:** o ZIP desta entrega contém, fora da pasta `lifeos`, a pasta `Importacao`, com `abastecimentos-suzuki-gsr125.csv`. Envie ao GitHub apenas o conteúdo de `lifeos`. Guarde `Importacao` no computador para carregar pelo aplicativo. O CSV não precisa ser publicado no repositório e não deve ser importado diretamente pelo Notion.
+
+1. Publique o conteúdo atualizado de `lifeos` e atualize a página/PWA. Não altere variáveis nem propriedades no Notion; os novos campos ficam em Dados, no banco Veículos existente.
+2. Abra **Veículos** e selecione a motocicleta correta. Se ainda não a cadastrou, crie **Suzuki GSR125**, tipo Motocicleta, ano **2016**. A km atual pode permanecer em 61.805 km ou no valor atual real; o histórico começa em 2.678 km. A importação não substitui nome, placa, ano, ícone ou cor do veículo.
+3. No cartão Abastecimentos, clique **Importar CSV** e escolha `Importacao/abastecimentos-suzuki-gsr125.csv`.
+4. Confira o destino e a prévia. Sem histórico já importado, o arquivo contém **186 abastecimentos**, de **05/05/2016 a 28/08/2026**, **2.102,841 L** e **R$ 10.933,57**, com **2 parciais** e **1 interrupção de média** (26/03/2021). Os totais exibidos na prévia são apenas dos registros novos selecionados; podem ser menores se já houver duplicatas no destino.
+5. O arquivo de origem não traz legenda do código de combustível. O padrão seguro é **Manter Não informado**. Se você confirmar que todo esse histórico é de gasolina, escolha **Confirmar Gasolina para estes registros**. Essa escolha afeta apenas linhas sem combustível identificado. Linhas com Etanol/Gasolina ou abastecimentos mistos conservam os tipos informados.
+6. Por padrão, possíveis duplicatas de **mesma data e km** são ignoradas. A opção para incluí-las deve ser usada apenas após conferir que são abastecimentos diferentes. Registros com o mesmo ID de origem nesse veículo sempre são ignorados, mesmo que tenham sido editados posteriormente.
+7. Clique **Confirmar importação** e confirme o veículo na mensagem. Mantenha o app em primeiro plano e aguarde **Importação concluída e salva no Notion**. São gravados lotes de até cinco registros, pelo salvamento incremental normal. As duas contas verão o histórico compartilhado.
+8. Se houver falha, mantenha o mesmo arquivo e clique **Retomar importação**. Os lotes confirmados ficam salvos e os IDs estáveis evitam duplicação. Após fechar/reabrir, carregue novamente o mesmo CSV no mesmo veículo. Se aparecer conflito, feche o painel, use Atualizar e confira os registros antes de retomar. Não altere os IDs para tentar contornar uma falha.
+
+O importador não cria cadastros de postos automaticamente. Nomes identificados permanecem como texto nos abastecimentos; você pode favoritá-los posteriormente. Localizações genéricas da origem são conservadas na observação. Quilometragens incoerentes por data, valores inválidos ou arquivos malformados bloqueiam a importação antes de inserir o lote. Uma edição concorrente no Notion também pode interromper a operação, preservando os lotes anteriores.
+
+**Formato para futuras importações**
+
+Baixe um modelo vazio pelo botão **Baixar modelo CSV** do próprio importador. Um modelo também está na pasta `Importacao` desta entrega. Use UTF-8, preferencialmente separado por ponto e vírgula, uma linha por abastecimento. Limite: **1 MB e 1.000 abastecimentos por arquivo**. Aspas e quebras de linha dentro de observações seguem o padrão CSV. Colunas extras são ignoradas.
+
+| Coluna | Regra |
+|---|---|
+| id_origem | Obrigatória; identificador único e estável, de até 150 caracteres. Preserve em reimportações; não use números de linha que mudam ao ordenar. |
+| data | Obrigatória, DD/MM/AAAA completa no arquivo. |
+| km | Obrigatória, inteiro sem ponto de milhar: `61805`. |
+| litros | Obrigatória, positivo, até 3 casas: `12,320`. |
+| valor_total_rs | Obrigatória, total positivo em reais, até 2 casas: `87,35`, sem R$ e sem separador de milhar. |
+| tanque_cheio | Obrigatória: Sim ou Não. |
+| combustivel | Gasolina, Etanol ou Não informado. Vazio equivale a Não informado. |
+| posto | Nome livre, até 150 caracteres; pode ficar vazio. |
+| observacoes | Texto, pode conter quebras de linha; até 5.000 caracteres incluindo local_original, se preenchido. |
+| abastecimento_anterior_nao_registrado | Sim ou Não; vazio equivale a Não. |
+| veiculo | Nome para conferência; o destino é sempre o veículo escolhido no app. |
+| local_original | Informação adicional da origem, acrescentada à observação; pode ficar vazio. |
+| combustiveis_json | Avançado, pode ficar vazio. Para um abastecimento misto, lista JSON de até 20 linhas, com `type` (`ethanol`, `gasoline` ou `unknown`), `liters` numérico e `amount` em centavos inteiros. A soma deve coincidir com litros e valor_total_rs da linha. |
+
+Exemplo do conteúdo de combustiveis_json: `[{"type":"ethanol","liters":10,"amount":4000},{"type":"gasoline","liters":5,"amount":3000}]`. Na mesma linha, informe litros `15` e valor_total_rs `70,00`. Ao gerar CSV, coloque esse JSON entre aspas e duplique as aspas internas, conforme o padrão CSV. Não repita id_origem em várias linhas para um único abastecimento; use esse campo para preservar os componentes de um abastecimento misto.
+
+Não importe médias prontas: o LifeOS recalcula consumo usando tanques cheios, parciais e interrupções. A reimportação é aditiva; não atualiza nem exclui registros já importados. Para corrigir um registro existente, utilize o lápis no aplicativo. Um histórico manual sem ID de origem é tratado como possível duplicata por data e km, não como substituição automática.
+
 
 ### Despesas e categorias
 
