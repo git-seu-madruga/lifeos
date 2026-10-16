@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Abastecimentos agora aceitam Etanol e Gasolina em várias linhas, com litros e valor por linha. Etanol é o padrão em carros; Gasolina em motos. Cada abastecimento tem uma só data, km e marcação de tanque cheio, usando os totais de todas as linhas para despesas e consumo.
+
 - Cadastro de veículos simplificado: apenas tipo Carro/Motocicleta; escolha do emoji pelas setas à esquerda e à direita da imagem, sem lista de modelos. Paleta de cores mantida.
 
 - Ilustrações dos veículos substituídas por **Microsoft Fluent Emoji (Flat)**, incluídos no app. As cores da carroceria continuam personalizáveis.
@@ -498,8 +500,9 @@ No cadastro, escolha apenas **Carro** ou **Motocicleta**. Troque o emoji pelas *
 
 ### Abastecimentos e médias
 
-Clique **Abastecer**, informe data, odômetro, litros (até três casas decimais), valor total em reais e marque ou desmarque **Tanque cheio**. As datas seguem DD/MM/AAAA, completando o ano ao informar dia/mês e sair do campo. O valor usa máscara R$ e completa os centavos ao sair.
+Clique **Abastecer**, informe data e odômetro, escolha **Etanol** ou **Gasolina** e preencha litros (até três casas decimais) e valor em reais de cada linha. Novos abastecimentos e novas linhas começam com **Etanol para carros** e **Gasolina para motocicletas**, podendo trocar livremente. Use **+ Adicionar combustível** para misturar dois ou mais registros no mesmo abastecimento, até vinte linhas; cada linha pode ser removida antes de salvar. Marque ou desmarque **Tanque cheio** uma única vez, para o abastecimento inteiro. O total de litros e reais é calculado automaticamente pela soma das linhas. As datas seguem DD/MM/AAAA, completando o ano ao informar dia/mês e sair do campo. O valor usa máscara R$ e completa os centavos ao sair.
 
+- Um abastecimento misto é **um só registro**, com uma só data, quilometragem e condição do tanque. Por exemplo, 20 L de etanol + 10 L de gasolina contam como 30 L nesse abastecimento. Os valores das linhas também são somados uma única vez na despesa e no custo/km. As médias continuam em km/L combinados, sem separar por tipo de combustível nesta revisão.
 - O **primeiro tanque cheio** é a referência inicial; seu volume não entra no primeiro intervalo, porque não se conhece o nível anterior do tanque.
 - Cada tanque cheio seguinte fecha um intervalo: km percorridos desde a referência ÷ litros de todos os abastecimentos posteriores à referência, incluindo parciais e o tanque cheio de fechamento.
 - Parciais anteriores à primeira referência não entram no cálculo. Parciais depois do último tanque cheio aguardam o próximo fechamento e não alteram uma média já calculada.
@@ -507,6 +510,8 @@ Clique **Abastecer**, informe data, odômetro, litros (até três casas decimais
 - **Custo por km**: soma dos valores de combustível dos intervalos completos ÷ soma das distâncias desses mesmos intervalos. Não inclui despesas de manutenção, impostos ou seguro.
 - O gráfico mostra até doze intervalos completos mais recentes. Sem dois tanques cheios com distância positiva, os indicadores de consumo mostram um traço, sem inventar uma média.
 - Edição ou exclusão de um abastecimento recalcula as médias e o gráfico. A quilometragem deve acompanhar a ordem das datas; registros do mesmo dia são ordenados pelo odômetro.
+
+A tabela informa o tipo (Etanol, Gasolina ou ambos) e os totais, com os litros de cada componente quando houver mistura. Ao editar, todas as linhas são recuperadas para correção. Registros antigos sem tipo continuam válidos para as médias e aparecem como **Não informado**; não é atribuído um combustível retroativamente. Ao editar um deles, selecione o tipo da linha antes de salvar, mantendo os litros e valores já cadastrados. As linhas e os totais usam o mesmo campo Dados do banco existente: **não crie propriedades adicionais no Notion nem variáveis na Vercel**.
 
 A tabela mostra os cinco abastecimentos mais recentes; **Ver todos** abre o restante. O lápis permite editar e excluir com confirmação. Um abastecimento é um único lançamento: aparece também nas despesas como combustível, sem ser somado duas vezes.
 

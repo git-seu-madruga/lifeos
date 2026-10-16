@@ -386,6 +386,9 @@ global.fetch=async(url,options={})=>{
  await assert.rejects(()=>save(state,{...state,vehicles:state.vehicles.filter(p=>p.type!=='vehicle')}),/veículo.*não existe/);
  await assert.rejects(()=>save(state,{...state,vehicles:[...state.vehicles,{...expense,id:'orphan',data:{...expense.data,uid:'orphan',vehicle:'unknown'}}]}),/veículo.*não existe/);
  await assert.rejects(()=>save(state,{...state,vehicles:state.vehicles.map(p=>p.data.uid==='tires-entry'?{...p,data:{...p.data,amount:0}}:p)}),/valor positivo/);
+ const mixedFuel={id:'mixed-stop',name:'Abastecimento misto',type:'entry',date:'2026-10-03',data:{uid:'mixed-stop-uid',vehicle:'car-A',category:'fuel',fuel:true,full:true,km:1800,liters:35.5,amount:18000,fuels:[{type:'ethanol',liters:20,amount:8000},{type:'gasoline',liters:15.5,amount:10000}]}};
+ await save(state,{...state,vehicles:[...state.vehicles,mixedFuel]},B);state=(await notionLib.readSnapshot(false,A)).state;const persistedMixed=state.vehicles.find(p=>p.data.uid==='mixed-stop-uid');assert.deepEqual(persistedMixed.data.fuels,mixedFuel.data.fuels);assert.equal(persistedMixed.data.liters,35.5);assert.equal(persistedMixed.data.amount,18000);
+ await assert.rejects(()=>save(state,{...state,vehicles:state.vehicles.map(p=>p.id===persistedMixed.id?{...p,data:{...p.data,amount:1}}:p)}),/total.*litros/);
  const fresh=structuredClone(state);await save(state,{...state,vehicles:state.vehicles.map(p=>p.type==='vehicle'?{...p,name:'Renomeado no outro aparelho'}:p)});
  await assert.rejects(()=>save(fresh,{...fresh,vehicles:fresh.vehicles.map(p=>p.type==='vehicle'?{...p,name:'Edição antiga'}:p)}),e=>e.status===409);
  }
