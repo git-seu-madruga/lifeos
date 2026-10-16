@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Cadastro de veículos simplificado: apenas tipo Carro/Motocicleta; escolha do emoji pelas setas à esquerda e à direita da imagem, sem lista de modelos. Paleta de cores mantida.
+
 - Ilustrações dos veículos substituídas por **Microsoft Fluent Emoji (Flat)**, incluídos no app. As cores da carroceria continuam personalizáveis.
 
 - Veículos agora é compartilhada entre as duas contas, com aviso na aba, identificação da última edição e contexto Pessoal fixo. Não exige outro banco nem nova variável além de NOTION_VEHICLES_DATABASE_ID já indicada para a nova aba.
@@ -492,7 +494,7 @@ Na Vercel, adicione **NOTION_VEHICLES_DATABASE_ID** com o ID deste banco (não o
 
 Cadastre cada veículo com nome, tipo, placa, km atual/inicial e antecedência dos alertas. **Veículos, abastecimentos, despesas, categorias e lembretes são compartilhados entre as duas contas.** A aba exibe COMPARTILHADO abaixo de seu nome e mantém apenas Pessoal, com Todos e Trabalho bloqueados. Não há escolha de contexto dentro do cadastro. Registros eventualmente criados antes desta revisão também ficam compartilhados e são exibidos como Pessoal, inclusive os que tinham Trabalho. A última edição exibe nome e horário, seguindo o padrão das outras abas compartilhadas. A aba Finanças permanece independente: nenhuma despesa de veículo é lançada automaticamente nela.
 
-Modelos ilustrados disponíveis: **Hatch, Sedã, SUV e Picape**; motos **Street, Scooter, Trail e Esportiva**. Há oito cores prontas, com prévia imediata. O lápis no bloco permite mudar nome, modelo, cor e demais dados sem alterar lançamentos anteriores. As ilustrações usam o pacote **Microsoft Fluent Emoji, estilo Flat**, com arquivos SVG incluídos no app. A cor escolhida altera apenas a pintura e suas sombras, preservando vidros, pneus e faróis. O pacote oferece emojis de carro lateral, carro de frente, SUV, picape, motocicleta e scooter. Street, Trail e Esportiva mantêm seus cadastros e utilizam o mesmo emoji de motocicleta. Não há download externo de imagens durante o uso, nem novos serviços ou variáveis. Créditos, licença MIT, originais e variantes estão em public/emoji/fluent-vehicles. Fonte: https://github.com/microsoft/fluentui-emoji.
+No cadastro, escolha apenas **Carro** ou **Motocicleta**. Troque o emoji pelas **setas nas laterais da imagem**, sem selecionar categorias de modelo. Há quatro imagens de carro (frente, lateral, SUV e picape) e duas de motocicleta (moto e scooter); a navegação é circular e também aceita as setas do teclado quando o seletor está em foco. Há oito cores prontas, com prévia imediata. O lápis no bloco permite mudar nome, ícone, cor e demais dados sem alterar lançamentos anteriores. As ilustrações usam **Microsoft Fluent Emoji, estilo Flat**, com arquivos SVG incluídos no app. A cor escolhida altera apenas a pintura e suas sombras, preservando vidros, pneus e faróis. Cadastros anteriores mantêm seus ícones; as opções antigas Street, Trail e Esportiva continuam representadas pelo emoji de motocicleta. Não há download externo de imagens durante o uso, nem novos serviços ou variáveis. Créditos, licença MIT, originais e variantes estão em public/emoji/fluent-vehicles. Fonte: https://github.com/microsoft/fluentui-emoji.
 
 ### Abastecimentos e médias
 
