@@ -294,7 +294,7 @@ export default function Home() {
         ) : tabId === "aniversarios" ? (
           <BirthdaysView contacts={remote.contacts || []} setContacts={remote.setContacts} configured={remote.contactsConfigured} openContact={contactOpen} onOpenHandled={()=>setContactOpen(null)}/>
         ) : tabId === "veiculos" ? (
-          <VehiclesView records={remote.vehicles||[]} setRecords={remote.setVehicles} configured={remote.vehiclesConfigured} context={effectiveContext}/>
+          <VehiclesView records={remote.vehicles||[]} setRecords={remote.setVehicles} onImport={remote.importVehicles} configured={remote.vehiclesConfigured} context={effectiveContext}/>
         ) : tabId === "financas" ? (
           <FinanceView categories={remote.categories} transactions={remote.transactions} setFinance={remote.setFinance} configured={remote.financeConfigured}/>
         ) : (
