@@ -16,6 +16,10 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Veículos agora é compartilhada entre as duas contas, com aviso na aba, identificação da última edição e contexto Pessoal fixo. Não exige outro banco nem nova variável além de NOTION_VEHICLES_DATABASE_ID já indicada para a nova aba.
+
+- Nova aba **Veículos**: carros/motos ilustrados com modelos e cores, abastecimentos, médias de consumo, categorias de despesas e lembretes por km/data. Um banco adicional: siga a seção Veículos abaixo. Dados compartilhados entre as duas contas, apenas no contexto Pessoal.
+
 - Corrigido o texto de autorização no celular: duração de 1 hora, bloqueio após 10 minutos e desbloqueio pelo código original, sem extensão do prazo.
 
 - Sessão por QR: até 1 hora, com bloqueio após 10 minutos sem interação e desbloqueio pelo código original apenas no navegador autorizado. Cinco erros seguidos encerram a sessão. O limite de 1 hora nunca é renovado.
@@ -37,14 +41,14 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 | --- | --- |
 | Inbox, Diário, Hábitos e registros, Bem-estar (dia e medidas), Entretenimento | Privado de cada conta |
 | Projetos, Marcos e Tarefas | Privado por padrão; compartilhamento opcional entre as duas contas |
-| Compras, Aniversários, Finanças | Compartilhado entre as duas contas |
+| Compras, Aniversários, Finanças, Veículos | Compartilhado entre as duas contas |
 | Ciclo da Letícia | Dados sempre dela; ambos podem ver e editar nesta versão de testes |
 | Recados | Mensagens entre as duas contas, com leitura confirmada pelo destinatário |
 | Backup e restauração | Apenas a conta principal; inclui dados das duas contas |
 
 Contas autorizadas: **periclesbernardes@gmail.com** e **leticiacost3@gmail.com**. Os dados privados antigos sem proprietário pertencem à primeira conta.
 
-Pessoal/Trabalho é uma classificação, não separação de usuário. Projetos, Tarefas e Compras têm ambos os contextos. Diário, Finanças, Aniversários, Bem-estar (incluindo Hábitos), Entretenimento e Recados usam Pessoal fixo, com Todos e Trabalho bloqueados.
+Pessoal/Trabalho é uma classificação, não separação de usuário. Projetos, Tarefas e Compras têm ambos os contextos. Diário, Finanças, Aniversários, Bem-estar (incluindo Hábitos), Entretenimento, Recados e Veículos usam Pessoal fixo, com Todos e Trabalho bloqueados.
 
 A separação é aplicada pelo servidor do LifeOS. Quem tiver acesso direto aos bancos completos no Notion terá o acesso concedido pelo próprio Notion. Compras, Finanças e Aniversários mostram nome e horário da última edição feita pelo app; edições diretas no Notion não identificam a conta Google.
 
@@ -463,3 +467,63 @@ Os dois bancos entram automaticamente nos novos backups completos quando configu
 ### Validação da entrega
 
 Testes locais cobrem isolamento dos registros, ciclo compartilhado com identidade fixa da Letícia, reenvio sem duplicação, conflito entre contas, validação das medidas, edição/exclusão e salvamento incremental. O build de produção é verificado. A integração real e o layout em Android/iPhone devem ser conferidos após seu deploy.
+
+
+## Veículos — configuração e primeira versão de testes
+
+### Criar o banco no Notion
+
+Dentro da página LifeOS, crie **um banco de dados em formato de tabela**, chamado **Veículos**, e autorize a conexão interna que o aplicativo já usa. Uma página de texto vazia não substitui esse banco. Configure estas propriedades, com os nomes e tipos abaixo:
+
+| Propriedade | Tipo no Notion | Uso |
+| --- | --- | --- |
+| Nome | Título | Nome do veículo, da categoria ou descrição do registro |
+| Data | Data | Data do abastecimento, despesa ou criação de lembrete; vazia em veículo/categoria |
+| Tipo | Texto | Preenchido pelo app: vehicle, category, entry ou reminder |
+| Dados | Texto | Preenchido pelo app com os detalhes estruturados do registro |
+
+**Tipo e Dados são propriedades de Texto, não Selecionar nem Relação.** Não é necessário criar relações entre bancos nem cadastrar categorias manualmente. Faça os registros pela aba do aplicativo; não altere o JSON de Dados manualmente. Os campos técnicos **LifeOS ID**, **LifeOS Último editor** e **LifeOS Editado em** são criados pelo app: mantenha-os intactos.
+
+Na Vercel, adicione **NOTION_VEHICLES_DATABASE_ID** com o ID deste banco (não o ID da visualização depois de `?v=`). Se houver mais de uma fonte de dados, informe também **NOTION_VEHICLES_DATA_SOURCE_ID**. Não é necessário mudar Google, Upstash ou as outras variáveis. Faça o deploy com o conteúdo da pasta lifeos e atualize o app. A aba aparece na barra e pode ser reordenada como as demais. Sem a variável, ela mostra a orientação de configuração e os cadastros ficam desabilitados.
+
+### Garagem e personalização
+
+Cadastre cada veículo com nome, tipo, placa, km atual/inicial e antecedência dos alertas. **Veículos, abastecimentos, despesas, categorias e lembretes são compartilhados entre as duas contas.** A aba exibe COMPARTILHADO abaixo de seu nome e mantém apenas Pessoal, com Todos e Trabalho bloqueados. Não há escolha de contexto dentro do cadastro. Registros eventualmente criados antes desta revisão também ficam compartilhados e são exibidos como Pessoal, inclusive os que tinham Trabalho. A última edição exibe nome e horário, seguindo o padrão das outras abas compartilhadas. A aba Finanças permanece independente: nenhuma despesa de veículo é lançada automaticamente nela.
+
+Modelos ilustrados disponíveis: **Hatch, Sedã, SUV e Picape**; motos **Street, Scooter, Trail e Esportiva**. Há oito cores prontas, com prévia imediata. O lápis no bloco permite mudar nome, modelo, cor e demais dados sem alterar lançamentos anteriores. As ilustrações são desenhadas no próprio app, sem uploads nem serviços externos.
+
+### Abastecimentos e médias
+
+Clique **Abastecer**, informe data, odômetro, litros (até três casas decimais), valor total em reais e marque ou desmarque **Tanque cheio**. As datas seguem DD/MM/AAAA, completando o ano ao informar dia/mês e sair do campo. O valor usa máscara R$ e completa os centavos ao sair.
+
+- O **primeiro tanque cheio** é a referência inicial; seu volume não entra no primeiro intervalo, porque não se conhece o nível anterior do tanque.
+- Cada tanque cheio seguinte fecha um intervalo: km percorridos desde a referência ÷ litros de todos os abastecimentos posteriores à referência, incluindo parciais e o tanque cheio de fechamento.
+- Parciais anteriores à primeira referência não entram no cálculo. Parciais depois do último tanque cheio aguardam o próximo fechamento e não alteram uma média já calculada.
+- **Última média**: último intervalo completo. **Média geral**: soma das distâncias ÷ soma dos litros dos intervalos completos, ponderada pelo volume, considerando todo o histórico desse veículo.
+- **Custo por km**: soma dos valores de combustível dos intervalos completos ÷ soma das distâncias desses mesmos intervalos. Não inclui despesas de manutenção, impostos ou seguro.
+- O gráfico mostra até doze intervalos completos mais recentes. Sem dois tanques cheios com distância positiva, os indicadores de consumo mostram um traço, sem inventar uma média.
+- Edição ou exclusão de um abastecimento recalcula as médias e o gráfico. A quilometragem deve acompanhar a ordem das datas; registros do mesmo dia são ordenados pelo odômetro.
+
+A tabela mostra os cinco abastecimentos mais recentes; **Ver todos** abre o restante. O lápis permite editar e excluir com confirmação. Um abastecimento é um único lançamento: aparece também nas despesas como combustível, sem ser somado duas vezes.
+
+### Despesas e categorias
+
+Categorias iniciais: Combustível, Manutenção, Impostos, Pedágio, Seguro, Estacionamento, Lavagem e Outros. Elas já aparecem no app; só precisam de um registro no Notion quando personalizadas. Em **Categorias**, crie nomes, renomeie e desative categorias preservando seus lançamentos. Categorias inativas podem ser reativadas; um nome repetido inativo oferece reativação. Combustível pode ser renomeada e permanece disponível para os abastecimentos.
+
+**Nova despesa** permite descrição, categoria, data, valor, km e observação. É possível indicar próxima manutenção por km, por data ou pelos dois. O seletor mensal com setas e Hoje controla o total **Despesas no mês** e a tabela de despesas. **Todo o histórico** amplia apenas a tabela; consumo e custo/km continuam calculados no histórico completo, conforme seus rótulos. Os filtros de categoria incluem categorias antigas ainda usadas no veículo. A observação aceita links clicáveis.
+
+### Manutenções e lembretes
+
+Use **+ Lembrete** para um aviso sem despesa, ou preencha próxima km/data ao registrar uma manutenção. A km atual exibida é a maior entre a km inicial do veículo e os registros de abastecimento/despesa que informem odômetro. Lembretes não aumentam a km do veículo.
+
+- **Vencida**: chegou ou passou a km prevista, ou chegou/passou a data definida.
+- **Próxima**: faltam até a antecedência configurada no veículo (padrão 500 km), ou até 30 dias.
+- **Agendada**: ainda está fora desses limites. Quando houver km e data, vale o critério que exigir atenção primeiro.
+
+Os alertas são recalculados na própria tela após registros, edições, exclusões e sincronizações, sem rotina em segundo plano e sem notificações push. **Concluir** pede confirmação, retira o alerta da lista e mantém a despesa e o registro. **Mostrar lembretes concluídos** permite acessar e editar, inclusive desmarcar a conclusão. A conclusão não cria automaticamente outra despesa ou nova recorrência nesta primeira versão.
+
+### Salvamento e backup
+
+Os registros usam o mesmo salvamento automático e controle de conflitos do restante do app. Ao voltar ao foco, a atualização segue as regras existentes de proteção a edições pendentes. Cada lançamento é um registro separado no Notion; editar uma despesa não regrava o cadastro inteiro do veículo. A validação consulta as dependências do veículo envolvido e pode conferir seu histórico de km; outros bancos não são consultados por essa alteração.
+
+O banco Veículos é incluído automaticamente em novos backups completos. Os identificadores internos dos vínculos são preservados na restauração. Após configurar o novo banco, crie um novo backup completo: cópias anteriores sem Veículos não têm o mesmo conjunto de bancos e não são aceitas para restauração automática enquanto ele estiver configurado. Não há exclusão do cadastro inteiro do veículo nesta primeira versão; despesas e lembretes têm exclusão própria com confirmação.
