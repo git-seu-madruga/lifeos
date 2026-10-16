@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Abastecimentos têm campo de posto com texto livre, escolha de favoritos e gerenciamento de cadastros compartilhados. Cadastro do veículo inclui ano, que também aparece no bloco da garagem. Nenhum campo ou banco adicional no Notion.
+
 - Abastecimentos agora aceitam Etanol e Gasolina em várias linhas, com litros e valor por linha. Etanol é o padrão em carros; Gasolina em motos. Cada abastecimento tem uma só data, km e marcação de tanque cheio, usando os totais de todas as linhas para despesas e consumo.
 
 - Cadastro de veículos simplificado: apenas tipo Carro/Motocicleta; escolha do emoji pelas setas à esquerda e à direita da imagem, sem lista de modelos. Paleta de cores mantida.
@@ -485,7 +487,7 @@ Dentro da página LifeOS, crie **um banco de dados em formato de tabela**, chama
 | --- | --- | --- |
 | Nome | Título | Nome do veículo, da categoria ou descrição do registro |
 | Data | Data | Data do abastecimento, despesa ou criação de lembrete; vazia em veículo/categoria |
-| Tipo | Texto | Preenchido pelo app: vehicle, category, entry ou reminder |
+| Tipo | Texto | Preenchido pelo app: vehicle, category, station, entry ou reminder |
 | Dados | Texto | Preenchido pelo app com os detalhes estruturados do registro |
 
 **Tipo e Dados são propriedades de Texto, não Selecionar nem Relação.** Não é necessário criar relações entre bancos nem cadastrar categorias manualmente. Faça os registros pela aba do aplicativo; não altere o JSON de Dados manualmente. Os campos técnicos **LifeOS ID**, **LifeOS Último editor** e **LifeOS Editado em** são criados pelo app: mantenha-os intactos.
@@ -494,13 +496,19 @@ Na Vercel, adicione **NOTION_VEHICLES_DATABASE_ID** com o ID deste banco (não o
 
 ### Garagem e personalização
 
-Cadastre cada veículo com nome, tipo, placa, km atual/inicial e antecedência dos alertas. **Veículos, abastecimentos, despesas, categorias e lembretes são compartilhados entre as duas contas.** A aba exibe COMPARTILHADO abaixo de seu nome e mantém apenas Pessoal, com Todos e Trabalho bloqueados. Não há escolha de contexto dentro do cadastro. Registros eventualmente criados antes desta revisão também ficam compartilhados e são exibidos como Pessoal, inclusive os que tinham Trabalho. A última edição exibe nome e horário, seguindo o padrão das outras abas compartilhadas. A aba Finanças permanece independente: nenhuma despesa de veículo é lançada automaticamente nela.
+Cadastre cada veículo com nome, tipo, placa, ano, km atual/inicial e antecedência dos alertas. **Veículos, abastecimentos, despesas, categorias e lembretes são compartilhados entre as duas contas.** A aba exibe COMPARTILHADO abaixo de seu nome e mantém apenas Pessoal, com Todos e Trabalho bloqueados. Não há escolha de contexto dentro do cadastro. Registros eventualmente criados antes desta revisão também ficam compartilhados e são exibidos como Pessoal, inclusive os que tinham Trabalho. A última edição exibe nome e horário, seguindo o padrão das outras abas compartilhadas. A aba Finanças permanece independente: nenhuma despesa de veículo é lançada automaticamente nela.
 
 No cadastro, escolha apenas **Carro** ou **Motocicleta**. Troque o emoji pelas **setas nas laterais da imagem**, sem selecionar categorias de modelo. Há quatro imagens de carro (frente, lateral, SUV e picape) e duas de motocicleta (moto e scooter); a navegação é circular e também aceita as setas do teclado quando o seletor está em foco. Há oito cores prontas, com prévia imediata. O lápis no bloco permite mudar nome, ícone, cor e demais dados sem alterar lançamentos anteriores. As ilustrações usam **Microsoft Fluent Emoji, estilo Flat**, com arquivos SVG incluídos no app. A cor escolhida altera apenas a pintura e suas sombras, preservando vidros, pneus e faróis. Cadastros anteriores mantêm seus ícones; as opções antigas Street, Trail e Esportiva continuam representadas pelo emoji de motocicleta. Não há download externo de imagens durante o uso, nem novos serviços ou variáveis. Créditos, licença MIT, originais e variantes estão em public/emoji/fluent-vehicles. Fonte: https://github.com/microsoft/fluentui-emoji.
+
+O campo **Ano** pode ficar em branco. Quando preenchido, aceita um ano inteiro de quatro dígitos, de 1886 até o ano corrente mais dois, e aparece ao lado do tipo/placa no bloco do veículo. Cadastros anteriores continuam válidos sem ano.
 
 ### Abastecimentos e médias
 
 Clique **Abastecer**, informe data e odômetro, escolha **Etanol** ou **Gasolina** e preencha litros (até três casas decimais) e valor em reais de cada linha. Novos abastecimentos e novas linhas começam com **Etanol para carros** e **Gasolina para motocicletas**, podendo trocar livremente. Use **+ Adicionar combustível** para misturar dois ou mais registros no mesmo abastecimento, até vinte linhas; cada linha pode ser removida antes de salvar. Marque ou desmarque **Tanque cheio** uma única vez, para o abastecimento inteiro. O total de litros e reais é calculado automaticamente pela soma das linhas. As datas seguem DD/MM/AAAA, completando o ano ao informar dia/mês e sair do campo. O valor usa máscara R$ e completa os centavos ao sair.
+
+**Posto:** deixe em branco, digite livremente ou abra **Favoritos** para escolher. O texto escolhido continua editável, permitindo usar outro nome sem modificar o cadastro. A estrela ao lado do campo cadastra/favorita o nome digitado; se o posto já existir, alterna apenas seu estado de favorito, sem criar cópia. Favoritar um nome não salva um abastecimento incompleto.
+
+Em **Gerenciar postos**, cadastre nomes, marque ou desmarque favoritos, renomeie ou exclua um cadastro com confirmação. Os postos são compartilhados entre as duas contas e todos os veículos. Nomes repetidos são reconhecidos sem diferenças de maiúsculas, acentos ou espaços extras. O nome é guardado como texto no abastecimento: **renomear, desfavoritar ou excluir um posto cadastrado não modifica os nomes dos abastecimentos anteriores**. O posto aparece junto à data na lista de abastecimentos e na descrição da despesa. Os registros antigos podem permanecer sem posto. A informação fica no campo Dados já existente; não crie novas propriedades no Notion.
 
 - Um abastecimento misto é **um só registro**, com uma só data, quilometragem e condição do tanque. Por exemplo, 20 L de etanol + 10 L de gasolina contam como 30 L nesse abastecimento. Os valores das linhas também são somados uma única vez na despesa e no custo/km. As médias continuam em km/L combinados, sem separar por tipo de combustível nesta revisão.
 - O **primeiro tanque cheio** é a referência inicial; seu volume não entra no primeiro intervalo, porque não se conhece o nível anterior do tanque.
