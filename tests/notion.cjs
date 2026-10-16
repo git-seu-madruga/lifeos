@@ -22,9 +22,10 @@ const {diffState,hasChanges}=require(path.join(temp,'lib/notionDiff'));
 process.env.NOTION_DIARY_DATABASE_ID='diary-test-db';
 process.env.NOTION_INBOX_DATABASE_ID='inbox-test-db';
 process.env.NOTION_FINANCE_CATEGORIES_DATABASE_ID='finance-categories-test';process.env.NOTION_FINANCE_TRANSACTIONS_DATABASE_ID='finance-transactions-test';
-const databases={wellness:"wellness-test",cycle:"cycle-test",mediaSections:"media-sections-test",media:"media-test",habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
+const databases={vehicles:"vehicles-test",wellness:"wellness-test",cycle:"cycle-test",mediaSections:"media-sections-test",media:"media-test",habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
 const sourceIds=Object.fromEntries(Object.keys(databases).map(k=>[k,randomUUID()]));
 const specs={
+ vehicles:{Nome:"title",Data:"date",Tipo:"rich_text",Dados:"rich_text"},
  wellness:{Nome:"title",Data:"date",Tipo:"rich_text",Dados:"rich_text"},cycle:{Nome:"title",Data:"date",Tipo:"rich_text",Dados:"rich_text"},
  mediaSections:{'Nome':'title','Tipo':'rich_text','Ícone':'rich_text','Cor':'rich_text'},media:{'Nome':'title','Seção':'relation','Autor':'rich_text','Status':'select','Avaliação':'number','Comentário':'rich_text','URL da capa':'rich_text','Link de origem':'rich_text','Fonte':'rich_text','Capa':'files'},
  habits:{'Nome':'title','Contexto':'select','Cor':'rich_text','Ícone':'rich_text','Início':'date'},habitLogs:{'Nome':'title','Hábito':'relation','Data':'date'},
@@ -68,7 +69,7 @@ global.fetch=async(url,options={})=>{
  if(route.startsWith('/data_sources/')){
   const id=route.split('/')[2],kind=kindBySource(id);assert.ok(kind);
   if(route.endsWith('/query')){
-   const matches=(row,filter)=>{if(!filter)return true;if(filter.or)return filter.or.some(f=>matches(row,f));const value=row.properties[filter.property];if(filter.rich_text)return notionLib.plain(value?.rich_text)===filter.rich_text.equals;if(filter.date)return value?.date?.start===filter.date.equals;if(filter.relation)return (value?.relation||[]).some(p=>p.id===filter.relation.contains);throw Error('Filtro de teste não suportado');};
+   const matches=(row,filter)=>{if(!filter)return true;if(filter.or)return filter.or.some(f=>matches(row,f));if(filter.and)return filter.and.every(f=>matches(row,f));const value=row.properties[filter.property];if(filter.rich_text)return filter.rich_text.contains!=null?notionLib.plain(value?.rich_text).includes(filter.rich_text.contains):notionLib.plain(value?.rich_text)===filter.rich_text.equals;if(filter.date)return value?.date?.start===filter.date.equals;if(filter.relation)return (value?.relation||[]).some(p=>p.id===filter.relation.contains);throw Error('Filtro de teste não suportado');};
    const list=[...rows.values()].filter(row=>row.parent.data_source_id===id&&!row.in_trash&&matches(row,body.filter));
    const start=body.start_cursor?Number(body.start_cursor):0,size=paginate?1:100,end=start+size;
    return reply({results:list.slice(start,end),has_more:end<list.length,next_cursor:end<list.length?String(end):null});
@@ -99,7 +100,7 @@ global.fetch=async(url,options={})=>{
  const cookie=auth.sessionCookie({id:'google:test-pericles',email:'periclesbernardes@gmail.com',name:'Péricles'}).split(';')[0];
  const logged=new Request('https://lifeos.test/api/notion',{headers:{cookie}});auth.authorize(logged);
  assert.equal(auth.authenticated(new Request('https://lifeos.test/api',{headers:{cookie:cookie+'bad'}})),false);
- let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{wellness:[],cycle:[],wellnessConfigured:false,cycleConfigured:false,mediaSections:[],media:[],mediaConfigured:false,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false,habits:[],habitLogs:[],habitsConfigured:false});
+ let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{vehicles:[],vehiclesConfigured:false,wellness:[],cycle:[],wellnessConfigured:false,cycleConfigured:false,mediaSections:[],media:[],mediaConfigured:false,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false,habits:[],habitLogs:[],habitsConfigured:false});
  const base=state;
  const file=new File(['arquivo de teste'],'ref.txt',{type:'text/plain'});
  const uploaded=await notionLib.uploadFile(file);
@@ -363,6 +364,30 @@ global.fetch=async(url,options={})=>{
   await save(a,{...a,wellness:[...a.wellness,measurement,secondPressure]},A);
   assert.equal((await notionLib.readSnapshot(false,A)).state.wellness.filter(p=>p.type==='pressure').length,2);
 
+ }
+
+ {process.env.NOTION_VEHICLES_DATABASE_ID=databases.vehicles;
+ const A={id:'google:vehicle-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:vehicle-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+ const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
+ const save=async(base,next,user=A)=>{const delta=compactSyncState(base,next);return synchronize(delta.base,delta.next,user,async()=>{},true);};
+ let base=(await notionLib.readSnapshot(false,A)).state;
+ const vehicle={id:'local-vehicle',type:'vehicle',date:null,name:'Meu carro',data:{uid:'car-A',kind:'car',model:'hatch',color:'#58a6ff',context:'personal',plate:'ABC1D23',km:1000,warningKm:500}};
+ const fuel={id:'local-fuel',type:'entry',date:'2026-10-01',name:'Abastecimento',data:{uid:'fuel-A',vehicle:'car-A',category:'fuel',fuel:true,full:true,km:1000,liters:38.125,amount:23000}};
+ const desired={...base,vehicles:[vehicle,fuel]};await save(base,desired);await save(base,desired);
+ let state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.vehicles.length,2,'Retry binds original records');assert.equal((await notionLib.readSnapshot(false,B)).state.vehicles.length,2,'Both users see shared vehicle data');
+ const sharedRead=(await notionLib.readSnapshot(false,B)).state;await save(sharedRead,{...sharedRead,vehicles:sharedRead.vehicles.map(p=>p.type==='vehicle'?{...p,name:'Carro compartilhado'}:p)},B);state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.vehicles.find(p=>p.type==='vehicle').name,'Carro compartilhado');assert.ok([...rows.values()].some(p=>p.parent.data_source_id===sourceIds.vehicles&&notionLib.plain(p.properties['LifeOS Último editor']?.rich_text).includes('Letícia')));
+ assert.equal(state.vehicles.find(p=>p.type==='entry').data.vehicle,'car-A','JSON uid survives page ID binding');
+ const changed={...state,vehicles:state.vehicles.map(p=>p.type==='vehicle'?{...p,data:{...p.data,color:'#ec6c70',model:'suv'}}:p)};
+ const before=calls.length;await save(state,changed);const writes=calls.slice(before).filter(c=>c.route.startsWith('/pages/')&&c.body?.properties);assert.equal(writes.length,1);assert.deepEqual(Object.keys(writes[0].body.properties).filter(k=>!k.startsWith('LifeOS')),['Dados'],'Only changed JSON field written');
+ state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.vehicles.find(p=>p.type==='vehicle').data.color,'#ec6c70');
+ const custom={id:'custom-cat',name:'Pneus',type:'category',date:null,data:{uid:'tires',archived:false}},expense={id:'new-expense',name:'Troca de pneus',type:'entry',date:'2026-10-02',data:{uid:'tires-entry',vehicle:'car-A',category:'tires',fuel:false,km:1500,amount:150000,nextKm:41500}};
+ await save(state,{...state,vehicles:[...state.vehicles,custom,expense]});state=(await notionLib.readSnapshot(false,A)).state;
+ const retired={...state,vehicles:state.vehicles.map(p=>p.type==='category'?{...p,name:'Pneus e rodas',data:{...p.data,archived:true}}:p)};await save(state,retired);state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.vehicles.find(p=>p.data.uid==='tires-entry').data.amount,150000);
+ await assert.rejects(()=>save(state,{...state,vehicles:state.vehicles.filter(p=>p.type!=='vehicle')}),/veículo.*não existe/);
+ await assert.rejects(()=>save(state,{...state,vehicles:[...state.vehicles,{...expense,id:'orphan',data:{...expense.data,uid:'orphan',vehicle:'unknown'}}]}),/veículo.*não existe/);
+ await assert.rejects(()=>save(state,{...state,vehicles:state.vehicles.map(p=>p.data.uid==='tires-entry'?{...p,data:{...p.data,amount:0}}:p)}),/valor positivo/);
+ const fresh=structuredClone(state);await save(state,{...state,vehicles:state.vehicles.map(p=>p.type==='vehicle'?{...p,name:'Renomeado no outro aparelho'}:p)});
+ await assert.rejects(()=>save(fresh,{...fresh,vehicles:fresh.vehicles.map(p=>p.type==='vehicle'?{...p,name:'Edição antiga'}:p)}),e=>e.status===409);
  }
  const copyRoute=require(path.join(temp,'app/api/notion/media-cover/route')).POST;
  const copied=await copyRoute(new Request('https://lifeos.test/api/notion/media-cover',{method:'POST',headers:{cookie,origin:'https://lifeos.test','content-type':'application/json'},body:JSON.stringify({url:'https://covers.openlibrary.org/b/id/123-M.jpg',name:'Duna'})}));assert.equal(copied.status,200);const coverResult=await copied.json();assert.equal(auth.unseal(coverResult.uploadProof).user,'google:test-pericles');assert.ok(coverResult.uploadId);
