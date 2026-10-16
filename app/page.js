@@ -11,6 +11,7 @@ import Brand from '../components/Brand';
 import {useRecadoNotification} from '../lib/useRecadoNotification';
 import AccountMenu from '../components/AccountMenu';
 import QrLock from '../components/QrLock';
+import VehiclesView from '../components/VehiclesView';
 import QrSessions from '../components/QrSessions';
 import BackupView from '../components/BackupView';
 import RecadosView from "../components/RecadosView";
@@ -79,7 +80,7 @@ export default function Home() {
   const [newTaskId, setNewTaskId] = useState(null);
 
 
-  const personalOnly = ["financas", "diario", "aniversarios", "bemestar", "entretenimento", "recados"].includes(tabId);
+  const personalOnly = ["financas", "diario", "aniversarios", "bemestar", "entretenimento", "recados", "veiculos"].includes(tabId);
   const effectiveContext = personalOnly ? "personal" : context;
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
@@ -240,7 +241,7 @@ export default function Home() {
               aria-current={t.id === tabId ? "page" : undefined}
               onClick={() => { if(suppressClick.current||touchReorder)return;setTabId(t.id); setSelected(null); }}
             >
-              <TabIcon id={t.id}/><span className="tab-label">{t.label}{['compras','financas','aniversarios'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span>
+              <TabIcon id={t.id}/><span className="tab-label">{t.label}{['compras','financas','aniversarios','veiculos'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span>
             </button>
           </span>
         ))}
@@ -253,7 +254,7 @@ export default function Home() {
         {remote.error && <button className="ghost" onClick={() => remote.flush().catch(() => {})}>Tentar salvar novamente</button>}
         {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}
 
-        {!saving&&['compras','aniversarios','financas'].includes(tabId)&&(()=>{const keys=tabId==='compras'?['shopping']:tabId==='aniversarios'?['contacts']:['categories','transactions'];const latest=keys.map(key=>remote.sharedActivity?.[key]).filter(Boolean).sort((a,b)=>b.at.localeCompare(a.at))[0];return latest?<p className="muted small shared-editor">Última alteração no LifeOS por {latest.name} · {new Date(latest.at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}</p>:null;})()}
+        {!saving&&['compras','aniversarios','financas','veiculos'].includes(tabId)&&(()=>{const keys=tabId==='veiculos'?['vehicles']:tabId==='compras'?['shopping']:tabId==='aniversarios'?['contacts']:['categories','transactions'];const latest=keys.map(key=>remote.sharedActivity?.[key]).filter(Boolean).sort((a,b)=>b.at.localeCompare(a.at))[0];return latest?<p className="muted small shared-editor">Última alteração no LifeOS por {latest.name} · {new Date(latest.at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}</p>:null;})()}
         {!["diario","financas","aniversarios","compras","bemestar","entretenimento","recados"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button
@@ -292,6 +293,8 @@ export default function Home() {
           <ShoppingView lists={remote.shopping || []} setLists={remote.setShopping} selected={shoppingSelected} onSelect={setShoppingSelected} context={context} configured={remote.shoppingConfigured} creating={shoppingCreating} onCreate={()=>setShoppingCreating(true)} onCreated={()=>setShoppingCreating(false)}/>
         ) : tabId === "aniversarios" ? (
           <BirthdaysView contacts={remote.contacts || []} setContacts={remote.setContacts} configured={remote.contactsConfigured} openContact={contactOpen} onOpenHandled={()=>setContactOpen(null)}/>
+        ) : tabId === "veiculos" ? (
+          <VehiclesView records={remote.vehicles||[]} setRecords={remote.setVehicles} configured={remote.vehiclesConfigured} context={effectiveContext}/>
         ) : tabId === "financas" ? (
           <FinanceView categories={remote.categories} transactions={remote.transactions} setFinance={remote.setFinance} configured={remote.financeConfigured}/>
         ) : (
