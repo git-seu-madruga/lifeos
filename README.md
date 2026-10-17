@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Importador de Veículos ampliado para **Manutenções e outras despesas**, com modelo CSV próprio. Serviços podem ter valor zero ou não informado, sem transformar ausência de valor em gasto. Categorias são compartilhadas por todos os veículos. Histórico do carro preparado conforme as regras aprovadas, com estimativas documentadas.
+
 - A lista de abastecimentos inclui **Preço/litro** e **Consumo (km/L)**, calculados automaticamente para todo o histórico existente, inclusive o importado. Não é preciso reimportar ou modificar o Notion.
 
 - **Importação de abastecimentos por CSV LifeOS**, com prévia, confirmação, controle de duplicações, lotes de cinco e retomada. Marcação **Abastecimento anterior não registrado** disponível na criação e edição; interrompe o intervalo incompleto sem apagar o histórico. Nenhuma alteração de banco ou variável é necessária.
@@ -242,6 +244,51 @@ Use o ID do banco de dados antes de ?v=; o valor v é a visualização. Textos d
 | Data | Data |  |
 | Conteúdo | Texto |  |
 | Anexos | Arquivos e mídia |  |
+
+#### Importar o histórico do carro
+
+Na pasta **Importacao**, fora de `lifeos`, estão `abastecimentos-carro.csv`, `despesas-carro.csv` e os dois modelos vazios. Não envie seus CSVs ao GitHub; use-os no painel de importação depois do deploy. O arquivo da motocicleta também continua disponível para quem ainda não o importou. Não é necessário repetir importações já concluídas.
+
+1. Atualize o aplicativo enviando somente o conteúdo de `lifeos` ao repositório. Não é necessário criar campos, bancos ou variáveis no Notion/Vercel.
+2. Em **Veículos**, selecione o carro correto. Se ainda não existe, cadastre-o primeiro; nome, placa, ano, cor e ícone não são substituídos pelos CSVs. O campo veiculo no CSV é apenas informação para conferência. Nenhum ano foi presumido para o carro.
+3. Clique **Importar CSV**, escolha **Abastecimentos** e carregue `abastecimentos-carro.csv`. Sem duplicatas já existentes, confira **60 abastecimentos**, **2.101,256 L**, **R$ 8.729,82**, **56 cheios**, **4 parciais** e **10 mistos**. O combustível já está identificado nos componentes; não é necessário atribuir um tipo único ao lote.
+4. Confirme a importação e aguarde a conclusão com o app em primeiro plano. Mais de um abastecimento no mesmo dia foi preservado quando a quilometragem era diferente. Gasolina e etanol consecutivos da mesma data e km foram agrupados em uma parada, mantendo litros e valores em linhas distintas dentro dela.
+5. Reabra o importador e escolha **Manutenções e outras despesas**. Carregue `despesas-carro.csv`: **47 registros**, sendo **42 com valor positivo**, **3 com custo zero** e **2 sem valor informado**. Total conhecido: **R$ 6.223,57**. Confirme e aguarde o salvamento.
+6. Em caso de interrupção, retome com o mesmo arquivo e veículo. Não modifique id_origem: registros já importados são ignorados, sem sobrescrever alterações posteriores. Duplicatas prováveis de despesas são reconhecidas por data, descrição, valor e km; só as inclua após conferência.
+
+**Tratamento aplicado à planilha do carro**
+
+- Entradas de compra foram excluídas: sinal de R$ 300,00 e restante de R$ 14.300,00. Não foi criada categoria Compra.
+- Manutenção usa a categoria global `maintenance`; Pedágio usa `toll`; Documentação, taxas, licenciamento e IPVA usam `tax` (Impostos). Esses identificadores são os mesmos usados pela motocicleta. Se uma categoria foi renomeada no app, seu nome atual será exibido, conservando o significado e os lançamentos dos dois veículos. A categoria original fica identificada nas observações das despesas.
+- Tanque cheio foi definido nesta conversão pela regra aprovada **volume combinado > 18 L**. Volume igual ou inferior a 18 L foi marcado parcial. A regra foi aplicada ao arquivo do carro, não a novos lançamentos manuais nem ao histórico da motocicleta. A anotação original de 20/04/2025 dizia parcial, mas o volume de 31,550 L foi classificado como cheio conforme a nova regra, com explicação nas observações.
+- Em 30/05/2025, o volume ausente foi estimado em **30,851 L**, dividindo R$ 113,84 por **R$ 3,69/L**, preço do etanol no abastecimento anterior de 27/05/2025. Usou-se o preço do etanol, e não o preço médio da mistura com gasolina.
+- Em 19/12/2025, o odômetro ausente foi estimado em **203.546 km**: odômetro anterior 203.260 km + 20 L × **14,3 km/L**, consumo do último intervalo completo válido recalculado sob a regra aprovada. A distância estimada é de 286 km. A observação registra que o odômetro é estimado.
+- As manutenções de 05/11/2025 e 07/11/2025 foram ajustadas de 202.753 para **203.000 km**, conforme solicitado, preservando a informação original nas observações.
+- O registro de 11/04/2026 já era estimado na origem. Foi mantido com seu gasto e marcado como interrupção; o tanque cheio de 09/05/2026 também reinicia a referência. Assim os intervalos de entrada e saída do registro estimado não compõem as médias. Os demais intervalos válidos continuam no cálculo.
+- Preços anunciados e valores pagos divergentes não foram forçados a coincidir. Valores e litros existentes foram preservados. As colunas Preço/litro e Consumo (km/L) são recalculadas pelo LifeOS.
+- Observações, postos identificados e texto original dos componentes foram mantidos. Três serviços com custo zero continuam R$ 0,00. Dois com “–” na origem ficam **Sem valor informado**; não são apresentados como gratuitos. Os totais monetários somam apenas os valores conhecidos, e o resumo do mês informa quando há registros sem valor.
+- As dez anotações laterais de lembretes não foram convertidas automaticamente em alertas: isso ativaria também metas históricas vencidas. Cinco tinham km definida (correias/bomba: 229.643; alinhamento: 194.269; óleo/filtros: 211.000; pneus: 190.760; válvula termostática: 229.643). Confira quais ainda se aplicam antes de cadastrar ou associar ao serviço adequado. As outras cinco não tinham próxima km/data. A anotação para incluir seguro não foi importada como gasto, pois não contém data nem valor.
+
+#### Modelo CSV de manutenções e demais despesas
+
+Baixe **modelo-despesas-lifeos.csv** no importador selecionando o tipo Manutenções e outras despesas. Padrão igual ao de abastecimentos: UTF-8, ponto e vírgula, datas DD/MM/AAAA, até 1 MB e 1.000 registros. Use uma linha por serviço/despesa, sem repetir id_origem. O arquivo não é enviado ao Notion diretamente; o aplicativo cria os vínculos internos.
+
+| Coluna | Regra |
+|---|---|
+| id_origem | Obrigatória, identificador estável e único, até 142 caracteres; preserve ao reimportar. |
+| veiculo | Nome apenas para conferência; destino selecionado no app. |
+| data | Obrigatória, DD/MM/AAAA. |
+| descricao | Obrigatória, até 150 caracteres. |
+| categoria | Obrigatória; nome atual de uma categoria compartilhada ou identificador: maintenance, tax, toll, insurance, parking, wash, other. Combustível usa o importador específico. Categorias personalizadas devem existir antes de importar. |
+| km | Inteiro sem ponto de milhar, ou vazio quando desconhecido. |
+| valor_total_rs | Coluna obrigatória: positivo para custo conhecido, `0,00` para serviço sem custo, ou vazio para valor não informado. Não use “–” ou valores negativos. |
+| observacoes | Texto, até 5.000 caracteres; aspas e quebras de linha conforme padrão CSV. |
+| proxima_km | Meta inteira para criar alerta associado ao serviço; vazia quando não se aplica. |
+| proxima_data | Data DD/MM/AAAA de próxima manutenção/vencimento; vazia quando não se aplica. |
+
+**Categorias globais:** não há uma categoria Manutenção do carro e outra da moto. Renomear ou desativar uma categoria vale para todos os veículos e preserva seus vínculos históricos. O importador reutiliza o mesmo cadastro, não cria categorias por veículo. A entrada “Documentação” é aceita como alias de Impostos. Categorias personalizadas ausentes bloqueiam a importação e devem ser criadas uma única vez em Categorias antes de tentar novamente.
+
+**Edição de serviços:** no formulário de despesa, deixe Total vazio quando o valor ainda não é conhecido, ou digite R$ 0,00 quando não houve cobrança. O campo de combustível continua exigindo valor positivo. Registros sem valor podem ser corrigidos depois pelo lápis, sem nova importação.
 
 ### Categorias financeiras
 
@@ -535,7 +582,7 @@ Marque **Abastecimento anterior não registrado** ao criar ou editar o abastecim
 
 #### Importar abastecimentos — primeira importação e futuras
 
-O botão **Importar CSV** fica no cartão **Abastecimentos**, ao lado de Abastecer, e permanece disponível para futuras importações. O importador funciona apenas para abastecimentos; não importa despesas de manutenção ou lembretes nesta revisão.
+O botão **Importar CSV** fica nos cartões **Abastecimentos** e **Despesas do veículo**, e permanece disponível para futuras importações. Selecione **Abastecimentos** ou **Manutenções e outras despesas** no painel. Cada tipo tem seu modelo CSV. O importador não cria lembretes avulsos automaticamente.
 
 **Seu histórico preparado:** o ZIP desta entrega contém, fora da pasta `lifeos`, a pasta `Importacao`, com `abastecimentos-suzuki-gsr125.csv`. Envie ao GitHub apenas o conteúdo de `lifeos`. Guarde `Importacao` no computador para carregar pelo aplicativo. O CSV não precisa ser publicado no repositório e não deve ser importado diretamente pelo Notion.
 
