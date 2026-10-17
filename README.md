@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Veículos não tem mais seletor de mês: despesas e serviços exibem os cinco registros mais recentes de todo o histórico, com **Ver todos** e **Mostrar recentes**. O cartão financeiro mostra **Despesas acumuladas** do veículo. Filtros de categoria preservados.
+
 - Importador de Veículos ampliado para **Manutenções e outras despesas**, com modelo CSV próprio. Serviços podem ter valor zero ou não informado, sem transformar ausência de valor em gasto. Categorias são compartilhadas por todos os veículos. Histórico do carro preparado conforme as regras aprovadas, com estimativas documentadas.
 
 - A lista de abastecimentos inclui **Preço/litro** e **Consumo (km/L)**, calculados automaticamente para todo o histórico existente, inclusive o importado. Não é preciso reimportar ou modificar o Notion.
@@ -266,7 +268,7 @@ Na pasta **Importacao**, fora de `lifeos`, estão `abastecimentos-carro.csv`, `d
 - As manutenções de 05/11/2025 e 07/11/2025 foram ajustadas de 202.753 para **203.000 km**, conforme solicitado, preservando a informação original nas observações.
 - O registro de 11/04/2026 já era estimado na origem. Foi mantido com seu gasto e marcado como interrupção; o tanque cheio de 09/05/2026 também reinicia a referência. Assim os intervalos de entrada e saída do registro estimado não compõem as médias. Os demais intervalos válidos continuam no cálculo.
 - Preços anunciados e valores pagos divergentes não foram forçados a coincidir. Valores e litros existentes foram preservados. As colunas Preço/litro e Consumo (km/L) são recalculadas pelo LifeOS.
-- Observações, postos identificados e texto original dos componentes foram mantidos. Três serviços com custo zero continuam R$ 0,00. Dois com “–” na origem ficam **Sem valor informado**; não são apresentados como gratuitos. Os totais monetários somam apenas os valores conhecidos, e o resumo do mês informa quando há registros sem valor.
+- Observações, postos identificados e texto original dos componentes foram mantidos. Três serviços com custo zero continuam R$ 0,00. Dois com “–” na origem ficam **Sem valor informado**; não são apresentados como gratuitos. Os totais monetários somam apenas os valores conhecidos, e o resumo de despesas informa quando há registros sem valor.
 - As dez anotações laterais de lembretes não foram convertidas automaticamente em alertas: isso ativaria também metas históricas vencidas. Cinco tinham km definida (correias/bomba: 229.643; alinhamento: 194.269; óleo/filtros: 211.000; pneus: 190.760; válvula termostática: 229.643). Confira quais ainda se aplicam antes de cadastrar ou associar ao serviço adequado. As outras cinco não tinham próxima km/data. A anotação para incluir seguro não foi importada como gasto, pois não contém data nem valor.
 
 #### Modelo CSV de manutenções e demais despesas
@@ -626,7 +628,7 @@ Não importe médias prontas: o LifeOS recalcula consumo usando tanques cheios, 
 
 Categorias iniciais: Combustível, Manutenção, Impostos, Pedágio, Seguro, Estacionamento, Lavagem e Outros. Elas já aparecem no app; só precisam de um registro no Notion quando personalizadas. Em **Categorias**, crie nomes, renomeie e desative categorias preservando seus lançamentos. Categorias inativas podem ser reativadas; um nome repetido inativo oferece reativação. Combustível pode ser renomeada e permanece disponível para os abastecimentos.
 
-**Nova despesa** permite descrição, categoria, data, valor, km e observação. É possível indicar próxima manutenção por km, por data ou pelos dois. O seletor mensal com setas e Hoje controla o total **Despesas no mês** e a tabela de despesas. **Todo o histórico** amplia apenas a tabela; consumo e custo/km continuam calculados no histórico completo, conforme seus rótulos. Os filtros de categoria incluem categorias antigas ainda usadas no veículo. A observação aceita links clicáveis.
+**Nova despesa** permite descrição, categoria, data, valor, km e observação. É possível indicar próxima manutenção por km, por data ou pelos dois. Não há seleção de mês na aba Veículos. O cartão **Despesas acumuladas** soma os valores conhecidos de todo o histórico do veículo. A tabela mostra inicialmente os cinco registros mais recentes, respeitando a categoria selecionada. **Ver todos (N)** expande a lista e **Mostrar recentes** recolhe novamente. Trocar de veículo ou categoria volta aos cinco mais recentes. Consumo e custo/km continuam calculados no histórico completo, conforme seus rótulos. Os filtros de categoria incluem categorias antigas ainda usadas no veículo. A observação aceita links clicáveis.
 
 ### Manutenções e lembretes
 
