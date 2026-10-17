@@ -1,0 +1,56 @@
+{
+  "automobile": {
+    "source": "https://github.com/microsoft/fluentui-emoji/tree/main/assets/Automobile",
+    "original_sha256": "1d12961ada570f692b9ce495a9c531b0d56edcf1136be5823bb7bd8a3112907c",
+    "body_colors": [
+      "#F8312F"
+    ],
+    "shadow_colors": [
+      "#CA0B4A"
+    ]
+  },
+  "oncoming_automobile": {
+    "source": "https://github.com/microsoft/fluentui-emoji/tree/main/assets/Oncoming automobile",
+    "original_sha256": "114ef0d69a701274bafbc2844e36e1a074d17643ac2bdd92a06307755ce9b2bf",
+    "body_colors": [
+      "#F8312F"
+    ],
+    "shadow_colors": []
+  },
+  "sport_utility_vehicle": {
+    "source": "https://github.com/microsoft/fluentui-emoji/tree/main/assets/Sport utility vehicle",
+    "original_sha256": "df677842f69371428fe9e81238bd087400470defc140213dc2f2a4fff980907e",
+    "body_colors": [
+      "#5092FF"
+    ],
+    "shadow_colors": []
+  },
+  "pickup_truck": {
+    "source": "https://github.com/microsoft/fluentui-emoji/tree/main/assets/Pickup truck",
+    "original_sha256": "496846c532ec680b0f3d17bbff025634bc417be4b99decfd9d61f79c2de5823c",
+    "body_colors": [
+      "#F8312F"
+    ],
+    "shadow_colors": []
+  },
+  "motorcycle": {
+    "source": "https://github.com/microsoft/fluentui-emoji/tree/main/assets/Motorcycle",
+    "original_sha256": "caaabdfd28a785e420d2d827f4bd5320a6e399de96024a3dca9345a13f20d91d",
+    "body_colors": [
+      "#F92F60"
+    ],
+    "shadow_colors": [
+      "#CA0B4A"
+    ]
+  },
+  "motor_scooter": {
+    "source": "https://github.com/microsoft/fluentui-emoji/tree/main/assets/Motor scooter",
+    "original_sha256": "cee7e900386d029914fa30b2a60a5cd1818318b2dcb2467c5046c1a0bf31e42d",
+    "body_colors": [
+      "#F92F60"
+    ],
+    "shadow_colors": [
+      "#CA0B4A"
+    ]
+  }
+}

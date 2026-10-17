@@ -16,13 +16,33 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- A lista de abastecimentos inclui **Preço/litro** e **Consumo (km/L)**, calculados automaticamente para todo o histórico existente, inclusive o importado. Não é preciso reimportar ou modificar o Notion.
+
+- **Importação de abastecimentos por CSV LifeOS**, com prévia, confirmação, controle de duplicações, lotes de cinco e retomada. Marcação **Abastecimento anterior não registrado** disponível na criação e edição; interrompe o intervalo incompleto sem apagar o histórico. Nenhuma alteração de banco ou variável é necessária.
+
+- Abastecimentos têm campo de posto com texto livre, escolha de favoritos e gerenciamento de cadastros compartilhados. Cadastro do veículo inclui ano, que também aparece no bloco da garagem. Nenhum campo ou banco adicional no Notion.
+
+- Abastecimentos agora aceitam Etanol e Gasolina em várias linhas, com litros e valor por linha. Etanol é o padrão em carros; Gasolina em motos. Cada abastecimento tem uma só data, km e marcação de tanque cheio, usando os totais de todas as linhas para despesas e consumo.
+
+- Cadastro de veículos simplificado: apenas tipo Carro/Motocicleta; escolha do emoji pelas setas à esquerda e à direita da imagem, sem lista de modelos. Paleta de cores mantida.
+
+- Ilustrações dos veículos substituídas por **Microsoft Fluent Emoji (Flat)**, incluídos no app. As cores da carroceria continuam personalizáveis.
+
+- Veículos agora é compartilhada entre as duas contas, com aviso na aba, identificação da última edição e contexto Pessoal fixo. Não exige outro banco nem nova variável além de NOTION_VEHICLES_DATABASE_ID já indicada para a nova aba.
+
+- Nova aba **Veículos**: carros/motos ilustrados com modelos e cores, abastecimentos, médias de consumo, categorias de despesas e lembretes por km/data. Um banco adicional: siga a seção Veículos abaixo. Dados compartilhados entre as duas contas, apenas no contexto Pessoal.
+
+- Corrigido o texto de autorização no celular: duração de 1 hora, bloqueio após 10 minutos e desbloqueio pelo código original, sem extensão do prazo.
+
+- Sessão por QR: até 1 hora, com bloqueio após 10 minutos sem interação e desbloqueio pelo código original apenas no navegador autorizado. Cinco erros seguidos encerram a sessão. O limite de 1 hora nunca é renovado.
+
 - Peso/% gordura aceita apenas um registro por data, por usuário. Para corrigir, edite pelo gráfico ou histórico. Pressão mantém várias medições por dia e suas médias.
 - Cada gráfico tem um toggle discreto BPM/% gordura: oculta ou mostra a série e escala da direita, ajustando os limites e a largura aos dados visíveis. Não altera nem exclui dados. Esta revisão não exige novos campos, bancos ou variáveis.
 
 - Links externos solicitam nova aba. No PWA instalado em Android, links HTTP/HTTPS sem fragmento tentam abrir o Chrome por um Android Intent, com endereço original como fallback. Links que chegam ao PWA usam launch_handler navigate-new onde suportado, preservando uma janela já aberta para edição. A decisão de capturar links continua sendo do navegador/sistema.
 
 - Login alternativo por QR Code, com aprovação explícita no celular conectado pelo Google, comparação de código nas duas telas e sessão temporária no computador. O menu da conta Google permite consultar e desconectar computadores autorizados.
-- QR de uso único com validade de dois minutos; sessão desktop de até 30 minutos e encerramento após dez minutos sem interação. O computador não grava rascunhos comuns ou de Recados no IndexedDB nesse modo. Os logins Google existentes mantêm seu funcionamento.
+- QR de uso único com validade de dois minutos; sessão desktop de até 1 hora e bloqueio após dez minutos sem interação. O computador não grava rascunhos comuns ou de Recados no IndexedDB nesse modo. Os logins Google existentes mantêm seu funcionamento.
 - Inclui as melhorias anteriores de Bem-estar: nove pétalas, cartão central de escolhas no mobile/desktop, vários locais de dor e edição de pressão/peso a partir dos pontos do gráfico. Clicar fora do ponto restaura Ver histórico.
 - Hábitos continuam dentro de Bem-estar com as mesmas marcações e resumos. O ciclo da Letícia permanece editável pelas duas contas nesta fase.
 - Mantém projetos/tarefas compartilhados, responsáveis obrigatórios por tarefa, exclusão de projeto com seus marcos e tarefas, sincronização incremental e demais funcionalidades já configuradas.
@@ -33,14 +53,14 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 | --- | --- |
 | Inbox, Diário, Hábitos e registros, Bem-estar (dia e medidas), Entretenimento | Privado de cada conta |
 | Projetos, Marcos e Tarefas | Privado por padrão; compartilhamento opcional entre as duas contas |
-| Compras, Aniversários, Finanças | Compartilhado entre as duas contas |
+| Compras, Aniversários, Finanças, Veículos | Compartilhado entre as duas contas |
 | Ciclo da Letícia | Dados sempre dela; ambos podem ver e editar nesta versão de testes |
 | Recados | Mensagens entre as duas contas, com leitura confirmada pelo destinatário |
 | Backup e restauração | Apenas a conta principal; inclui dados das duas contas |
 
 Contas autorizadas: **periclesbernardes@gmail.com** e **leticiacost3@gmail.com**. Os dados privados antigos sem proprietário pertencem à primeira conta.
 
-Pessoal/Trabalho é uma classificação, não separação de usuário. Projetos, Tarefas e Compras têm ambos os contextos. Diário, Finanças, Aniversários, Bem-estar (incluindo Hábitos), Entretenimento e Recados usam Pessoal fixo, com Todos e Trabalho bloqueados.
+Pessoal/Trabalho é uma classificação, não separação de usuário. Projetos, Tarefas e Compras têm ambos os contextos. Diário, Finanças, Aniversários, Bem-estar (incluindo Hábitos), Entretenimento, Recados e Veículos usam Pessoal fixo, com Todos e Trabalho bloqueados.
 
 A separação é aplicada pelo servidor do LifeOS. Quem tiver acesso direto aos bancos completos no Notion terá o acesso concedido pelo próprio Notion. Compras, Finanças e Aniversários mostram nome e horário da última edição feita pelo app; edições diretas no Notion não identificam a conta Google.
 
@@ -51,7 +71,8 @@ A separação é aplicada pelo servidor do LifeOS. Quem tiver acesso direto aos 
 3. O navegador que abriu o link deve ter uma sessão Google válida do LifeOS. Se a câmera abrir um navegador diferente do PWA instalado, a sessão pode não ser compartilhada: entre pelo Google **somente no celular** nessa página e continue. As duas contas autorizadas continuam sendo as únicas aceitas.
 4. Confira o código de seis dígitos nas duas telas e toque **Autorizar este computador**. Recusar não dá acesso. Leia apenas o QR exibido no computador que está usando.
 5. O desktop entra automaticamente como quem aprovou, preservando as regras de acesso privadas e compartilhadas. Sessões QR não podem autorizar outros computadores nem gerenciar sessões de outras contas.
-6. A sessão expira após 30 minutos, sem renovação automática, ou dez minutos sem interação. Recarregar o app não aumenta esse prazo. O QR expira em dois minutos e não pode ser reutilizado; gere outro se necessário.
+6. Guarde o código de seis números mostrado junto ao QR Code. A sessão dura até 1 hora a partir da autorização no celular, sem renovação. Após dez minutos sem interação, o conteúdo fica oculto e as APIs bloqueadas. Digite esse código para desbloquear somente neste navegador autorizado; ele sozinho não abre uma sessão em outro navegador/computador. O desbloqueio reinicia a inatividade, mas não estende a hora. Cinco códigos incorretos seguidos encerram a sessão e exigem nova autorização pelo celular. Recarregar o app não elimina o bloqueio nem aumenta a validade. O QR expira em dois minutos e não pode ser reutilizado. Sessões antigas, emitidas antes desta revisão, mantêm o prazo anterior e precisam de nova autorização se forem bloqueadas, pois não têm código de desbloqueio registrado.
+7. Enquanto bloqueado, os formulários já abertos e textos pendentes ficam na memória da aba, sem persistência neste computador. Ao desbloquear, o salvamento pode continuar. Fechar/recarregar a aba ou expirar a hora pode perder o que ainda não foi salvo; aguarde **Salvo no Notion** antes de se afastar. Sessões bloqueadas continuam na lista **Computadores autorizados** para revogação pelo celular.
 7. No celular com login Google, abra seu nome → **Computadores autorizados** → **Desconectar**. A revogação bloqueia imediatamente novas requisições ao servidor; uma operação já em andamento pode terminar. A tela visível do computador verifica a sessão em até um minuto. Ao retornar do segundo plano, ela também verifica a validade.
 8. No computador, use **Sair** ao terminar. O cookie temporário não possui persistência programada, mas não confie apenas em fechar o navegador, pois ele pode restaurar sessões.
 
@@ -364,7 +385,7 @@ No Google Auth Platform, configure aplicativo Externo, identificação básica *
 - Origem: https://lifeos-two-kohl-18.vercel.app
 - Callback exato: https://lifeos-two-kohl-18.vercel.app/api/auth/google/callback
 
-Copie Client ID e Client secret para a Vercel. Domínios de Preview precisam de callback/configuração próprios. Não troque LIFEOS_SESSION_SECRET com rascunhos pendentes: ele também participa da proteção dos rascunhos. A sessão Google assinada usa cookie HttpOnly e tem validade de sete dias. Sessões autorizadas por QR usam cookie separado logicamente por modalidade, não persistente, prazo de 30 minutos e revogação no Redis.
+Copie Client ID e Client secret para a Vercel. Domínios de Preview precisam de callback/configuração próprios. Não troque LIFEOS_SESSION_SECRET com rascunhos pendentes: ele também participa da proteção dos rascunhos. A sessão Google assinada usa cookie HttpOnly e tem validade de sete dias. Sessões autorizadas por QR usam cookie separado logicamente por modalidade, não persistente, prazo de 1 hora e revogação no Redis.
 
 ### Upstash
 
@@ -458,3 +479,120 @@ Os dois bancos entram automaticamente nos novos backups completos quando configu
 ### Validação da entrega
 
 Testes locais cobrem isolamento dos registros, ciclo compartilhado com identidade fixa da Letícia, reenvio sem duplicação, conflito entre contas, validação das medidas, edição/exclusão e salvamento incremental. O build de produção é verificado. A integração real e o layout em Android/iPhone devem ser conferidos após seu deploy.
+
+
+## Veículos — configuração e primeira versão de testes
+
+### Criar o banco no Notion
+
+Dentro da página LifeOS, crie **um banco de dados em formato de tabela**, chamado **Veículos**, e autorize a conexão interna que o aplicativo já usa. Uma página de texto vazia não substitui esse banco. Configure estas propriedades, com os nomes e tipos abaixo:
+
+| Propriedade | Tipo no Notion | Uso |
+| --- | --- | --- |
+| Nome | Título | Nome do veículo, da categoria ou descrição do registro |
+| Data | Data | Data do abastecimento, despesa ou criação de lembrete; vazia em veículo/categoria |
+| Tipo | Texto | Preenchido pelo app: vehicle, category, station, entry ou reminder |
+| Dados | Texto | Preenchido pelo app com os detalhes estruturados do registro |
+
+**Tipo e Dados são propriedades de Texto, não Selecionar nem Relação.** Não é necessário criar relações entre bancos nem cadastrar categorias manualmente. Faça os registros pela aba do aplicativo; não altere o JSON de Dados manualmente. Os campos técnicos **LifeOS ID**, **LifeOS Último editor** e **LifeOS Editado em** são criados pelo app: mantenha-os intactos.
+
+Na Vercel, adicione **NOTION_VEHICLES_DATABASE_ID** com o ID deste banco (não o ID da visualização depois de `?v=`). Se houver mais de uma fonte de dados, informe também **NOTION_VEHICLES_DATA_SOURCE_ID**. Não é necessário mudar Google, Upstash ou as outras variáveis. Faça o deploy com o conteúdo da pasta lifeos e atualize o app. A aba aparece na barra e pode ser reordenada como as demais. Sem a variável, ela mostra a orientação de configuração e os cadastros ficam desabilitados.
+
+### Garagem e personalização
+
+Cadastre cada veículo com nome, tipo, placa, ano, km atual/inicial e antecedência dos alertas. **Veículos, abastecimentos, despesas, categorias e lembretes são compartilhados entre as duas contas.** A aba exibe COMPARTILHADO abaixo de seu nome e mantém apenas Pessoal, com Todos e Trabalho bloqueados. Não há escolha de contexto dentro do cadastro. Registros eventualmente criados antes desta revisão também ficam compartilhados e são exibidos como Pessoal, inclusive os que tinham Trabalho. A última edição exibe nome e horário, seguindo o padrão das outras abas compartilhadas. A aba Finanças permanece independente: nenhuma despesa de veículo é lançada automaticamente nela.
+
+No cadastro, escolha apenas **Carro** ou **Motocicleta**. Troque o emoji pelas **setas nas laterais da imagem**, sem selecionar categorias de modelo. Há quatro imagens de carro (frente, lateral, SUV e picape) e duas de motocicleta (moto e scooter); a navegação é circular e também aceita as setas do teclado quando o seletor está em foco. Há oito cores prontas, com prévia imediata. O lápis no bloco permite mudar nome, ícone, cor e demais dados sem alterar lançamentos anteriores. As ilustrações usam **Microsoft Fluent Emoji, estilo Flat**, com arquivos SVG incluídos no app. A cor escolhida altera apenas a pintura e suas sombras, preservando vidros, pneus e faróis. Cadastros anteriores mantêm seus ícones; as opções antigas Street, Trail e Esportiva continuam representadas pelo emoji de motocicleta. Não há download externo de imagens durante o uso, nem novos serviços ou variáveis. Créditos, licença MIT, originais e variantes estão em public/emoji/fluent-vehicles. Fonte: https://github.com/microsoft/fluentui-emoji.
+
+O campo **Ano** pode ficar em branco. Quando preenchido, aceita um ano inteiro de quatro dígitos, de 1886 até o ano corrente mais dois, e aparece ao lado do tipo/placa no bloco do veículo. Cadastros anteriores continuam válidos sem ano.
+
+### Abastecimentos e médias
+
+Clique **Abastecer**, informe data e odômetro, escolha **Etanol** ou **Gasolina** e preencha litros (até três casas decimais) e valor em reais de cada linha. Novos abastecimentos e novas linhas começam com **Etanol para carros** e **Gasolina para motocicletas**, podendo trocar livremente. Use **+ Adicionar combustível** para misturar dois ou mais registros no mesmo abastecimento, até vinte linhas; cada linha pode ser removida antes de salvar. Marque ou desmarque **Tanque cheio** uma única vez, para o abastecimento inteiro. O total de litros e reais é calculado automaticamente pela soma das linhas. As datas seguem DD/MM/AAAA, completando o ano ao informar dia/mês e sair do campo. O valor usa máscara R$ e completa os centavos ao sair.
+
+**Posto:** deixe em branco, digite livremente ou abra **Favoritos** para escolher. O texto escolhido continua editável, permitindo usar outro nome sem modificar o cadastro. A estrela ao lado do campo cadastra/favorita o nome digitado; se o posto já existir, alterna apenas seu estado de favorito, sem criar cópia. Favoritar um nome não salva um abastecimento incompleto.
+
+Em **Gerenciar postos**, cadastre nomes, marque ou desmarque favoritos, renomeie ou exclua um cadastro com confirmação. Os postos são compartilhados entre as duas contas e todos os veículos. Nomes repetidos são reconhecidos sem diferenças de maiúsculas, acentos ou espaços extras. O nome é guardado como texto no abastecimento: **renomear, desfavoritar ou excluir um posto cadastrado não modifica os nomes dos abastecimentos anteriores**. O posto aparece junto à data na lista de abastecimentos e na descrição da despesa. Os registros antigos podem permanecer sem posto. A informação fica no campo Dados já existente; não crie novas propriedades no Notion.
+
+- Um abastecimento misto é **um só registro**, com uma só data, quilometragem e condição do tanque. Por exemplo, 20 L de etanol + 10 L de gasolina contam como 30 L nesse abastecimento. Os valores das linhas também são somados uma única vez na despesa e no custo/km. As médias continuam em km/L combinados, sem separar por tipo de combustível nesta revisão.
+- O **primeiro tanque cheio** é a referência inicial; seu volume não entra no primeiro intervalo, porque não se conhece o nível anterior do tanque.
+- Cada tanque cheio seguinte fecha um intervalo: km percorridos desde a referência ÷ litros de todos os abastecimentos posteriores à referência, incluindo parciais e o tanque cheio de fechamento.
+- Parciais anteriores à primeira referência não entram no cálculo. Parciais depois do último tanque cheio aguardam o próximo fechamento e não alteram uma média já calculada.
+- **Última média**: último intervalo completo. **Média geral**: soma das distâncias ÷ soma dos litros dos intervalos completos, ponderada pelo volume, considerando todo o histórico desse veículo.
+- **Custo por km**: soma dos valores de combustível dos intervalos completos ÷ soma das distâncias desses mesmos intervalos. Não inclui despesas de manutenção, impostos ou seguro.
+- O gráfico mostra até doze intervalos completos mais recentes. Sem dois tanques cheios com distância positiva, os indicadores de consumo mostram um traço, sem inventar uma média.
+- Edição ou exclusão de um abastecimento recalcula as médias e o gráfico. A quilometragem deve acompanhar a ordem das datas; registros do mesmo dia são ordenados pelo odômetro.
+
+A tabela informa o tipo (Etanol, Gasolina ou ambos) e os totais, com os litros de cada componente quando houver mistura. Ao editar, todas as linhas são recuperadas para correção. Registros antigos sem tipo continuam válidos para as médias e aparecem como **Não informado**; não é atribuído um combustível retroativamente. Ao editar um deles, selecione o tipo da linha antes de salvar, mantendo os litros e valores já cadastrados. As linhas e os totais usam o mesmo campo Dados do banco existente: **não crie propriedades adicionais no Notion nem variáveis na Vercel**.
+
+**Colunas calculadas por abastecimento:** Preço/litro = valor total pago ÷ litros, em R$/L com duas casas decimais. Nos abastecimentos mistos, mostra o preço médio ponderado dos combustíveis da parada. Consumo (km/L) = distância desde o tanque cheio anterior ÷ litros acumulados após ele, incluindo os parciais e o tanque cheio atual, com duas casas decimais. A linha do tanque cheio que fecha o intervalo mostra a média; parciais mostram — / Pendente, pois o nível final ainda é desconhecido. A primeira referência, intervalos sem distância positiva e registros que interrompem a média mostram —. Os cálculos usam todo o histórico do veículo, mesmo quando só aparecem cinco linhas. Edição, exclusão e importação atualizam automaticamente as colunas. São dados derivados na tela: registros existentes não são regravados no Notion para adicionar estes campos.
+
+A tabela mostra os cinco abastecimentos mais recentes; **Ver todos** abre o restante. O lápis permite editar e excluir com confirmação. Um abastecimento é um único lançamento: aparece também nas despesas como combustível, sem ser somado duas vezes.
+
+#### Abastecimento anterior não registrado
+
+Marque **Abastecimento anterior não registrado** ao criar ou editar o abastecimento que sucede uma lacuna no histórico. O intervalo que atravessa essa lacuna sai dos cálculos de consumo e custo/km; os gastos e lançamentos continuam no histórico. Se esse registro for de tanque cheio, ele se torna a nova referência. Se for parcial, o app aguarda o próximo tanque cheio para estabelecer uma referência, calculando novamente apenas a partir do cheio seguinte. A Última média fica vazia até fechar um novo intervalo após a interrupção. As médias de intervalos válidos anteriores continuam compondo a média geral; o campo não apaga nem zera todo o histórico. Desmarcar recalcula normalmente. A tabela identifica a marcação como **Nova referência**.
+
+#### Importar abastecimentos — primeira importação e futuras
+
+O botão **Importar CSV** fica no cartão **Abastecimentos**, ao lado de Abastecer, e permanece disponível para futuras importações. O importador funciona apenas para abastecimentos; não importa despesas de manutenção ou lembretes nesta revisão.
+
+**Seu histórico preparado:** o ZIP desta entrega contém, fora da pasta `lifeos`, a pasta `Importacao`, com `abastecimentos-suzuki-gsr125.csv`. Envie ao GitHub apenas o conteúdo de `lifeos`. Guarde `Importacao` no computador para carregar pelo aplicativo. O CSV não precisa ser publicado no repositório e não deve ser importado diretamente pelo Notion.
+
+1. Publique o conteúdo atualizado de `lifeos` e atualize a página/PWA. Não altere variáveis nem propriedades no Notion; os novos campos ficam em Dados, no banco Veículos existente.
+2. Abra **Veículos** e selecione a motocicleta correta. Se ainda não a cadastrou, crie **Suzuki GSR125**, tipo Motocicleta, ano **2016**. A km atual pode permanecer em 61.805 km ou no valor atual real; o histórico começa em 2.678 km. A importação não substitui nome, placa, ano, ícone ou cor do veículo.
+3. No cartão Abastecimentos, clique **Importar CSV** e escolha `Importacao/abastecimentos-suzuki-gsr125.csv`.
+4. Confira o destino e a prévia. Sem histórico já importado, o arquivo contém **186 abastecimentos**, de **05/05/2016 a 28/08/2026**, **2.102,841 L** e **R$ 10.933,57**, com **2 parciais** e **1 interrupção de média** (26/03/2021). Os totais exibidos na prévia são apenas dos registros novos selecionados; podem ser menores se já houver duplicatas no destino.
+5. O arquivo de origem não traz legenda do código de combustível. O padrão seguro é **Manter Não informado**. Se você confirmar que todo esse histórico é de gasolina, escolha **Confirmar Gasolina para estes registros**. Essa escolha afeta apenas linhas sem combustível identificado. Linhas com Etanol/Gasolina ou abastecimentos mistos conservam os tipos informados.
+6. Por padrão, possíveis duplicatas de **mesma data e km** são ignoradas. A opção para incluí-las deve ser usada apenas após conferir que são abastecimentos diferentes. Registros com o mesmo ID de origem nesse veículo sempre são ignorados, mesmo que tenham sido editados posteriormente.
+7. Clique **Confirmar importação** e confirme o veículo na mensagem. Mantenha o app em primeiro plano e aguarde **Importação concluída e salva no Notion**. São gravados lotes de até cinco registros, pelo salvamento incremental normal. As duas contas verão o histórico compartilhado.
+8. Se houver falha, mantenha o mesmo arquivo e clique **Retomar importação**. Os lotes confirmados ficam salvos e os IDs estáveis evitam duplicação. Após fechar/reabrir, carregue novamente o mesmo CSV no mesmo veículo. Se aparecer conflito, feche o painel, use Atualizar e confira os registros antes de retomar. Não altere os IDs para tentar contornar uma falha.
+
+O importador não cria cadastros de postos automaticamente. Nomes identificados permanecem como texto nos abastecimentos; você pode favoritá-los posteriormente. Localizações genéricas da origem são conservadas na observação. Quilometragens incoerentes por data, valores inválidos ou arquivos malformados bloqueiam a importação antes de inserir o lote. Uma edição concorrente no Notion também pode interromper a operação, preservando os lotes anteriores.
+
+**Formato para futuras importações**
+
+Baixe um modelo vazio pelo botão **Baixar modelo CSV** do próprio importador. Um modelo também está na pasta `Importacao` desta entrega. Use UTF-8, preferencialmente separado por ponto e vírgula, uma linha por abastecimento. Limite: **1 MB e 1.000 abastecimentos por arquivo**. Aspas e quebras de linha dentro de observações seguem o padrão CSV. Colunas extras são ignoradas.
+
+| Coluna | Regra |
+|---|---|
+| id_origem | Obrigatória; identificador único e estável, de até 150 caracteres. Preserve em reimportações; não use números de linha que mudam ao ordenar. |
+| data | Obrigatória, DD/MM/AAAA completa no arquivo. |
+| km | Obrigatória, inteiro sem ponto de milhar: `61805`. |
+| litros | Obrigatória, positivo, até 3 casas: `12,320`. |
+| valor_total_rs | Obrigatória, total positivo em reais, até 2 casas: `87,35`, sem R$ e sem separador de milhar. |
+| tanque_cheio | Obrigatória: Sim ou Não. |
+| combustivel | Gasolina, Etanol ou Não informado. Vazio equivale a Não informado. |
+| posto | Nome livre, até 150 caracteres; pode ficar vazio. |
+| observacoes | Texto, pode conter quebras de linha; até 5.000 caracteres incluindo local_original, se preenchido. |
+| abastecimento_anterior_nao_registrado | Sim ou Não; vazio equivale a Não. |
+| veiculo | Nome para conferência; o destino é sempre o veículo escolhido no app. |
+| local_original | Informação adicional da origem, acrescentada à observação; pode ficar vazio. |
+| combustiveis_json | Avançado, pode ficar vazio. Para um abastecimento misto, lista JSON de até 20 linhas, com `type` (`ethanol`, `gasoline` ou `unknown`), `liters` numérico e `amount` em centavos inteiros. A soma deve coincidir com litros e valor_total_rs da linha. |
+
+Exemplo do conteúdo de combustiveis_json: `[{"type":"ethanol","liters":10,"amount":4000},{"type":"gasoline","liters":5,"amount":3000}]`. Na mesma linha, informe litros `15` e valor_total_rs `70,00`. Ao gerar CSV, coloque esse JSON entre aspas e duplique as aspas internas, conforme o padrão CSV. Não repita id_origem em várias linhas para um único abastecimento; use esse campo para preservar os componentes de um abastecimento misto.
+
+Não importe médias prontas: o LifeOS recalcula consumo usando tanques cheios, parciais e interrupções. A reimportação é aditiva; não atualiza nem exclui registros já importados. Para corrigir um registro existente, utilize o lápis no aplicativo. Um histórico manual sem ID de origem é tratado como possível duplicata por data e km, não como substituição automática.
+
+
+### Despesas e categorias
+
+Categorias iniciais: Combustível, Manutenção, Impostos, Pedágio, Seguro, Estacionamento, Lavagem e Outros. Elas já aparecem no app; só precisam de um registro no Notion quando personalizadas. Em **Categorias**, crie nomes, renomeie e desative categorias preservando seus lançamentos. Categorias inativas podem ser reativadas; um nome repetido inativo oferece reativação. Combustível pode ser renomeada e permanece disponível para os abastecimentos.
+
+**Nova despesa** permite descrição, categoria, data, valor, km e observação. É possível indicar próxima manutenção por km, por data ou pelos dois. O seletor mensal com setas e Hoje controla o total **Despesas no mês** e a tabela de despesas. **Todo o histórico** amplia apenas a tabela; consumo e custo/km continuam calculados no histórico completo, conforme seus rótulos. Os filtros de categoria incluem categorias antigas ainda usadas no veículo. A observação aceita links clicáveis.
+
+### Manutenções e lembretes
+
+Use **+ Lembrete** para um aviso sem despesa, ou preencha próxima km/data ao registrar uma manutenção. A km atual exibida é a maior entre a km inicial do veículo e os registros de abastecimento/despesa que informem odômetro. Lembretes não aumentam a km do veículo.
+
+- **Vencida**: chegou ou passou a km prevista, ou chegou/passou a data definida.
+- **Próxima**: faltam até a antecedência configurada no veículo (padrão 500 km), ou até 30 dias.
+- **Agendada**: ainda está fora desses limites. Quando houver km e data, vale o critério que exigir atenção primeiro.
+
+Os alertas são recalculados na própria tela após registros, edições, exclusões e sincronizações, sem rotina em segundo plano e sem notificações push. **Concluir** pede confirmação, retira o alerta da lista e mantém a despesa e o registro. **Mostrar lembretes concluídos** permite acessar e editar, inclusive desmarcar a conclusão. A conclusão não cria automaticamente outra despesa ou nova recorrência nesta primeira versão.
+
+### Salvamento e backup
+
+Os registros usam o mesmo salvamento automático e controle de conflitos do restante do app. Ao voltar ao foco, a atualização segue as regras existentes de proteção a edições pendentes. Cada lançamento é um registro separado no Notion; editar uma despesa não regrava o cadastro inteiro do veículo. A validação consulta as dependências do veículo envolvido e pode conferir seu histórico de km; outros bancos não são consultados por essa alteração.
+
+O banco Veículos é incluído automaticamente em novos backups completos. Os identificadores internos dos vínculos são preservados na restauração. Após configurar o novo banco, crie um novo backup completo: cópias anteriores sem Veículos não têm o mesmo conjunto de bancos e não são aceitas para restauração automática enquanto ele estiver configurado. Não há exclusão do cadastro inteiro do veículo nesta primeira versão; despesas e lembretes têm exclusão própria com confirmação.
