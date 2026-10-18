@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Painéis de abastecimento/despesa identificam o veículo no título. Abastecimento não mostra categoria nem prazo de manutenção e mantém Observação. Despesas não oferecem Combustível como categoria; os fluxos são separados pelos botões próprios.
+
 - Novo abastecimento abre no mesmo painel de Nova despesa, sem formulário abaixo da tabela. Campos de combustíveis mistos, posto/favoritos, tanque cheio e interrupção de média preservados.
 
 - Os valores dos cartões de Veículos selecionam o gráfico: consumo (padrão), custo/km, preço/litro, combustível/despesas por dia do mês e totais anuais de todo o histórico. Gráficos calculados com os dados já carregados, sem novas consultas ao Notion.
