@@ -649,3 +649,13 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 .vehicle-import progress{width:100%;accent-color:#58a6ff}
 .vehicle-full:has(.vehicle-help){flex-wrap:wrap}
 .vehicle-full .vehicle-help{flex-basis:100%;margin:0 0 0 25px}
+
+.vehicle-finance-stat{display:flex;flex-direction:column;align-items:stretch;gap:12px;min-width:0}
+.vehicle-finance-title{display:flex;align-items:center;gap:8px;color:var(--muted);font-size:13px}.vehicle-finance-title svg{color:#58a6ff;width:20px;height:20px}
+.vehicle-finance-periods{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}.vehicle-finance-periods section{min-width:0;font-size:12px;color:var(--muted)}.vehicle-finance-periods strong{display:block;font-size:23px;color:var(--text);margin:6px 0 9px;white-space:normal}
+.vehicle-card-period{display:flex;flex-wrap:wrap;align-items:center;gap:4px}.vehicle-card-period .month-field{min-width:0;flex:1 1 84px}.vehicle-card-period input.search{width:100%;min-width:0;padding:7px;font-size:12px}.vehicle-card-period>input.search{flex:1 1 58px;width:58px}.vehicle-card-period>.ghost{padding:6px;font-size:12px;min-height:32px}
+.vehicle-finance-global{display:block;font-size:11px;color:var(--muted);line-height:1.6;border-top:1px solid #ffffff10;padding-top:9px;font-weight:400;overflow-wrap:anywhere}.vehicle-finance-global+small{border:0;padding:0}
+.vehicle-table tfoot td{border-top:1px solid #ffffff25;padding-top:14px;font-weight:600}
+@media(min-width:1201px){.vehicle-stats{grid-template-columns:minmax(360px,2fr) repeat(3,minmax(0,1fr))}}
+@media(max-width:1200px){.vehicle-finance-stat{grid-column:1/-1}}
+@media(max-width:420px){.vehicle-finance-periods{grid-template-columns:minmax(0,1fr);gap:14px}.vehicle-finance-periods section+section{border-top:1px solid #ffffff10;padding-top:12px}}

@@ -16,7 +16,9 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
-- Veículos não tem mais seletor de mês: despesas e serviços exibem os cinco registros mais recentes de todo o histórico, com **Ver todos** e **Mostrar recentes**. O cartão financeiro mostra **Despesas acumuladas** do veículo. Filtros de categoria preservados.
+- Abastecimentos aparecem somente na região própria. O cartão de despesas mostra mês e ano navegáveis, com Hoje, e um rodapé discreto com despesas + combustível = total acumulado. Ao expandir o histórico, a tabela soma os valores da categoria selecionada no rodapé.
+
+- Veículos não tem mais seletor de mês: despesas e serviços exibem os cinco registros mais recentes de todo o histórico, com **Ver todos** e **Mostrar recentes**. O cartão financeiro permite consultar as despesas do mês e do ano, com o total global discreto no rodapé. Filtros de categoria preservados.
 
 - Importador de Veículos ampliado para **Manutenções e outras despesas**, com modelo CSV próprio. Serviços podem ter valor zero ou não informado, sem transformar ausência de valor em gasto. Categorias são compartilhadas por todos os veículos. Histórico do carro preparado conforme as regras aprovadas, com estimativas documentadas.
 
@@ -576,7 +578,7 @@ A tabela informa o tipo (Etanol, Gasolina ou ambos) e os totais, com os litros d
 
 **Colunas calculadas por abastecimento:** Preço/litro = valor total pago ÷ litros, em R$/L com duas casas decimais. Nos abastecimentos mistos, mostra o preço médio ponderado dos combustíveis da parada. Consumo (km/L) = distância desde o tanque cheio anterior ÷ litros acumulados após ele, incluindo os parciais e o tanque cheio atual, com duas casas decimais. A linha do tanque cheio que fecha o intervalo mostra a média; parciais mostram — / Pendente, pois o nível final ainda é desconhecido. A primeira referência, intervalos sem distância positiva e registros que interrompem a média mostram —. Os cálculos usam todo o histórico do veículo, mesmo quando só aparecem cinco linhas. Edição, exclusão e importação atualizam automaticamente as colunas. São dados derivados na tela: registros existentes não são regravados no Notion para adicionar estes campos.
 
-A tabela mostra os cinco abastecimentos mais recentes; **Ver todos** abre o restante. O lápis permite editar e excluir com confirmação. Um abastecimento é um único lançamento: aparece também nas despesas como combustível, sem ser somado duas vezes.
+A tabela mostra os cinco abastecimentos mais recentes; **Ver todos** abre o restante. O lápis permite editar e excluir com confirmação. Um abastecimento é um único lançamento exibido somente na região Abastecimentos. Seu valor entra apenas na parcela combustível do acumulado global, sem duplicação na tabela ou nos resumos de despesas do mês e do ano.
 
 #### Abastecimento anterior não registrado
 
@@ -628,7 +630,7 @@ Não importe médias prontas: o LifeOS recalcula consumo usando tanques cheios, 
 
 Categorias iniciais: Combustível, Manutenção, Impostos, Pedágio, Seguro, Estacionamento, Lavagem e Outros. Elas já aparecem no app; só precisam de um registro no Notion quando personalizadas. Em **Categorias**, crie nomes, renomeie e desative categorias preservando seus lançamentos. Categorias inativas podem ser reativadas; um nome repetido inativo oferece reativação. Combustível pode ser renomeada e permanece disponível para os abastecimentos.
 
-**Nova despesa** permite descrição, categoria, data, valor, km e observação. É possível indicar próxima manutenção por km, por data ou pelos dois. Não há seleção de mês na aba Veículos. O cartão **Despesas acumuladas** soma os valores conhecidos de todo o histórico do veículo. A tabela mostra inicialmente os cinco registros mais recentes, respeitando a categoria selecionada. **Ver todos (N)** expande a lista e **Mostrar recentes** recolhe novamente. Trocar de veículo ou categoria volta aos cinco mais recentes. Consumo e custo/km continuam calculados no histórico completo, conforme seus rótulos. Os filtros de categoria incluem categorias antigas ainda usadas no veículo. A observação aceita links clicáveis.
+**Nova despesa** permite descrição, categoria, data, valor, km e observação. É possível indicar próxima manutenção por km, por data ou pelos dois. Não há seleção de mês na aba Veículos. O cartão de resumo mostra **Despesas no mês** e **Despesas no ano**, excluindo combustível. Cada período tem setas, campo para digitação e botão Hoje para voltar ao mês/ano atual. Essas escolhas alteram apenas o cartão, não filtram as tabelas. No rodapé discreto, **Manutenção e despesas + combustível = total** soma todo o histórico conhecido do veículo. Registros sem valor são sinalizados e ficam fora das somas. A tabela mostra inicialmente os cinco registros mais recentes, respeitando a categoria selecionada. **Ver todos (N)** expande a lista e **Mostrar recentes** recolhe novamente. A tabela e seus filtros excluem abastecimentos, vistos apenas no cartão próprio. Quando expandida, a tabela mostra no rodapé a soma de todo o filtro selecionado, com indicação dos registros sem valor; o botão também fica disponível em listas com cinco ou menos registros para consultar esse total. Trocar de veículo ou categoria volta aos cinco mais recentes. Consumo e custo/km continuam calculados no histórico completo, conforme seus rótulos. Os filtros de categoria incluem categorias antigas ainda usadas no veículo. A observação aceita links clicáveis.
 
 ### Manutenções e lembretes
 
