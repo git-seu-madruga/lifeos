@@ -19,7 +19,7 @@ Estas orientações valem para a raiz e suas subpastas. Representam o comportame
 - lib/server/notion.js resolve schemas e lê/escreve os campos Notion; lib/server/sync.js valida alterações, conflitos e vínculos antes de gravar.
 - lib/server/access.js aplica acesso privado/compartilhado. auth.js, google.js e qrAuth.js cuidam da autenticação; coordination.js e routing.js cuidam de concorrência e roteamento de bancos.
 - lib/server/backup.js implementa cópia e restauração. Recados, busca de mídias e cópia de capas usam os módulos e rotas específicos existentes.
-- lib/vehicles.js contém as regras dos veículos; vehicleImport.js interpreta os CSVs e prepara a prévia; vehicleImportRunner.js grava lotes pelo fluxo normal de sincronização.
+- lib/vehicles.js contém as regras dos veículos; vehicleImport.js interpreta os CSVs e prepara a prévia; vehicleImportRunner.js grava lotes pelo fluxo normal de sincronização. vehicleCharts.js prepara séries locais de consumo, custos e totais diários/anuais.
 - tests/*.cjs usa assert, compilação SWC e servidores/armazenamentos simulados. Não substitua testes existentes por verificações de texto que não exercitem o comportamento.
 
 ## Dados, identidade e sincronização
@@ -78,6 +78,7 @@ Estas orientações valem para a raiz e suas subpastas. Representam o comportame
 - Há exatamente dois cartões de informações antes das tabelas: resumo financeiro e consumo/combustível.
 - Resumo financeiro usa um único MM/AAAA compacto e centralizado, setas, MonthPicker e Hoje. Mostra combustível no mês/ano e demais despesas no mês/ano. O ano acompanha o mês escolhido. Acumulado global fica discreto no rodapé: despesas + combustível = total; não destaque esses totais nem mostre avisos de registros fora das somas.
 - Segundo cartão reúne última média, média geral, custo/km e último preço por litro. O último preço vem do abastecimento cronologicamente mais recente, com os desempates de orderedFuel, e é valor total ÷ litros totais. Em mistura, isso é média ponderada, igual à tabela, não média simples dos preços dos componentes.
+- Valores dos cartões selecionam o gráfico local: consumo (padrão e retorno), custo/km dos últimos 12 intervalos completos, preço/litro dos últimos 12 abastecimentos, despesas/combustível diários no mês selecionado ou totais por ano de todo o histórico. Dias vazios aparecem como zero, fevereiro respeita anos bissextos, e gastos não incluem combustível. O gráfico anual não deve virar um gráfico dos meses do ano selecionado. Não introduzir consultas extras ao Notion para mudar gráficos. Usar seleção temporária, reiniciando em consumo ao trocar veículo/aba ou reabrir.
 - Abastecimentos ficam somente na tabela própria. A tabela de despesas exclui combustível, mostra km do evento e mantém filtros de categoria. Ambas começam com cinco linhas e expandem em Ver todos. O rodapé da tabela expandida soma todo o filtro escolhido.
 - Valor, preço/litro e consumo dos abastecimentos, e valor das despesas, alternam crescente → decrescente → padrão. Valores ausentes ficam no fim. Ordenação visual não altera o cálculo cronológico; não persistir entre abas/reaberturas.
 - Km de lançamento posterior deve ser maior ou igual aos anteriores. Histórico inserido também não pode ultrapassar registros posteriores. Mesmo dia admite várias entradas. Formulário e servidor devem impedir inconsistências.
