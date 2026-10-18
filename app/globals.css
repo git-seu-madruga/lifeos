@@ -659,3 +659,8 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 @media(min-width:1201px){.vehicle-stats{grid-template-columns:minmax(360px,2fr) repeat(3,minmax(0,1fr))}}
 @media(max-width:1200px){.vehicle-finance-stat{grid-column:1/-1}}
 @media(max-width:420px){.vehicle-finance-periods{grid-template-columns:minmax(0,1fr);gap:14px}.vehicle-finance-periods section+section{border-top:1px solid #ffffff10;padding-top:12px}}
+
+.vehicle-finance-stat .vehicle-summary-period{width:fit-content;max-width:100%;margin:0 auto;justify-content:center;flex-wrap:nowrap;gap:4px}
+.vehicle-finance-stat .vehicle-summary-period .month-field{flex:0 0 96px;width:96px;min-width:0}
+.vehicle-summary-period .month-field input.search{text-align:center}
+.vehicle-summary-period>.ghost,.vehicle-summary-period>.month-picker-control{flex:none}

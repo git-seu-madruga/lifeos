@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Seletor de período no cartão de despesas compacto e centralizado, com campo MM/AAAA e calendário de mês/ano no mesmo padrão de Hábitos e Recados.
+
 - Um único seletor MM/AAAA no resumo de Veículos controla combustível no mês/ano e despesas no mês/ano. O ano vem do mês selecionado; Hoje restaura o período atual. Acumulados mantidos em linha discreta, sem avisos de registros fora da soma.
 
 - Abastecimentos aparecem somente na região própria. O cartão de despesas mostra mês e ano navegáveis, com Hoje, e um rodapé discreto com despesas + combustível = total acumulado. Ao expandir o histórico, a tabela soma os valores da categoria selecionada no rodapé.
