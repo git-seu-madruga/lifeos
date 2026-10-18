@@ -16,6 +16,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Novo abastecimento abre no mesmo painel de Nova despesa, sem formulário abaixo da tabela. Campos de combustíveis mistos, posto/favoritos, tanque cheio e interrupção de média preservados.
+
 - Os valores dos cartões de Veículos selecionam o gráfico: consumo (padrão), custo/km, preço/litro, combustível/despesas por dia do mês e totais anuais de todo o histórico. Gráficos calculados com os dados já carregados, sem novas consultas ao Notion.
 
 - Dois cartões de resumo em Veículos: despesas por período e consumo/combustível. O segundo reúne última média, média geral, custo/km e preço por litro do abastecimento mais recente (média ponderada para misturas). Orientações de desenvolvimento registradas em AGENTS.md.
@@ -571,7 +573,7 @@ O campo **Ano** pode ficar em branco. Quando preenchido, aceita um ano inteiro d
 
 ### Abastecimentos e médias
 
-Clique **Abastecer**, informe data e odômetro, escolha **Etanol** ou **Gasolina** e preencha litros (até três casas decimais) e valor em reais de cada linha. Novos abastecimentos e novas linhas começam com **Etanol para carros** e **Gasolina para motocicletas**, podendo trocar livremente. Use **+ Adicionar combustível** para misturar dois ou mais registros no mesmo abastecimento, até vinte linhas; cada linha pode ser removida antes de salvar. Marque ou desmarque **Tanque cheio** uma única vez, para o abastecimento inteiro. O total de litros e reais é calculado automaticamente pela soma das linhas. As datas seguem DD/MM/AAAA, completando o ano ao informar dia/mês e sair do campo. O valor usa máscara R$ e completa os centavos ao sair.
+Clique **Abastecer** para abrir o painel **Novo abastecimento**, no mesmo padrão de Nova despesa, e informe data e odômetro, escolha **Etanol** ou **Gasolina** e preencha litros (até três casas decimais) e valor em reais de cada linha. Novos abastecimentos e novas linhas começam com **Etanol para carros** e **Gasolina para motocicletas**, podendo trocar livremente. Use **+ Adicionar combustível** para misturar dois ou mais registros no mesmo abastecimento, até vinte linhas; cada linha pode ser removida antes de salvar. Marque ou desmarque **Tanque cheio** uma única vez, para o abastecimento inteiro. O total de litros e reais é calculado automaticamente pela soma das linhas. As datas seguem DD/MM/AAAA, completando o ano ao informar dia/mês e sair do campo. O valor usa máscara R$ e completa os centavos ao sair.
 
 **Posto:** deixe em branco, digite livremente ou abra **Favoritos** para escolher. O texto escolhido continua editável, permitindo usar outro nome sem modificar o cadastro. A estrela ao lado do campo cadastra/favorita o nome digitado; se o posto já existir, alterna apenas seu estado de favorito, sem criar cópia. Favoritar um nome não salva um abastecimento incompleto.
 
