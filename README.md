@@ -23,6 +23,14 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Alimentação do dia mostra Café da manhã, Almoço, Lanche e Jantar mesmo vazios. Ceia/Outros aparecem quando houver lançamentos, na ordem da lista. Desktop acomoda todos os cartões em uma única linha, ajustando larguras e cabeçalhos; mobile mantém uma coluna. Sem mudanças de dados ou configuração.
+
+- Ao selecionar um alimento com peso/volume de porção cadastrado, o lançamento começa com quantidade **1** e unidade **Porção**. Alimentos sem porção continuam com 100 g/ml. A preferência pessoal de porção também vale ao selecionar o mesmo produto em nova busca online. Edições de lançamentos mantêm a quantidade originalmente registrada.
+
+- Nos cartões de pressão/BPM e peso/gordura, o toggle da escala direita fica na mesma linha dos valores, eliminando a linha exclusiva do botão. Cálculos, seleção de pontos, edição e registro de BPM/gordura permanecem como antes. Sem novos campos ou variáveis.
+
+- Busca de alimentos/ingredientes começa vazia e mostra resultados locais ao digitar; limpar o texto recolhe a lista. Navegações com calendário seguem seta esquerda → campo → seta direita → calendário → Hoje. Ajustado também o campo digitado de mês no resumo de Acompanhamento. Backup do catálogo utilizado está em Importacao/TACO (JSON exato, CSV para consulta e procedência). Esta revisão não exige novos bancos ou variáveis.
+
 - Abas principais compactas: inativas mostram somente o ícone; a selecionada mostra o nome com transição breve. No mobile, Ordenar abas revela todos os nomes e Concluir volta à apresentação compacta. Aviso COMPARTILHADO aparece com o nome e continua no rótulo acessível dos ícones. Sem mudanças de bancos ou variáveis nesta revisão visual.
 
 - Nova aba **Acompanhamento**, privada por usuário e com Pessoal fixo. Registro em kcal, busca TACO local, busca de produtos Open Food Facts, favoritos, alimentos próprios, receitas com cálculo por ingredientes, ilustrações e resumos por mês/ano. Água, sono, aeróbico e musculação possuem registros independentes de Bem-estar. Exige apenas o novo banco Acompanhamento e NOTION_NUTRITION_DATABASE_ID.
@@ -119,6 +127,8 @@ As verificações periódicas de sessão são leves: consultam sessão/Redis, se
 ### Navegação e datas
 
 Arraste as abas para ordenar; a primeira é a tela inicial. A preferência fica no navegador/dispositivo, não é sincronizada por usuário. As abas inativas mostram apenas o ícone, e somente a selecionada exibe o nome, com animação breve. No desktop, passar o mouse também informa o nome. No celular, o botão Ordenar abas revela todos os nomes para facilitar a reorganização; concluir volta ao modo compacto. A rolagem horizontal sem barra aparente continua disponível quando necessária. A indicação COMPARTILHADO acompanha o nome nas abas compartilhadas. O menu da conta contém **Sair** e, para Péricles, **Backup e restauração**.
+
+Nas barras de navegação com calendário, a ordem é **seta esquerda, campo digitável, seta direita, calendário e Hoje**. Campos de formulário mantêm o calendário ao lado da digitação.
 
 As datas usam **DD/MM/AAAA**, com barras automáticas e calendário alternativo. Ao preencher apenas dia e mês e sair do campo, o ano atual é completado. **Aniversários é exceção:** o ano pode ficar desconhecido. Links em textos/comentários aparecem clicáveis nas visualizações de leitura.
 
@@ -704,9 +714,11 @@ Na Vercel, crie **NOTION_NUTRITION_DATABASE_ID** com o ID do banco (o trecho ant
 
 - A aba Acompanhamento pode ser arrastada como as demais. É privada por usuário e fixa no contexto Pessoal. Não move nem altera Hábitos ou Bem-estar.
 - Navegue por dia usando as setas, DD/MM/AAAA, calendário ou Hoje. Registros futuros são bloqueados. Marque Água, Aeróbico e Musculação e informe litros e horas de sono quando quiser. O check Água é independente do campo em litros. Não há leitura nem escrita dos registros equivalentes de Bem-estar.
+- A lista de busca fica vazia até digitar algum texto e se recolhe ao apagar o texto, inclusive em Favoritos/Minhas receitas e na escolha de ingredientes. Buscas locais atualizam os resultados durante a digitação; produtos online continuam exigindo Buscar/Enter.
 - **Base brasileira** busca instantaneamente os 591 alimentos com energia numérica da planilha oficial TACO/NEPA-Unicamp, por nome/preparo. Os valores são por 100 g da parte comestível. Escolha corretamente cru, cozido, frito etc. O catálogo fica no código; não copia 591 alimentos para seu Notion.
 - **Produtos / marcas** busca no Open Food Facts por nome de produtos disponíveis no Brasil ou por código de barras digitado. Use Buscar/Enter: não há consulta externa a cada letra. Produtos sem energia informada são omitidos, não tratados como zero. Valores em kJ são convertidos para kcal quando necessário. Fotos são links da fonte, com ilustração local quando indisponíveis.
-- Selecione um alimento, informe a quantidade e a refeição e marque Dentro/Fora da dieta. O app calcula as kcal. Porções só aparecem quando o peso/volume da porção estiver informado. Não transforma g em ml automaticamente.
+- Selecione um alimento, informe a quantidade e a refeição e marque Dentro/Fora da dieta. O app calcula as kcal. Porções só aparecem quando o peso/volume da porção estiver informado. Nesse caso, selecionar o alimento já inicia com **1 porção**; sem porção, inicia com **100 g ou 100 ml**, conforme a unidade. Após cadastrar/alterar a porção, a seleção atual também passa a usar esse padrão. A edição de lançamentos existentes preserva sua quantidade e unidade até você alterá-las. Não transforma g em ml automaticamente.
+- O resumo mostra Café da manhã, Almoço, Lanche e Jantar por padrão. Ceia e Outros entram ao registrar alimentos, seguindo essa ordem. No desktop todos ficam em uma única linha com largura adaptável; no mobile ficam empilhados.
 - Adicionar ao dia salva um lançamento separado, com cópia do nome, base nutricional, quantidade, refeição e kcal. Expanda a refeição para editar ou excluir um lançamento; exclusão pede confirmação.
 - A estrela guarda favoritos. Cadastrar alimento permite registrar nome, kcal por 100 g/ml, peso/volume de porção e ilustração. **Personalizar alimento / ícone** cria uma preferência sua sem alterar a TACO original. Em Meus alimentos você pode editar o cadastro ou retirá-lo do catálogo pessoal. Os lançamentos anteriores mantêm seus valores. Um alimento TACO retirado dos favoritos continua disponível na base original.
 - Em Minhas receitas, use Nova receita, escolha os ingredientes e suas quantidades e informe o **peso final da receita pronta** em gramas. O cálculo soma as kcal dos ingredientes e divide pelo peso final para obter kcal/100 g. Ingredientes podem incluir alimentos próprios/favoritos; a receita guarda suas bases originais. Atualizar um ingrediente não recalcula receitas e lançamentos anteriores automaticamente. Edite a receita explicitamente se desejar mudar sua composição. Nesta versão, receitas são registradas por gramas, sem conversão automática para colheres ou fatias.
@@ -724,7 +736,7 @@ A meta inicial é **2.412 kcal**, editável em Ajustar meta. **Meta deste dia** 
 
 ### Fontes, imagens e funcionamento
 
-TACO: NEPA/UNICAMP, https://nepa.unicamp.br/publicacoes/tabela-taco-excel/ ; procedência e transformações em lib/data/TACO-FONTE.md. Nomes e identificadores da fonte são preservados. Categorias/nomes associam alimentos às ilustrações locais Microsoft Fluent Emoji, com licença MIT em public/emoji/fluent-food/LICENSE.txt; o mesmo ícone pode representar várias preparações. Personalizar um cadastro permite escolher outra ilustração.
+TACO: NEPA/UNICAMP, https://nepa.unicamp.br/publicacoes/tabela-taco-excel/ ; procedência e transformações em lib/data/TACO-FONTE.md. A pasta Importacao/TACO do pacote contém taco.json (cópia exata do catálogo usado no aplicativo), taco-alimentos.csv (591 alimentos, separados por ponto e vírgula, decimal com vírgula, UTF-8 com BOM) e TACO-FONTE.md. São arquivos de manutenção: não precisam ser enviados ao Notion nem importados, e editá-los não muda automaticamente o catálogo que está em lib/data/taco.json. Nomes e identificadores da fonte são preservados. Categorias/nomes associam alimentos às ilustrações locais Microsoft Fluent Emoji, com licença MIT em public/emoji/fluent-food/LICENSE.txt; o mesmo ícone pode representar várias preparações. Personalizar um cadastro permite escolher outra ilustração.
 
 Open Food Facts: https://world.openfoodfacts.org/ (dados ODbL); fotos de seus colaboradores sob CC BY-SA 3.0. Créditos e links ficam na área de alimentação. Fotos dos produtos são externas; esta primeira versão não envia uma cópia dessas fotos para o Notion nem oferece upload de foto própria de alimento. O registro mantém os dados nutricionais mesmo se o link da foto deixar de funcionar.
 

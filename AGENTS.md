@@ -54,6 +54,7 @@ Estas orientações valem para a raiz e suas subpastas. Representam o comportame
 - Abas principais inativas mostram só ícone; a selecionada revela o nome com transição breve. Ordenar abas no mobile revela todos os nomes; concluir recolhe inativas. Preserve rótulos acessíveis, tooltip, aviso COMPARTILHADO com o nome, foco de teclado e prefers-reduced-motion.
 - Contextos ficam centralizados no espaço entre a marca e o botão de atualizar; tamanho não muda quando opções estão bloqueadas.
 - Pessoal fixo: Diário, Finanças, Aniversários, Bem-estar/Hábitos, Entretenimento, Recados, Veículos e Acompanhamento. Projetos, Tarefas e Compras mantêm Pessoal/Trabalho conforme a interface existente.
+- Navegações com calendário usam ordem DOM/teclado seta esquerda → campo digitável → seta direita → calendário → Hoje. DateInput aceita afterInput para colocar a seta direita antes do calendário embutido; formulários sem navegação continuam com campo e calendário.
 - Use DateInput, MonthInput e MonthPicker. Datas aceitam dia/mês e completam o ano ao concluir; a máscara insere barras. Preserve calendário como alternativa. Mês digitado sozinho completa o ano no componente existente.
 - Use ModalLayer e o sistema de retorno existentes: animação breve, retorno fecha a camada superior, proteção de saída nas abas principais. Selecionar texto e soltar fora do painel não pode fechá-lo.
 - Novos projetos/tarefas focam título vazio com placeholder; entradas intocadas são descartadas ao fechar. Não recrie placeholders como registros persistidos.
@@ -68,7 +69,7 @@ Estas orientações valem para a raiz e suas subpastas. Representam o comportame
 - Tarefa não usa status Cancelada; mantenha exclusão e anexos. Compartilhamento removido pede confirmação com indicação do destino privado.
 - Diário tem uma entrada por data, leitura bloqueada ao retornar, desbloqueio explícito e ausência de marcador quando texto/anexos não constituem entrada. Conversão do Inbox usa hoje e confirma reabertura quando necessário.
 - Hábitos ficam dentro de Bem-estar. Ícones principais marcam somente hoje; correções passam pelo resumo mensal. Alterações fora de hoje e exclusões pedem confirmação. Encerrar/recuperar preserva histórico e pede confirmação; resumo anual é leitura e abre o mês.
-- Pressão admite múltiplas medidas/dia e média diária; peso/gordura tem apenas uma entrada/dia. Ocultar uma série/escala do gráfico não impede registrar seu valor.
+- Pressão admite múltiplas medidas/dia e média diária; peso/gordura tem apenas uma entrada/dia. Ocultar uma série/escala do gráfico não impede registrar seu valor. Toggle da escala direita ocupa a mesma linha do resumo numérico de pressão/peso, sem linha exclusiva; MeasurementChart recebe summary/summaryNote para manter o controle junto aos valores.
 - Compras não guarda histórico de itens concluídos. Preserve ordenação manual de itens/listas e integração do Inbox.
 - Finanças mantém entradas/saídas, categorias compartilhadas e aposentadoria de categorias sem apagar lançamentos. Edições fora do mês atual usam as confirmações existentes; Sankey não permite arrastar barras.
 - Entretenimento mantém quatro seções: leituras, jogos, séries e filmes. Cada seção tem página, filtros/status, avaliação, capas, visualização compacta/completa e resumo mensal/anual. Conclusão exige data; preserve ordem dos concluídos e ordem de criação dos demais. Preserve atribuições exigidas pelos provedores, inclusive TMDB na área de filmes.
@@ -77,9 +78,11 @@ Estas orientações valem para a raiz e suas subpastas. Representam o comportame
 ## Acompanhamento: comportamento atual
 
 - Coleção privada nutrition, um banco NOTION_NUTRITION_DATABASE_ID com Nome/Data/Tipo/Dados. Tipos settings, day, entry e food. JSON usa data.uid estável; base nutricional/receita é copiada no lançamento. Editar ou retirar alimento não reescreve histórico.
+- Resumo alimentar mostra Café da manhã, Almoço, Lanche e Jantar por padrão; Ceia/Outros aparecem com lançamentos, na ordem de MEALS. Desktop usa uma única linha de cartões adaptáveis; mobile mantém uma coluna.
 - Água, litros, sono, aeróbico e musculação independentes de Bem-estar e Hábitos. Sono/litros não mudam pesos. Qualidade = (água 10% + aeróbico OU musculação 20% + total dentro da meta 70%) × (kcal dentro / kcal totais). Sem calorias, sem nota; acima de 70% é boa adesão. Médias incluem apenas dias com calorias.
+- Busca de alimentos começa vazia, mostra resultados ao digitar e recolhe ao limpar. Ingredientes, favoritos e receitas seguem a mesma regra; OFF mantém busca explícita. Backup de manutenção em Importacao/TACO inclui JSON idêntico ao catálogo e CSV com a mesma lista.
 - TACO oficial local em lib/data/taco.json, energia por 100 g; preserve proveniência, valores e preparação. Não invente energia para ausentes. OFF busca explícita com cache/limite e foto validada do domínio images.openfoodfacts.org, sempre com fallback local e créditos. Não introduza serviços pagos ou chave extra.
-- Receitas calculam kcal por ingredientes e peso pronto; gramas e ml não são intercambiáveis. Porções exigem quantidade base conhecida. Validação server acompanha cálculo, unicidade por dono/dia e UID, privacidade e detecção de conflitos. Catálogo local não vai para Notion.
+- Receitas calculam kcal por ingredientes e peso pronto; gramas e ml não são intercambiáveis. Porções exigem quantidade base conhecida. Nova seleção de alimento com porção inicia em 1 porção; sem porção, 100 g/ml. Preserve a porção pessoal em novas buscas do mesmo produto e não substitua a quantidade ao editar lançamento antigo. Validação server acompanha cálculo, unicidade por dono/dia e UID, privacidade e detecção de conflitos. Catálogo local não vai para Notion.
 - Novos campos/coleções precisam preservar integração de diff, rascunhos, hidratação, backup e retorno ao foco. Fotos de produtos permanecem links externos nesta primeira versão; não alegar cópia de imagens no backup.
 
 ## Veículos: comportamento atual

@@ -692,3 +692,32 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 .tabs .tab-label[data-expanded="true"] .tab-label-content{opacity:1;transform:translateX(0)}
 .tabs .tab:focus-visible{outline:2px solid var(--blue);outline-offset:-3px;border-radius:6px}
 @media(prefers-reduced-motion:reduce){.tabs .tab-label,.tabs .tab-label-content{transition:none}}
+
+
+/* Valores e controle da escala compartilham a mesma linha nos cartões de medidas. */
+.well-combined-chart.with-summary{margin-top:0}
+.well-measure-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0}
+.well-measure-summary .well-values{flex:1;min-width:0;gap:8px 16px;margin:0}
+.well-measure-summary .well-values>strong{white-space:nowrap}
+.well-measure-summary .well-chart-toggle{flex:none;white-space:nowrap;margin:0 0 0 auto;padding:5px 9px}
+.well-measure-note{margin:8px 0 14px}
+@media(max-width:600px){.well-measure-summary{gap:8px}.well-measure-summary .well-values{gap:6px 10px}.well-measure-summary .well-chart-toggle{padding:5px 7px}}
+
+
+/* Resumo das refeições em uma única linha no desktop; celular mantém a pilha. */
+@media(min-width:761px){
+ .nutrition-meals{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+ .nutrition-meal{container-type:inline-size;container-name:meal-card}
+ .nutrition-meal-heading{padding:12px 9px;gap:8px}
+ .nutrition-meal-heading>span:nth-child(2){min-width:0}
+ .nutrition-meal-heading b{overflow-wrap:anywhere}
+ .nutrition-entries li{flex-wrap:wrap}
+ .nutrition-entries li>div{display:flex;gap:5px;flex-wrap:wrap}
+ @container meal-card (max-width:210px){
+  .nutrition-meal-heading{position:relative;flex-direction:column;justify-content:center;text-align:center;gap:6px;padding:12px 6px}
+  .nutrition-meal-heading .food-image{width:40px;height:40px}
+  .nutrition-meal-heading>span:last-child{position:absolute;right:7px;top:7px}
+  .nutrition-meal-heading b{font-size:12px}
+  .nutrition-meal-heading strong{font-size:18px}
+ }
+}
