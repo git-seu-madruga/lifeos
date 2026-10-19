@@ -33,7 +33,7 @@ import BirthdaysView from '../components/BirthdaysView';
 import {contactFromInbox} from '../lib/birthdays';
 import FinanceView from "../components/FinanceView";
 import DiaryView from "../components/DiaryView";
-import { normalizeTabOrder, moveTab, dateKey, appendInboxToDiary } from "../lib/diary";
+import { normalizeTabOrder, moveTab, moveTabBefore, dateKey, appendInboxToDiary } from "../lib/diary";
 import Placeholder from "../components/Placeholder";
 
 const CONTEXTS = [
@@ -52,10 +52,9 @@ export default function Home() {
   const [orderReady,setOrderReady] = useState(false);
   const [dragged,setDragged] = useState(null);
   const draggedTab = useRef(null);
-  const touchDrag = useRef(null);
+  const [reorderSource,setReorderSource]=useState(null);
   const [touchMode,setTouchMode]=useState(false),[touchReorder,setTouchReorder]=useState(false);
   useEffect(()=>{const query=window.matchMedia("(pointer: coarse)");const update=()=>setTouchMode(query.matches);update();query.addEventListener("change",update);return()=>query.removeEventListener("change",update);},[]);
-  const suppressClick = useRef(false);
   useEffect(()=>{
     let order=NAV.map(tab=>tab.id);
     try { order=normalizeTabOrder((JSON.parse(localStorage.getItem('lifeos-tab-order'))||[]).map(id=>id==='habitos'?'bemestar':id),order); } catch {}
@@ -63,6 +62,18 @@ export default function Home() {
   },[]);
   useEffect(()=>{if(orderReady)try{localStorage.setItem('lifeos-tab-order',JSON.stringify(tabOrder));}catch{}},[tabOrder,orderReady]);
   function reorderTab(from,to){setTabOrder(order=>moveTab(order,from,to));}
+  function pickTab(id){
+    if(touchReorder){
+      if(reorderSource){
+        setTabOrder(order=>moveTabBefore(order,reorderSource,id));
+        setReorderSource(null);
+      }else setReorderSource(id);
+      return;
+    }
+    setTabId(id);setSelected(null);
+  }
+  function toggleTabOrder(){setTouchReorder(value=>!value);setReorderSource(null);setDragged(null);}
+
   const orderedTabs=tabOrder.map(id=>NAV.find(tab=>tab.id===id));
   const [subs, setSubs] = useState({});
   const [backupOpen,setBackupOpen]=useState(false),[sessionsOpen,setSessionsOpen]=useState(false);
@@ -228,13 +239,9 @@ export default function Home() {
           <span key={t.id} className="tab-wrap">
             {t.sep && <span className="tab-sep" aria-hidden="true" />}
             <button
-              className={"tab" + (t.id === tabId ? " on" : "") + (dragged === t.id ? " dragging" : "")}
-              draggable={!touchMode}
+              className={"tab" + (t.id === tabId ? " on" : "") + (dragged === t.id ? " dragging" : "") + (touchReorder&&reorderSource===t.id?" reorder-selected":"")}
+              draggable={!touchMode&&!touchReorder}
               data-tab-id={t.id} data-romantic={t.id==='recados'||undefined}
-              onPointerDown={e=>{if(e.pointerType==='touch'&&touchReorder){touchDrag.current={id:t.id,x:e.clientX,y:e.clientY,moved:false,target:t.id,bar:e.currentTarget.closest('.tabs')};e.currentTarget.setPointerCapture(e.pointerId);}}}
-              onPointerMove={e=>{const drag=touchDrag.current;if(!drag)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){drag.moved=true;setDragged(drag.id);const bounds=drag.bar.getBoundingClientRect();if(e.clientX>bounds.right-30)drag.bar.scrollLeft+=12;else if(e.clientX<bounds.left+30)drag.bar.scrollLeft-=12;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-tab-id]')?.dataset.tabId;if(target)drag.target=target;}}}
-              onPointerUp={()=>{const drag=touchDrag.current;if(drag?.moved){reorderTab(drag.id,drag.target);suppressClick.current=true;setTimeout(()=>{suppressClick.current=false;},400);}touchDrag.current=null;setDragged(null);}}
-              onPointerCancel={()=>{touchDrag.current=null;setDragged(null);}}
               aria-label={t.label+(['compras','financas','aniversarios','veiculos'].includes(t.id)?", compartilhado":"")}
               title={t.label+" · "+(touchMode?"Deslize para ver as abas · Use Ordenar abas para reorganizar":"Arraste para reordenar · Alt + seta também move")}
               onDragStart={e=>{draggedTab.current=t.id;setDragged(t.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',t.id);}}
@@ -242,14 +249,16 @@ export default function Home() {
               onDrop={e=>{e.preventDefault();if(draggedTab.current)reorderTab(draggedTab.current,t.id);draggedTab.current=null;setDragged(null);}}
               onDragEnd={()=>{draggedTab.current=null;setDragged(null);}}
               onKeyDown={e=>{if(e.altKey && ['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();const target=tabOrder[tabOrder.indexOf(t.id)+(e.key==='ArrowLeft'?-1:1)];if(target)reorderTab(t.id,target);}}}
+              aria-pressed={touchReorder?reorderSource===t.id:undefined}
+              aria-describedby={touchReorder?"tab-order-help":undefined}
               aria-current={t.id === tabId ? "page" : undefined}
-              onClick={() => { if(suppressClick.current||touchReorder)return;setTabId(t.id); setSelected(null); }}
+              onClick={()=>pickTab(t.id)}
             >
               <TabIcon id={t.id}/><span className="tab-label" data-expanded={t.id===tabId||touchReorder} aria-hidden={!(t.id===tabId||touchReorder)}><span className="tab-label-content"><span className="tab-name">{t.label}</span>{['compras','financas','aniversarios','veiculos'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span></span>
             </button>
           </span>
         ))}
-      </nav>{touchMode&&<button className={"icon-btn tab-order-toggle"+(touchReorder?" on":"")} aria-label={touchReorder?"Concluir ordem das abas":"Ordenar abas"} aria-pressed={touchReorder} title={touchReorder?"Concluir ordem das abas":"Ordenar abas"} onClick={()=>{setTouchReorder(!touchReorder);touchDrag.current=null;setDragged(null);}}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{touchReorder?<path d="m4 12 5 5L20 6"/>:<><path d="M4 8h16M4 16h16m-3-11 3 3-3 3M7 13l-3 3 3 3"/></>}</svg></button>}</div>{touchReorder&&<p className="muted small" role="status">Arraste as abas para ordenar. Toque no ✓ para voltar à rolagem.</p>}
+      </nav>{touchMode&&<button className={"icon-btn tab-order-toggle"+(touchReorder?" on":"")} aria-label={touchReorder?"Concluir ordem das abas":"Ordenar abas"} aria-pressed={touchReorder} title={touchReorder?"Concluir ordem das abas":"Ordenar abas"} onClick={toggleTabOrder}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{touchReorder?<path d="m4 12 5 5L20 6"/>:<><path d="M4 8h16M4 16h16m-3-11 3 3-3 3M7 13l-3 3 3 3"/></>}</svg></button>}</div>{touchReorder&&<p className="muted small" id="tab-order-help" role="status">{reorderSource?`Toque na aba antes da qual deseja colocar ${NAV.find(item=>item.id===reorderSource)?.label}. Toque novamente na selecionada para desmarcar.`:"Toque na aba que deseja mover e depois na aba antes da qual ela deve entrar."} Deslize a barra para ver as outras abas. Toque no ✓ para concluir.</p>}
 
       {backupOpen&&remote.user?.isLegacyOwner&&<BackupView onClose={()=>setBackupOpen(false)} beforeStart={remote.flush} onStatus={remote.setMaintenance} onFinished={()=>{remote.checkMaintenance();refresh();}}/>}
       {remote.maintenance&&!backupOpen&&<div className="backup-warning" role="status"><h2>Backup ou restauração em andamento</h2><p>As edições estão temporariamente bloqueadas para os dois usuários. Seus textos pendentes foram preservados.</p><p>O aplicativo verificará a liberação enquanto esta tela estiver visível.</p></div>}

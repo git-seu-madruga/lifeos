@@ -483,7 +483,7 @@ body { padding: env(safe-area-inset-top, 0px) env(safe-area-inset-right, 0px) en
 .overlay:has(.media-modal){align-items:center;justify-content:center}.media-modal{height:auto;border:1px solid var(--line);border-radius:12px}.media-search-row>.ghost{flex:none}.media-search-box>label{display:block}
 
 /* Rolagem nativa no Safari, sem capturar o gesto normal. */
-.tabs-row{display:flex;align-items:center;gap:8px;min-width:0;max-width:100%}.tabs-row>.tabs{flex:1 1 0;min-width:0;-webkit-overflow-scrolling:touch;touch-action:auto}.tabs .tab{touch-action:auto;-webkit-touch-callout:none}.tabs.reordering .tab{touch-action:none}.tab-order-toggle{flex:0 0 34px}.tab-order-toggle.on{background:var(--blue-bg);border-color:var(--blue)}.media-modal form .media-content-fields{margin:0;padding:0;min-width:0;border:0}.media-content-fields>label{display:grid;gap:7px;margin:16px 0}.media-content-fields>.media-copy-option{display:flex;align-items:center;gap:8px;font-size:13px}.media-copy-option input{width:18px;height:18px;accent-color:var(--blue)}
+.tabs-row{display:flex;align-items:center;gap:8px;min-width:0;max-width:100%}.tabs-row>.tabs{flex:1 1 0;min-width:0;-webkit-overflow-scrolling:touch;touch-action:auto}.tabs .tab{touch-action:auto;-webkit-touch-callout:none}.tabs.reordering .tab{touch-action:auto}.tab-order-toggle{flex:0 0 34px}.tab-order-toggle.on{background:var(--blue-bg);border-color:var(--blue)}.media-modal form .media-content-fields{margin:0;padding:0;min-width:0;border:0}.media-content-fields>label{display:grid;gap:7px;margin:16px 0}.media-content-fields>.media-copy-option{display:flex;align-items:center;gap:8px;font-size:13px}.media-copy-option input{width:18px;height:18px;accent-color:var(--blue)}
 
 .media-setup-warning{border:1px solid var(--line);background:var(--panel);padding:14px 16px;border-radius:9px;margin-bottom:18px}.media-setup-warning p{margin:0 0 10px}.media-setup-warning .ghost{text-align:left}
 
@@ -734,3 +734,5 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 .page-primary-actions>button{white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px}
 .finance-manage-action{margin-left:auto;display:flex;justify-content:flex-end}
 @media(max-width:600px){.page-status-row{gap:8px}.page-status-row>p{font-size:11px}.page-primary-actions{gap:5px}.page-primary-actions>button{font-size:12px;padding:8px 9px}.finance-manage-action{margin-left:auto}}
+
+.tabs.reordering .tab.reorder-selected{border-color:#94bdff;background:#234e86;box-shadow:inset 0 0 0 1px #94bdff;color:#fff}
