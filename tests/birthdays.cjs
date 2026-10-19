@@ -8,6 +8,13 @@ try{
  assert.equal(b.nextBirthday(known,today).age,36);assert.equal(b.nextBirthday(known,today).days,0);assert.equal(b.nextBirthday(unknown,today).age,null);assert.equal(b.nextBirthday(known,new Date(2026,9,6,12)).age,37);
  assert.equal(b.nextBirthday({name:'X',day:1,month:1,year:null},new Date(2026,11,30,12)).days,2);assert.equal(b.birthdayInYear({day:29,month:2,year:null},2026).getDate(),28);
  assert.equal(b.birthdaySummary([unknown,known],'ana',2026,10,today).contacts.length,1);assert.equal(b.birthdaySummary([unknown,known],'',2026,10,today).week.length,2);assert.equal(b.birthdayLabel(unknown),'07/10');assert.ok(b.validateBirthday({...known,year:2027},today));
+ const Icon=require(path.join(folder,'components/TabIcon')).default;
+ const iconFor=people=>renderToStaticMarkup(React.createElement(Icon,{id:'aniversarios',highlighted:b.birthdaySummary(people,'',2026,10,today).week.length>0}));
+ assert.ok(iconFor([known]).includes('birthday-notice'),'Hoje destaca o ícone');
+ assert.ok(iconFor([{name:'Em seis dias',day:11,month:10,year:null}]).includes('birthday-notice'));
+ assert.ok(!iconFor([{name:'Em sete dias',day:12,month:10,year:null}]).includes('birthday-notice'),'Mesmo intervalo da lista Próximos 7 dias');
+ assert.ok(!iconFor([]).includes('birthday-notice'),'Sem contatos restaura o ícone padrão');
+ assert.ok(b.birthdaySummary([{name:'Ano novo',day:1,month:1,year:null}],'',2026,12,new Date(2026,11,30,12)).week.length);
  const View=require(path.join(folder,'components/BirthdaysView')).default;const html=renderToStaticMarkup(React.createElement(View,{contacts:[known,unknown],configured:true,setContacts:()=>{}}));assert.ok(!html.includes('<h1>Aniversários</h1>'));assert.ok(html.includes('+ Novo contato'));assert.ok(html.includes('07/10'));assert.ok(!html.includes('NaN'));assert.ok(html.includes('Excluir'));const setup=renderToStaticMarkup(React.createElement(View,{configured:false}));assert.ok(setup.includes('NOTION_CONTACTS_DATABASE_ID'));
  console.log('PASSOU: aniversários com ano opcional, idade, virada de ano, 29/02, busca, validação do Inbox e renderização da nova aba.');
 }finally{fs.rmSync(folder,{recursive:true,force:true});}

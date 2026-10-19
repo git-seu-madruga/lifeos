@@ -120,3 +120,5 @@ Estas orientações valem para a raiz e suas subpastas. Representam o comportame
 As páginas principais não repetem o título ou o subtítulo da aba ativa. Recados mantém seu título e subtítulo. Preservar títulos internos de cartões, seções, detalhes e formulários, além de ações e filtros de data. Guias únicas sem escolha (Meu dia em Acompanhamento e Garagem em Veículos) não são exibidas.
 
 Botões principais de inclusão em Projetos, Tarefas, Compras, Aniversários e Veículos ocupam a linha de status de sincronização, alinhados à direita. PageActions usa um portal para preservar os manipuladores/estado da própria tela e desaparece ao sair dela. Gerenciar categorias de Finanças fica na linha dos filtros de data, à direita.
+
+O ícone da aba Aniversários fica dourado quando há contatos na lista dos próximos 7 dias (hoje e os seis dias seguintes). Usa os contatos já carregados e a mesma regra do resumo, sem filtro da busca e sem consulta extra. Sem aniversários nessa janela, retorna ao ícone padrão; só o ícone recebe cor.

@@ -736,3 +736,6 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 @media(max-width:600px){.page-status-row{gap:8px}.page-status-row>p{font-size:11px}.page-primary-actions{gap:5px}.page-primary-actions>button{font-size:12px;padding:8px 9px}.finance-manage-action{margin-left:auto}}
 
 .tabs.reordering .tab.reorder-selected{border-color:#94bdff;background:#234e86;box-shadow:inset 0 0 0 1px #94bdff;color:#fff}
+
+/* Birthday reminder colors only the tab icon, preserving its shape and spacing. */
+.tabs .tab-icon.birthday-notice{color:#ffc857;filter:drop-shadow(0 0 4px #ffc85740)}

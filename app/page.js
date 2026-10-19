@@ -30,7 +30,7 @@ import TaskDetail from "../components/TaskDetail";
 import TasksView from "../components/TasksView";
 import ProjectsView from "../components/ProjectsView";
 import BirthdaysView from '../components/BirthdaysView';
-import {contactFromInbox} from '../lib/birthdays';
+import {contactFromInbox,birthdaySummary,todayLocal} from '../lib/birthdays';
 import FinanceView from "../components/FinanceView";
 import DiaryView from "../components/DiaryView";
 import { normalizeTabOrder, moveTab, moveTabBefore, dateKey, appendInboxToDiary } from "../lib/diary";
@@ -84,6 +84,8 @@ export default function Home() {
   const recadoNotice=useRecadoNotification(remote.user,remote.authenticated===true&&remote.ready);
   const [recadoTodayRequest,setRecadoTodayRequest]=useState(0);
   const { tasks, projects, inbox, setInbox, setTasks, setProjects, ready, saving, refreshedAt } = remote;
+  const birthdayToday=todayLocal();
+  const birthdayNotice=birthdaySummary(remote.contacts||[],'',birthdayToday.getFullYear(),birthdayToday.getMonth()+1,birthdayToday).week.length>0;
 
   const [shoppingSelected,setShoppingSelected]=useState(null);
   const [shoppingCreating,setShoppingCreating]=useState(false);
@@ -242,7 +244,7 @@ export default function Home() {
               className={"tab" + (t.id === tabId ? " on" : "") + (dragged === t.id ? " dragging" : "") + (touchReorder&&reorderSource===t.id?" reorder-selected":"")}
               draggable={!touchMode&&!touchReorder}
               data-tab-id={t.id} data-romantic={t.id==='recados'||undefined}
-              aria-label={t.label+(['compras','financas','aniversarios','veiculos'].includes(t.id)?", compartilhado":"")}
+              aria-label={t.label+(['compras','financas','aniversarios','veiculos'].includes(t.id)?", compartilhado":"")+(t.id==='aniversarios'&&birthdayNotice?", há aniversários nos próximos 7 dias":"")}
               title={t.label+" · "+(touchMode?"Deslize para ver as abas · Use Ordenar abas para reorganizar":"Arraste para reordenar · Alt + seta também move")}
               onDragStart={e=>{draggedTab.current=t.id;setDragged(t.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',t.id);}}
               onDragOver={e=>{if(draggedTab.current){e.preventDefault();e.dataTransfer.dropEffect='move';}}}
@@ -254,7 +256,7 @@ export default function Home() {
               aria-current={t.id === tabId ? "page" : undefined}
               onClick={()=>pickTab(t.id)}
             >
-              <TabIcon id={t.id}/><span className="tab-label" data-expanded={t.id===tabId||touchReorder} aria-hidden={!(t.id===tabId||touchReorder)}><span className="tab-label-content"><span className="tab-name">{t.label}</span>{['compras','financas','aniversarios','veiculos'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span></span>
+              <TabIcon id={t.id} highlighted={t.id==='aniversarios'&&birthdayNotice}/><span className="tab-label" data-expanded={t.id===tabId||touchReorder} aria-hidden={!(t.id===tabId||touchReorder)}><span className="tab-label-content"><span className="tab-name">{t.label}</span>{['compras','financas','aniversarios','veiculos'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span></span>
             </button>
           </span>
         ))}
