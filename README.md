@@ -23,6 +23,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 ### Mudanças desta revisão
 
+- Abas principais compactas: inativas mostram somente o ícone; a selecionada mostra o nome com transição breve. No mobile, Ordenar abas revela todos os nomes e Concluir volta à apresentação compacta. Aviso COMPARTILHADO aparece com o nome e continua no rótulo acessível dos ícones. Sem mudanças de bancos ou variáveis nesta revisão visual.
+
 - Nova aba **Acompanhamento**, privada por usuário e com Pessoal fixo. Registro em kcal, busca TACO local, busca de produtos Open Food Facts, favoritos, alimentos próprios, receitas com cálculo por ingredientes, ilustrações e resumos por mês/ano. Água, sono, aeróbico e musculação possuem registros independentes de Bem-estar. Exige apenas o novo banco Acompanhamento e NOTION_NUTRITION_DATABASE_ID.
 
 - Concluir projeto com tarefas ou marcos abertos pede confirmação e conclui os itens vinculados, preservando histórico e datas de conclusões anteriores. A sincronização inclui pendências remotas recentes e grava os filhos antes de concluir o projeto existente.
@@ -116,7 +118,7 @@ As verificações periódicas de sessão são leves: consultam sessão/Redis, se
 
 ### Navegação e datas
 
-Arraste as abas para ordenar; a primeira é a tela inicial. A preferência fica no navegador/dispositivo, não é sincronizada por usuário. No celular, deslize horizontalmente as abas; a barra de rolagem fica oculta. O menu da conta contém **Sair** e, para Péricles, **Backup e restauração**.
+Arraste as abas para ordenar; a primeira é a tela inicial. A preferência fica no navegador/dispositivo, não é sincronizada por usuário. As abas inativas mostram apenas o ícone, e somente a selecionada exibe o nome, com animação breve. No desktop, passar o mouse também informa o nome. No celular, o botão Ordenar abas revela todos os nomes para facilitar a reorganização; concluir volta ao modo compacto. A rolagem horizontal sem barra aparente continua disponível quando necessária. A indicação COMPARTILHADO acompanha o nome nas abas compartilhadas. O menu da conta contém **Sair** e, para Péricles, **Backup e restauração**.
 
 As datas usam **DD/MM/AAAA**, com barras automáticas e calendário alternativo. Ao preencher apenas dia e mês e sair do campo, o ano atual é completado. **Aniversários é exceção:** o ano pode ficar desconhecido. Links em textos/comentários aparecem clicáveis nas visualizações de leitura.
 

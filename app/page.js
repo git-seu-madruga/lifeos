@@ -233,7 +233,8 @@ export default function Home() {
               onPointerMove={e=>{const drag=touchDrag.current;if(!drag)return;if(Math.hypot(e.clientX-drag.x,e.clientY-drag.y)>8){drag.moved=true;setDragged(drag.id);const bounds=drag.bar.getBoundingClientRect();if(e.clientX>bounds.right-30)drag.bar.scrollLeft+=12;else if(e.clientX<bounds.left+30)drag.bar.scrollLeft-=12;const target=document.elementFromPoint(e.clientX,e.clientY)?.closest('[data-tab-id]')?.dataset.tabId;if(target)drag.target=target;}}}
               onPointerUp={()=>{const drag=touchDrag.current;if(drag?.moved){reorderTab(drag.id,drag.target);suppressClick.current=true;setTimeout(()=>{suppressClick.current=false;},400);}touchDrag.current=null;setDragged(null);}}
               onPointerCancel={()=>{touchDrag.current=null;setDragged(null);}}
-              title={touchMode?"Deslize para ver as abas · Use Ordenar abas para reorganizar":"Arraste para reordenar · Alt + seta também move"}
+              aria-label={t.label+(['compras','financas','aniversarios','veiculos'].includes(t.id)?", compartilhado":"")}
+              title={t.label+" · "+(touchMode?"Deslize para ver as abas · Use Ordenar abas para reorganizar":"Arraste para reordenar · Alt + seta também move")}
               onDragStart={e=>{draggedTab.current=t.id;setDragged(t.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',t.id);}}
               onDragOver={e=>{if(draggedTab.current){e.preventDefault();e.dataTransfer.dropEffect='move';}}}
               onDrop={e=>{e.preventDefault();if(draggedTab.current)reorderTab(draggedTab.current,t.id);draggedTab.current=null;setDragged(null);}}
@@ -242,7 +243,7 @@ export default function Home() {
               aria-current={t.id === tabId ? "page" : undefined}
               onClick={() => { if(suppressClick.current||touchReorder)return;setTabId(t.id); setSelected(null); }}
             >
-              <TabIcon id={t.id}/><span className="tab-label">{t.label}{['compras','financas','aniversarios','veiculos'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span>
+              <TabIcon id={t.id}/><span className="tab-label" data-expanded={t.id===tabId||touchReorder} aria-hidden={!(t.id===tabId||touchReorder)}><span className="tab-label-content"><span className="tab-name">{t.label}</span>{['compras','financas','aniversarios','veiculos'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span></span>
             </button>
           </span>
         ))}

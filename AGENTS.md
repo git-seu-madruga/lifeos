@@ -51,6 +51,7 @@ Estas orientações valem para a raiz e suas subpastas. Representam o comportame
 
 - Preserve a identidade escura e a paleta/ícones atuais. Reutilize estilos antes de criar outro padrão. Mantenha contraste, rótulos acessíveis e foco de teclado.
 - No desktop, Inbox permanece à esquerda, separado pela linha vertical; o conteúdo aproveita o restante da largura. Abas mobile rolam horizontalmente sem barra aparente.
+- Abas principais inativas mostram só ícone; a selecionada revela o nome com transição breve. Ordenar abas no mobile revela todos os nomes; concluir recolhe inativas. Preserve rótulos acessíveis, tooltip, aviso COMPARTILHADO com o nome, foco de teclado e prefers-reduced-motion.
 - Contextos ficam centralizados no espaço entre a marca e o botão de atualizar; tamanho não muda quando opções estão bloqueadas.
 - Pessoal fixo: Diário, Finanças, Aniversários, Bem-estar/Hábitos, Entretenimento, Recados, Veículos e Acompanhamento. Projetos, Tarefas e Compras mantêm Pessoal/Trabalho conforme a interface existente.
 - Use DateInput, MonthInput e MonthPicker. Datas aceitam dia/mês e completam o ano ao concluir; a máscara insere barras. Preserve calendário como alternativa. Mês digitado sozinho completa o ano no componente existente.
