@@ -22,9 +22,10 @@ const {diffState,hasChanges}=require(path.join(temp,'lib/notionDiff'));
 process.env.NOTION_DIARY_DATABASE_ID='diary-test-db';
 process.env.NOTION_INBOX_DATABASE_ID='inbox-test-db';
 process.env.NOTION_FINANCE_CATEGORIES_DATABASE_ID='finance-categories-test';process.env.NOTION_FINANCE_TRANSACTIONS_DATABASE_ID='finance-transactions-test';
-const databases={vehicles:"vehicles-test",wellness:"wellness-test",cycle:"cycle-test",mediaSections:"media-sections-test",media:"media-test",habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
+const databases={nutrition:"nutrition-test",vehicles:"vehicles-test",wellness:"wellness-test",cycle:"cycle-test",mediaSections:"media-sections-test",media:"media-test",habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
 const sourceIds=Object.fromEntries(Object.keys(databases).map(k=>[k,randomUUID()]));
 const specs={
+ nutrition:{Nome:"title",Data:"date",Tipo:"rich_text",Dados:"rich_text"},
  vehicles:{Nome:"title",Data:"date",Tipo:"rich_text",Dados:"rich_text"},
  wellness:{Nome:"title",Data:"date",Tipo:"rich_text",Dados:"rich_text"},cycle:{Nome:"title",Data:"date",Tipo:"rich_text",Dados:"rich_text"},
  mediaSections:{'Nome':'title','Tipo':'rich_text','Ícone':'rich_text','Cor':'rich_text'},media:{'Nome':'title','Seção':'relation','Autor':'rich_text','Status':'select','Avaliação':'number','Comentário':'rich_text','URL da capa':'rich_text','Link de origem':'rich_text','Fonte':'rich_text','Capa':'files'},
@@ -40,7 +41,7 @@ const specs={
 };
 const sources={};for(const [kind,spec] of Object.entries(specs))sources[kind]={id:sourceIds[kind],properties:Object.fromEntries(Object.entries(spec).map(([name,type])=>[name,{id:randomUUID(),name,type,...(type==='relation'?{relation:{data_source_id:sourceIds[name==='Seção'?'mediaSections':name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects'],database_id:databases[name==='Seção'?'mediaSections':name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects']}}:{})}]))};
 process.env.UPSTASH_REDIS_REST_URL='https://redis.test';process.env.UPSTASH_REDIS_REST_TOKEN='redis-test-token';
-const rows=new Map(),calls=[],redisRows=new Map();let creates=0,paginate=false,failShoppingWrite=false;
+const rows=new Map(),calls=[],redisRows=new Map();let creates=0,paginate=false,failShoppingWrite=false,failCompletionTaskWrite=false;
 const kindBySource=id=>Object.keys(sourceIds).find(kind=>sourceIds[kind]===id);
 function normalizeProperties(kind,properties) {
  return Object.fromEntries(Object.entries(properties).map(([name,value])=>{
@@ -64,6 +65,7 @@ global.fetch=async(url,options={})=>{
  const body=options.body instanceof FormData?options.body:options.body?JSON.parse(options.body):undefined;
  calls.push({route,method,body});
  if(failShoppingWrite&&method==='PATCH'&&body?.properties?.Itens){failShoppingWrite=false;return Response.json({message:"Falha simulada na lista"},{status:400});}
+ if(failCompletionTaskWrite&&method==='PATCH'&&body?.properties?.Status&&kindBySource(rows.get(route.split('/')[2])?.parent.data_source_id)==='tasks'){failCompletionTaskWrite=false;return Response.json({message:'Falha simulada ao concluir tarefa'},{status:400});}
  const reply=value=>Response.json(value);
  if(route.startsWith('/databases/')){const kind=Object.keys(databases).find(kind=>databases[kind]===route.split('/')[2]);assert.ok(kind);return reply({id:databases[kind],data_sources:[{id:sourceIds[kind]}]});}
  if(route.startsWith('/data_sources/')){
@@ -100,7 +102,7 @@ global.fetch=async(url,options={})=>{
  const cookie=auth.sessionCookie({id:'google:test-pericles',email:'periclesbernardes@gmail.com',name:'Péricles'}).split(';')[0];
  const logged=new Request('https://lifeos.test/api/notion',{headers:{cookie}});auth.authorize(logged);
  assert.equal(auth.authenticated(new Request('https://lifeos.test/api',{headers:{cookie:cookie+'bad'}})),false);
- let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{vehicles:[],vehiclesConfigured:false,wellness:[],cycle:[],wellnessConfigured:false,cycleConfigured:false,mediaSections:[],media:[],mediaConfigured:false,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false,habits:[],habitLogs:[],habitsConfigured:false});
+ let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{nutrition:[],nutritionConfigured:false,vehicles:[],vehiclesConfigured:false,wellness:[],cycle:[],wellnessConfigured:false,cycleConfigured:false,mediaSections:[],media:[],mediaConfigured:false,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false,habits:[],habitLogs:[],habitsConfigured:false});
  const base=state;
  const file=new File(['arquivo de teste'],'ref.txt',{type:'text/plain'});
  const uploaded=await notionLib.uploadFile(file);
@@ -366,6 +368,47 @@ global.fetch=async(url,options={})=>{
 
  }
 
+ {
+ const A={id:'google:completion-A',email:'periclesbernardes@gmail.com',name:'Péricles'};
+ const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
+ const save=async(base,next)=>{const d=compactSyncState(base,next);return synchronize(d.base,d.next,A,async()=>{},true);};
+ let state=(await notionLib.readSnapshot(false,A)).state;
+ const project={id:'completion-project',name:'Conclusão',status:'active',context:'personal',area:'',description:'',due:null,attachments:[],milestones:[{id:'completion-ms',title:'Marco aberto',due:null,done:false}]};
+ const task={id:'completion-task',title:'Aberta',project:project.id,milestone:'completion-ms',status:'todo',priority:'medium',context:'personal',notes:'',attachments:[],completedAt:null};
+ await save(state,{...state,projects:[...state.projects,project],tasks:[...state.tasks,task]});
+ const stale=(await notionLib.readSnapshot(false,A)).state,pid=stale.projects.find(p=>p.name==='Conclusão').id;
+ await save(stale,{...stale,projects:stale.projects.map(p=>p.id===pid?{...p,milestones:[...p.milestones,{id:'remote-completion-ms',title:'Novo marco remoto',due:null,done:false}]}:p),tasks:[...stale.tasks,{...task,id:'remote-completion-task',project:pid,milestone:null,title:'Nova tarefa remota'},{...task,id:'already-complete-task',project:pid,milestone:null,title:'Já concluída',status:'done',completedAt:123000}]});
+ const desired={...stale,projects:stale.projects.map(p=>p.id===pid?{...p,status:'done'}:p)};
+ failCompletionTaskWrite=true;
+ await assert.rejects(()=>save(stale,desired),/Falha simulada/);
+ let actual=(await notionLib.readSnapshot(false,A)).state;assert.equal(actual.projects.find(p=>p.id===pid).status,'active','Falha em filho não conclui o projeto');
+ const mark=calls.length;await save(stale,desired);await save(stale,desired);
+ actual=(await notionLib.readSnapshot(false,A)).state;
+ assert.equal(actual.projects.find(p=>p.id===pid).status,'done');assert.equal(actual.projects.find(p=>p.id===pid).milestones.length,2);assert.ok(actual.projects.find(p=>p.id===pid).milestones.every(m=>m.done));
+ const children=actual.tasks.filter(t=>t.project===pid);assert.equal(children.length,3);assert.ok(children.every(t=>t.status==='done'));assert.equal(children.find(t=>t.title==='Já concluída').completedAt,123000);
+ const writes=calls.slice(mark).filter(c=>c.method==='PATCH'&&c.body?.properties);const firstProject=writes.findIndex(c=>c.route===`/pages/${pid}`);assert.ok(firstProject>writes.findIndex(c=>kindBySource(rows.get(c.route.split('/')[2])?.parent.data_source_id)==='tasks'),'Filhos são salvos antes do projeto');
+ const reopened={...actual,projects:actual.projects.map(p=>p.id===pid?{...p,status:'active'}:p)};await save(actual,reopened);actual=(await notionLib.readSnapshot(false,A)).state;assert.ok(actual.tasks.filter(t=>t.project===pid).every(t=>t.status==='done'));
+ }
+
+ {process.env.NOTION_NUTRITION_DATABASE_ID=databases.nutrition;
+ const A={id:'google:nutrition-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:nutrition-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+ const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
+ const save=async(base,next,user=A)=>{const d=compactSyncState(base,next);return synchronize(d.base,d.next,user,async()=>{},true);};
+ const food={id:'taco:3',name:'Arroz, tipo 1, cozido',kcal100:128,unit:'g',icon:'rice',image:'',source:'TACO'};
+ let state=(await notionLib.readSnapshot(false,A)).state;
+ const day={id:'nutrition-day',name:'Rotina',type:'day',date:'2026-10-01',data:{uid:'day:2026-10-01',target:2200,water:true,sleepHours:7}},entry={id:'nutrition-entry',name:food.name,type:'entry',date:day.date,data:{uid:'entry-uid',food,quantity:100,measure:'g',meal:'Almoço',inside:true,kcal:128}},favorite={id:'nutrition-favorite',name:food.name,type:'food',date:null,data:{uid:'food:taco:3',food,favorite:true,archived:false}};
+ const desired={...state,nutrition:[day,entry,favorite]};const mark=calls.length;
+ await save(state,desired);await save(state,desired);const endQueries=calls.length;state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.nutrition.length,3);assert.equal(state.nutritionConfigured,true);assert.equal((await notionLib.readSnapshot(false,B)).state.nutrition.length,0,'Alimentação é privada por conta');
+ const querySources=calls.slice(mark,endQueries).filter(c=>c.route.includes('/query')).map(c=>c.route.split('/')[2]);assert.ok(querySources.every(id=>id===sourceIds.nutrition),'Edição de alimentação não consulta outros bancos');
+ await save(state,{...state,nutrition:state.nutrition.map(r=>r.type==='food'?{...r,data:{...r.data,food:{...r.data.food,kcal100:200},archived:true,favorite:false}}:r)});state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.nutrition.find(r=>r.type==='entry').data.kcal,128,'Editar/retirar alimento preserva o histórico');
+ const other=(await notionLib.readSnapshot(false,B)).state;await save(other,{...other,nutrition:[{...day,id:'nutrition-day-B'}]},B);assert.equal((await notionLib.readSnapshot(false,B)).state.nutrition.length,1,'Mesma data permitida por usuário');
+ await assert.rejects(()=>save(state,{...state,nutrition:[...state.nutrition,{...day,id:'duplicate-day'}]}),e=>e.status===409);
+ await assert.rejects(()=>save(state,{...state,nutrition:state.nutrition.map(r=>r.type==='entry'?{...r,data:{...r.data,kcal:200}}:r)}),/Confira alimento/);
+ const stale=structuredClone(state);await save(state,{...state,nutrition:state.nutrition.map(r=>r.type==='day'?{...r,data:{...r.data,water:false}}:r)});
+ await assert.rejects(()=>save(stale,{...stale,nutrition:stale.nutrition.map(r=>r.type==='day'?{...r,data:{...r.data,sleepHours:8}}:r)}),e=>e.status===409,'JSON concorrente não sobrescreve outra instância');
+ const denied=structuredClone(other);denied.nutrition=[state.nutrition.find(r=>r.type==='entry')];await assert.rejects(()=>save(other,denied,B),e=>e.status===403);
+ }
+
  {process.env.NOTION_VEHICLES_DATABASE_ID=databases.vehicles;
  const A={id:'google:vehicle-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:vehicle-B',email:'leticiacost3@gmail.com',name:'Letícia'};
  const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
@@ -400,8 +443,8 @@ global.fetch=async(url,options={})=>{
  await save(state,{...state,vehicles:state.vehicles.map(p=>p.data.importSourceId==='csv-source-1'?{...p,data:{...p.data,notes:'Alterado em outro aparelho'}}:p)},B);
  await assert.rejects(()=>save(importBase,importNext,A),e=>e.status===409,'Retry must preserve edits made after import');
  state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.vehicles.find(p=>p.data.importSourceId==='csv-source-1').data.notes,'Alterado em outro aparelho');
- const noCost={id:'expense-no-cost',type:'entry',date:'2026-10-04',name:'Serviço em garantia',data:{uid:'expense-no-cost',vehicle:'car-A',category:'maintenance',fuel:false,km:2000,amount:0,importSourceId:'expense:no-cost'}},unknownCost={...noCost,id:'expense-unknown',name:'Serviço sem valor',data:{...noCost.data,uid:'expense-unknown',amount:null,importSourceId:'expense:unknown'}};
- const expenseBase=structuredClone(state),expenseNext={...state,vehicles:[...state.vehicles,noCost,unknownCost]};await save(expenseBase,expenseNext,A);await save(expenseBase,expenseNext,A);state=(await notionLib.readSnapshot(false,B)).state;assert.equal(state.vehicles.find(p=>p.data.uid==='expense-no-cost').data.amount,0);assert.equal(state.vehicles.find(p=>p.data.uid==='expense-unknown').data.amount,null);assert.equal(state.vehicles.filter(p=>p.data.uid==='expense-unknown').length,1);
+ const noCost={id:'expense-no-cost',type:'entry',date:'2026-10-04',name:'Serviço em garantia',data:{uid:'expense-no-cost',vehicle:'car-A',category:'maintenance',fuel:false,km:2000,amount:0,durationKm:8000,nextKm:10000,importSourceId:'expense:no-cost'}},unknownCost={...noCost,id:'expense-unknown',name:'Serviço sem valor',data:{...noCost.data,uid:'expense-unknown',amount:null,importSourceId:'expense:unknown'}};
+ const expenseBase=structuredClone(state),expenseNext={...state,vehicles:[...state.vehicles,noCost,unknownCost]};await save(expenseBase,expenseNext,A);await save(expenseBase,expenseNext,A);state=(await notionLib.readSnapshot(false,B)).state;assert.equal(state.vehicles.find(p=>p.data.uid==='expense-no-cost').data.amount,0);assert.equal(state.vehicles.find(p=>p.data.uid==='expense-unknown').data.amount,null);assert.equal(state.vehicles.filter(p=>p.data.uid==='expense-unknown').length,1);assert.equal(state.vehicles.find(p=>p.data.uid==='expense-no-cost').data.nextKm,10000);await assert.rejects(()=>save(state,{...state,vehicles:state.vehicles.map(p=>p.data.uid==='expense-no-cost'?{...p,data:{...p.data,nextKm:9999}}:p)},A),/duração positiva/);
  const fresh=structuredClone(state);await save(state,{...state,vehicles:state.vehicles.map(p=>p.type==='vehicle'?{...p,name:'Renomeado no outro aparelho'}:p)});
  await assert.rejects(()=>save(fresh,{...fresh,vehicles:fresh.vehicles.map(p=>p.type==='vehicle'?{...p,name:'Edição antiga'}:p)}),e=>e.status===409);
  }

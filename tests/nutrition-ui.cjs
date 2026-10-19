@@ -1,0 +1,20 @@
+const assert=require('node:assert/strict'),fs=require('fs'),path=require('path'),swc=require('next/dist/build/swc'),React=require('react'),{renderToStaticMarkup}=require('react-dom/server');
+const root=path.resolve('.nutrition-ui-test');
+for(const dir of ['lib','components']){fs.mkdirSync(path.join(root,dir),{recursive:true});for(const name of fs.readdirSync(dir)){if(!name.endsWith('.js'))continue;fs.writeFileSync(path.join(root,dir,name),swc.transformSync(fs.readFileSync(path.join(dir,name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'automatic'}},target:'es2022'},module:{type:'commonjs'}}).code);}}
+fs.mkdirSync(path.join(root,'lib/data'),{recursive:true});fs.copyFileSync('lib/data/taco.json',path.join(root,'lib/data/taco.json'));
+const saved={useState:React.useState,useMemo:React.useMemo,useEffect:React.useEffect,useRef:React.useRef};let slots=[],index=0;React.useState=v=>{const i=index++;if(!(i in slots))slots[i]=typeof v==='function'?v():v;return [slots[i],update=>{slots[i]=typeof update==='function'?update(slots[i]):update;}];};React.useMemo=f=>f();React.useEffect=()=>{};React.useRef=v=>({current:v});
+const walk=(node,out=[])=>{if(Array.isArray(node))node.forEach(n=>walk(n,out));else if(node?.props){out.push(node);walk(node.props.children,out);}return out;};
+try{
+ const View=require(path.join(root,'components/NutritionView')).default;let records=[],confirm=true;global.window={confirm:()=>confirm};
+ const nodes=()=>{index=0;return walk(View({records,setRecords:fn=>records=fn(records),configured:true}));};
+ let tree=nodes();tree.find(n=>n.props['aria-label']==='Buscar alimento').props.onChange({target:{value:'Arroz, tipo 1, cozido'}});tree=nodes();const pick=tree.find(n=>n.props.className==='nutrition-food-choice');assert.ok(pick);pick.props.onClick();tree=nodes();assert.ok(tree.some(n=>n.props.className==='nutrition-kcal'));
+ tree.find(n=>n.type==='form'&&n.props.className==='nutrition-selection').props.onSubmit({preventDefault(){}});assert.equal(records.filter(r=>r.type==='entry').length,1);assert.equal(records.filter(r=>r.type==='day').length,1);assert.ok(records.find(r=>r.type==='entry').data.kcal>0);
+ tree=nodes();const button=tree.find(n=>n.type==='button'&&n.props.className==='nutrition-check water');button.props.onClick();assert.equal(records.find(r=>r.type==='day').data.water,true);assert.equal(records.filter(r=>r.type==='day').length,1,'Marcação usa mesmo dia');
+ tree=nodes();tree.find(n=>n.type==='input'&&n.props.type==='number'&&n.props.max==='24').props.onChange({target:{value:'7.5'}});assert.equal(records.find(r=>r.type==='day').data.sleepHours,7.5);
+ tree=nodes();tree.find(n=>n.props['aria-label']==='Favorito').props.onClick();assert.equal(records.filter(r=>r.type==='food').length,1);assert.equal(records.find(r=>r.type==='food').data.favorite,true);
+ tree=nodes();const deletion=tree.find(n=>n.props['aria-label']?.startsWith('Excluir Arroz'));assert.ok(deletion);confirm=false;deletion.props.onClick();assert.equal(records.filter(r=>r.type==='entry').length,1);confirm=true;deletion.props.onClick();assert.equal(records.filter(r=>r.type==='entry').length,0);
+ Object.assign(React,saved);
+ const html=renderToStaticMarkup(React.createElement(View,{records,setRecords(){},configured:true}));assert.ok(html.includes('Base brasileira')&&html.includes('Minhas receitas')&&html.includes('Resumo do ano'));assert.ok(!html.includes('NaN'));assert.ok(!html.includes('undefined'));assert.ok(html.includes('fluent-food'));
+ const notConfigured=renderToStaticMarkup(React.createElement(View,{records:[],setRecords(){},configured:false}));assert.ok(notConfigured.includes('NOTION_NUTRITION_DATABASE_ID'));
+ console.log('PASSOU: busca local, escolha e lançamento, registro único do dia, água/sono próprios, favorito, exclusão com confirmação e renderização da tela.');
+}finally{Object.assign(React,saved);fs.rmSync(root,{recursive:true,force:true});}

@@ -2,19 +2,40 @@
 
 Documento único da versão atual. Este README substitui os arquivos INSTRUCOES das entregas anteriores e deve ser atualizado nas próximas revisões, sem acumular orientações de versões antigas.
 
+## Conclusão de projetos
+
+Ao mudar um projeto para **Concluído**, se houver tarefas ou marcos abertos, o app informa as quantidades e pede confirmação. Cancelar mantém tudo como estava. Confirmar conclui também todas as tarefas e marcos vinculados, preservando o histórico, anexos, responsáveis e datas dos itens já concluídos. Isso inclui pendências criadas em outra instância desde a última atualização. Reabrir o projeto não reabre seus itens automaticamente.
+
+A sincronização grava os itens vinculados antes de concluir um projeto existente. Em caso de erro, aguarde ou retome a sincronização até aparecer **Salvo no Notion**. Não são necessários novos campos, bancos ou variáveis para esta alteração.
+
 ## 1. Atualizar uma instalação existente
 
 1. Aguarde **Salvo no Notion** antes de atualizar. Se houver erro de salvamento, preserve o texto e resolva o erro primeiro.
 2. Extraia o ZIP. Envie o **conteúdo da pasta lifeos** para a raiz do repositório, substituindo os arquivos existentes. Não crie uma segunda pasta lifeos dentro do projeto.
 3. Mantenha as variáveis e os bancos já configurados. O login por QR Code usa o mesmo Google, Vercel e Upstash: não exige novos bancos, chaves ou callbacks. Caso ainda não tenha configurado Bem-estar e Ciclo da Letícia, siga a seção Bem-estar antes de usar esses cartões.
 4. Faça o deploy na Vercel e atualize a página/app instalado.
-5. Remova do repositório os antigos arquivos INSTRUCOES-*.md: o envio pelo navegador não remove arquivos que deixaram de existir no ZIP. Todas as instruções atuais estão aqui.
+5. Para habilitar Acompanhamento, crie o banco e a variável descritos na seção **Acompanhamento** ao final deste guia. As áreas existentes continuam usando suas configurações atuais.
+6. Remova do repositório os antigos arquivos INSTRUCOES-*.md: o envio pelo navegador não remove arquivos que deixaram de existir no ZIP. Todas as instruções atuais estão aqui.
 
 Para enviar mais de 100 arquivos pelo navegador do GitHub, crie uma branch, envie em lotes e faça merge apenas quando todos os arquivos estiverem presentes. Isso evita publicar uma versão parcial em produção. Git/GitHub Desktop também permitem enviar o projeto completo.
 
 Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de ambiente locais. O arquivo .env.example é apenas um modelo sem segredos.
 
 ### Mudanças desta revisão
+
+- Nova aba **Acompanhamento**, privada por usuário e com Pessoal fixo. Registro em kcal, busca TACO local, busca de produtos Open Food Facts, favoritos, alimentos próprios, receitas com cálculo por ingredientes, ilustrações e resumos por mês/ano. Água, sono, aeróbico e musculação possuem registros independentes de Bem-estar. Exige apenas o novo banco Acompanhamento e NOTION_NUTRITION_DATABASE_ID.
+
+- Concluir projeto com tarefas ou marcos abertos pede confirmação e conclui os itens vinculados, preservando histórico e datas de conclusões anteriores. A sincronização inclui pendências remotas recentes e grava os filhos antes de concluir o projeto existente.
+
+- Painéis de abastecimento/despesa identificam o veículo no título. Abastecimento não mostra categoria nem prazo de manutenção e mantém Observação. Despesas não oferecem Combustível como categoria; os fluxos são separados pelos botões próprios.
+
+- Novo abastecimento abre no mesmo painel de Nova despesa, sem formulário abaixo da tabela. Campos de combustíveis mistos, posto/favoritos, tanque cheio e interrupção de média preservados.
+
+- Os valores dos cartões de Veículos selecionam o gráfico: consumo (padrão), custo/km, preço/litro, combustível/despesas por dia do mês e totais anuais de todo o histórico. Gráficos calculados com os dados já carregados, sem novas consultas ao Notion.
+
+- Dois cartões de resumo em Veículos: despesas por período e consumo/combustível. O segundo reúne última média, média geral, custo/km e preço por litro do abastecimento mais recente (média ponderada para misturas). Orientações de desenvolvimento registradas em AGENTS.md.
+
+- Serviços usam **Duração da manutenção (km)**: km do evento + duração gera o lembrete automaticamente. A tabela mostra km do evento. Valor das despesas e Valor/Preço por litro/Consumo dos abastecimentos têm ordenação crescente, decrescente e padrão, sem persistência entre abas ou reaberturas. Alertas de odômetro indicam data e km conflitantes antes de salvar.
 
 - Seletor de período no cartão de despesas compacto e centralizado, com campo MM/AAAA e calendário de mês/ano no mesmo padrão de Hábitos e Recados.
 
@@ -63,6 +84,7 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 | --- | --- |
 | Inbox, Diário, Hábitos e registros, Bem-estar (dia e medidas), Entretenimento | Privado de cada conta |
 | Projetos, Marcos e Tarefas | Privado por padrão; compartilhamento opcional entre as duas contas |
+| Acompanhamento (alimentação, rotina, metas, favoritos e receitas) | Privado por usuário |
 | Compras, Aniversários, Finanças, Veículos | Compartilhado entre as duas contas |
 | Ciclo da Letícia | Dados sempre dela; ambos podem ver e editar nesta versão de testes |
 | Recados | Mensagens entre as duas contas, com leitura confirmada pelo destinatário |
@@ -490,6 +512,8 @@ Após restaurar, atualize instâncias abertas. Se houver rascunho conflitante, c
 
 ## 9. Desenvolvimento local
 
+Consulte também **AGENTS.md** na raiz: arquitetura, regras de dados e interface, segurança, validação e preparação das entregas. Este README continua sendo o guia de configuração e uso.
+
 Node.js compatível com Next.js 15. Instale com **npm ci**. Configure variáveis localmente sem publicar segredos. Use **npm run dev**, **npm test** e **npm run build**. Para login local, configure origem/callback OAuth correspondentes. Não há deploy automático executado por esta entrega: a publicação é feita pelo seu GitHub/Vercel.
 
 Se uma versão anterior acrescentou Responsável ao banco Projetos, essa coluna pode permanecer: o app não a usa mais. Não é necessário apagá-la para atualizar.
@@ -563,7 +587,7 @@ O campo **Ano** pode ficar em branco. Quando preenchido, aceita um ano inteiro d
 
 ### Abastecimentos e médias
 
-Clique **Abastecer**, informe data e odômetro, escolha **Etanol** ou **Gasolina** e preencha litros (até três casas decimais) e valor em reais de cada linha. Novos abastecimentos e novas linhas começam com **Etanol para carros** e **Gasolina para motocicletas**, podendo trocar livremente. Use **+ Adicionar combustível** para misturar dois ou mais registros no mesmo abastecimento, até vinte linhas; cada linha pode ser removida antes de salvar. Marque ou desmarque **Tanque cheio** uma única vez, para o abastecimento inteiro. O total de litros e reais é calculado automaticamente pela soma das linhas. As datas seguem DD/MM/AAAA, completando o ano ao informar dia/mês e sair do campo. O valor usa máscara R$ e completa os centavos ao sair.
+Clique **Abastecer** para abrir o painel **Novo abastecimento**, no mesmo padrão de Nova despesa, e informe data e odômetro, escolha **Etanol** ou **Gasolina** e preencha litros (até três casas decimais) e valor em reais de cada linha. Novos abastecimentos e novas linhas começam com **Etanol para carros** e **Gasolina para motocicletas**, podendo trocar livremente. Use **+ Adicionar combustível** para misturar dois ou mais registros no mesmo abastecimento, até vinte linhas; cada linha pode ser removida antes de salvar. Marque ou desmarque **Tanque cheio** uma única vez, para o abastecimento inteiro. O total de litros e reais é calculado automaticamente pela soma das linhas. As datas seguem DD/MM/AAAA, completando o ano ao informar dia/mês e sair do campo. O valor usa máscara R$ e completa os centavos ao sair.
 
 **Posto:** deixe em branco, digite livremente ou abra **Favoritos** para escolher. O texto escolhido continua editável, permitindo usar outro nome sem modificar o cadastro. A estrela ao lado do campo cadastra/favorita o nome digitado; se o posto já existir, alterna apenas seu estado de favorito, sem criar cópia. Favoritar um nome não salva um abastecimento incompleto.
 
@@ -575,12 +599,16 @@ Em **Gerenciar postos**, cadastre nomes, marque ou desmarque favoritos, renomeie
 - Parciais anteriores à primeira referência não entram no cálculo. Parciais depois do último tanque cheio aguardam o próximo fechamento e não alteram uma média já calculada.
 - **Última média**: último intervalo completo. **Média geral**: soma das distâncias ÷ soma dos litros dos intervalos completos, ponderada pelo volume, considerando todo o histórico desse veículo.
 - **Custo por km**: soma dos valores de combustível dos intervalos completos ÷ soma das distâncias desses mesmos intervalos. Não inclui despesas de manutenção, impostos ou seguro.
-- O gráfico mostra até doze intervalos completos mais recentes. Sem dois tanques cheios com distância positiva, os indicadores de consumo mostram um traço, sem inventar uma média.
-- Edição ou exclusão de um abastecimento recalcula as médias e o gráfico. A quilometragem deve acompanhar a ordem das datas; registros do mesmo dia são ordenados pelo odômetro.
+- O gráfico padrão de consumo mostra até doze intervalos completos mais recentes. Sem dois tanques cheios com distância positiva, os indicadores de consumo mostram um traço, sem inventar uma média.
+- Edição ou exclusão de um abastecimento recalcula as médias e o gráfico. A quilometragem deve acompanhar a ordem das datas. Uma data posterior exige km maior ou igual aos registros anteriores; inserir um lançamento antigo também não pode ultrapassar a km de registros posteriores. O formulário mostra o registro conflitante, com data e km, e impede o salvamento; o servidor mantém a mesma validação. Registros do mesmo dia são permitidos e abastecimentos desse dia são ordenados pelo odômetro no cálculo de consumo.
 
 A tabela informa o tipo (Etanol, Gasolina ou ambos) e os totais, com os litros de cada componente quando houver mistura. Ao editar, todas as linhas são recuperadas para correção. Registros antigos sem tipo continuam válidos para as médias e aparecem como **Não informado**; não é atribuído um combustível retroativamente. Ao editar um deles, selecione o tipo da linha antes de salvar, mantendo os litros e valores já cadastrados. As linhas e os totais usam o mesmo campo Dados do banco existente: **não crie propriedades adicionais no Notion nem variáveis na Vercel**.
 
 **Colunas calculadas por abastecimento:** Preço/litro = valor total pago ÷ litros, em R$/L com duas casas decimais. Nos abastecimentos mistos, mostra o preço médio ponderado dos combustíveis da parada. Consumo (km/L) = distância desde o tanque cheio anterior ÷ litros acumulados após ele, incluindo os parciais e o tanque cheio atual, com duas casas decimais. A linha do tanque cheio que fecha o intervalo mostra a média; parciais mostram — / Pendente, pois o nível final ainda é desconhecido. A primeira referência, intervalos sem distância positiva e registros que interrompem a média mostram —. Os cálculos usam todo o histórico do veículo, mesmo quando só aparecem cinco linhas. Edição, exclusão e importação atualizam automaticamente as colunas. São dados derivados na tela: registros existentes não são regravados no Notion para adicionar estes campos.
+
+**Gráficos pelo clique nos valores dos cartões:** o gráfico inicial continua Consumo, com os últimos doze intervalos completos. Clique em Última média ou Média geral para voltar a ele; Custo por km mostra os últimos doze intervalos válidos em R$/km, e Último preço por litro mostra os últimos doze abastecimentos em R$/L, incluindo parciais e preços ponderados das misturas. Não se usa a ordem visual da tabela para calcular esses gráficos.
+
+No cartão financeiro, **Combustível no mês** e **Despesas no mês** mostram o total em reais de cada dia do MM/AAAA selecionado, inclusive dias sem lançamentos. O calendário correto considera 28, 29, 30 ou 31 dias; dois abastecimentos no mesmo dia são somados apenas na barra diária, sem unir os lançamentos da tabela. **Combustível no ano** e **Despesas no ano** mostram totais por ano de todo o histórico, em ordem cronológica, e não os meses de um único ano. O valor do cartão anual continua sendo o do ano selecionado. Alterar o período atualiza o gráfico mensal aberto. Toque nas barras ou pontos para consultar a data e o valor; use **Voltar ao consumo** para restaurar a visualização padrão. Trocar de veículo, sair da aba ou reabrir o app inicia novamente em Consumo. Não há novas consultas, propriedades ou dados gravados no Notion para esses gráficos.
 
 A tabela mostra os cinco abastecimentos mais recentes; **Ver todos** abre o restante. O lápis permite editar e excluir com confirmação. Um abastecimento é um único lançamento exibido somente na região Abastecimentos. Seu valor entra apenas na parcela combustível do acumulado global, sem duplicação na tabela ou nos resumos de despesas do mês e do ano.
 
@@ -634,7 +662,7 @@ Não importe médias prontas: o LifeOS recalcula consumo usando tanques cheios, 
 
 Categorias iniciais: Combustível, Manutenção, Impostos, Pedágio, Seguro, Estacionamento, Lavagem e Outros. Elas já aparecem no app; só precisam de um registro no Notion quando personalizadas. Em **Categorias**, crie nomes, renomeie e desative categorias preservando seus lançamentos. Categorias inativas podem ser reativadas; um nome repetido inativo oferece reativação. Combustível pode ser renomeada e permanece disponível para os abastecimentos.
 
-**Nova despesa** permite descrição, categoria, data, valor, km e observação. É possível indicar próxima manutenção por km, por data ou pelos dois. Não há seleção de mês na aba Veículos. O cartão de resumo separa combustível e demais despesas em valores mensais e anuais. Um único seletor MM/AAAA, com setas e botão Hoje, controla quatro valores: combustível no mês, combustível no ano, despesas no mês e despesas no ano. Os valores anuais usam o ano do mês escolhido. Essas escolhas alteram apenas o cartão, não filtram as tabelas. No rodapé discreto, **Manutenção e despesas + combustível = total** soma todo o histórico conhecido do veículo. Registros sem valor não geram avisos no resumo ou no total da tabela. A tabela mostra inicialmente os cinco registros mais recentes, respeitando a categoria selecionada. **Ver todos (N)** expande a lista e **Mostrar recentes** recolhe novamente. A tabela e seus filtros excluem abastecimentos, vistos apenas no cartão próprio. Quando expandida, a tabela mostra no rodapé a soma de todo o filtro selecionado, sem avisos sobre registros sem valor; o botão também fica disponível em listas com cinco ou menos registros para consultar esse total. Trocar de veículo ou categoria volta aos cinco mais recentes. Consumo e custo/km continuam calculados no histórico completo, conforme seus rótulos. Os filtros de categoria incluem categorias antigas ainda usadas no veículo. A observação aceita links clicáveis.
+**Nova despesa** permite descrição, categoria, data, valor, km e observação. Informe **Duração da manutenção (km)** para definir quantos km depois do serviço será a próxima verificação. É necessário informar a km do evento; o app soma a duração e mostra o lembrete calculado antes de salvar. Por exemplo, 203.000 + 8.000 = 211.000 km. Ao salvar, o serviço aparece imediatamente em Manutenções e lembretes, sem cadastro duplicado. A próxima data de manutenção/vencimento continua disponível e pode ser usada sozinha ou junto da duração. Lembretes avulsos continuam aceitando a km absoluta como antes. Em registros antigos, uma próxima km com base conhecida é convertida para duração ao editar; metas sem uma base válida são preservadas e identificadas até que você informe uma duração nova. Apagar uma duração cadastrada retira apenas a meta por km, preservando a data se preenchida. Não há seleção de mês na aba Veículos. O cartão de resumo separa combustível e demais despesas em valores mensais e anuais. Um único seletor MM/AAAA, com setas e botão Hoje, controla quatro valores: combustível no mês, combustível no ano, despesas no mês e despesas no ano. Os valores anuais usam o ano do mês escolhido. Essas escolhas alteram apenas o cartão, não filtram as tabelas. No rodapé discreto, **Manutenção e despesas + combustível = total** soma todo o histórico conhecido do veículo. Registros sem valor não geram avisos no resumo ou no total da tabela. A tabela mostra inicialmente os cinco registros mais recentes, respeitando a categoria selecionada. **Ver todos (N)** expande a lista e **Mostrar recentes** recolhe novamente. A tabela e seus filtros excluem abastecimentos, vistos apenas no cartão próprio. A coluna **Km do evento** mostra o odômetro informado, ou — quando desconhecido. Clique em **Valor** para alternar crescente → decrescente → ordem padrão. A tabela de abastecimentos oferece o mesmo ciclo em Valor, Preço/litro e Consumo (km/L). Ordenações usam números reais, não os textos formatados; valores ausentes ficam no fim. O cálculo de consumo continua cronológico e não muda ao ordenar a apresentação. Ordenar considera todo o histórico filtrado e então exibe os primeiros cinco ou todos, conforme a expansão. Trocar de aba, sair/reabrir o aplicativo ou trocar o veículo restaura a ordem padrão (mais recentes primeiro). Quando expandida, a tabela mostra no rodapé a soma de todo o filtro selecionado, sem avisos sobre registros sem valor; o botão também fica disponível em listas com cinco ou menos registros para consultar esse total. Trocar de veículo ou categoria volta aos cinco mais recentes. Consumo e custo/km continuam calculados no histórico completo, conforme seus rótulos. Os filtros de categoria incluem categorias antigas ainda usadas no veículo. A observação aceita links clicáveis.
 
 ### Manutenções e lembretes
 
@@ -651,3 +679,57 @@ Os alertas são recalculados na própria tela após registros, edições, exclus
 Os registros usam o mesmo salvamento automático e controle de conflitos do restante do app. Ao voltar ao foco, a atualização segue as regras existentes de proteção a edições pendentes. Cada lançamento é um registro separado no Notion; editar uma despesa não regrava o cadastro inteiro do veículo. A validação consulta as dependências do veículo envolvido e pode conferir seu histórico de km; outros bancos não são consultados por essa alteração.
 
 O banco Veículos é incluído automaticamente em novos backups completos. Os identificadores internos dos vínculos são preservados na restauração. Após configurar o novo banco, crie um novo backup completo: cópias anteriores sem Veículos não têm o mesmo conjunto de bancos e não são aceitas para restauração automática enquanto ele estiver configurado. Não há exclusão do cadastro inteiro do veículo nesta primeira versão; despesas e lembretes têm exclusão própria com confirmação.
+
+
+## Acompanhamento — primeira versão
+
+### Criar um banco no Notion
+
+Dentro da página LifeOS, crie **um banco de dados chamado Acompanhamento**, com estas propriedades (nomes e tipos exatos):
+
+| Propriedade | Tipo no Notion |
+| --- | --- |
+| Nome | Título (renomeie a coluna de título existente) |
+| Data | Data |
+| Tipo | Texto |
+| Dados | Texto |
+
+Não use Seleção para Tipo. Não é preciso criar relações nem um banco para cada usuário. Autorize a conexão LifeOS a acessar esse banco, assim como nos demais. Os campos técnicos LifeOS ID e LifeOS Usuário são criados pelo app; não preencha Dados, Tipo ou o proprietário manualmente. Metas, rotina diária, alimentos/favoritos, receitas e lançamentos usam tipos distintos dentro do mesmo banco.
+
+Na Vercel, crie **NOTION_NUTRITION_DATABASE_ID** com o ID do banco (o trecho antes de `?v=`, não o ID da visualização). Somente se houver várias fontes de dados nesse banco, preencha também **NOTION_NUTRITION_DATA_SOURCE_ID**. Faça novo deploy. Não precisa criar chave de API de alimentos nem alterar Google ou Upstash. Sem o novo banco configurado, a aba mostra esta orientação e não grava dados.
+
+### Como usar
+
+- A aba Acompanhamento pode ser arrastada como as demais. É privada por usuário e fixa no contexto Pessoal. Não move nem altera Hábitos ou Bem-estar.
+- Navegue por dia usando as setas, DD/MM/AAAA, calendário ou Hoje. Registros futuros são bloqueados. Marque Água, Aeróbico e Musculação e informe litros e horas de sono quando quiser. O check Água é independente do campo em litros. Não há leitura nem escrita dos registros equivalentes de Bem-estar.
+- **Base brasileira** busca instantaneamente os 591 alimentos com energia numérica da planilha oficial TACO/NEPA-Unicamp, por nome/preparo. Os valores são por 100 g da parte comestível. Escolha corretamente cru, cozido, frito etc. O catálogo fica no código; não copia 591 alimentos para seu Notion.
+- **Produtos / marcas** busca no Open Food Facts por nome de produtos disponíveis no Brasil ou por código de barras digitado. Use Buscar/Enter: não há consulta externa a cada letra. Produtos sem energia informada são omitidos, não tratados como zero. Valores em kJ são convertidos para kcal quando necessário. Fotos são links da fonte, com ilustração local quando indisponíveis.
+- Selecione um alimento, informe a quantidade e a refeição e marque Dentro/Fora da dieta. O app calcula as kcal. Porções só aparecem quando o peso/volume da porção estiver informado. Não transforma g em ml automaticamente.
+- Adicionar ao dia salva um lançamento separado, com cópia do nome, base nutricional, quantidade, refeição e kcal. Expanda a refeição para editar ou excluir um lançamento; exclusão pede confirmação.
+- A estrela guarda favoritos. Cadastrar alimento permite registrar nome, kcal por 100 g/ml, peso/volume de porção e ilustração. **Personalizar alimento / ícone** cria uma preferência sua sem alterar a TACO original. Em Meus alimentos você pode editar o cadastro ou retirá-lo do catálogo pessoal. Os lançamentos anteriores mantêm seus valores. Um alimento TACO retirado dos favoritos continua disponível na base original.
+- Em Minhas receitas, use Nova receita, escolha os ingredientes e suas quantidades e informe o **peso final da receita pronta** em gramas. O cálculo soma as kcal dos ingredientes e divide pelo peso final para obter kcal/100 g. Ingredientes podem incluir alimentos próprios/favoritos; a receita guarda suas bases originais. Atualizar um ingrediente não recalcula receitas e lançamentos anteriores automaticamente. Edite a receita explicitamente se desejar mudar sua composição. Nesta versão, receitas são registradas por gramas, sem conversão automática para colheres ou fatias.
+- Observações do dia têm suporte aos links existentes do LifeOS. Para editar um alimento já lançado use Editar na refeição. A edição não muda o cadastro base.
+
+### Metas e cálculos
+
+A meta inicial é **2.412 kcal**, editável em Ajustar meta. **Meta deste dia** modifica apenas o dia escolhido; **Meta padrão para novos dias** vale para os dias que ainda não têm registro de rotina. Ao criar o primeiro lançamento, a meta do dia é guardada para não mudar seu histórico quando alterar o padrão.
+
+- Adesão à dieta = kcal Dentro da dieta ÷ kcal totais.
+- Base do dia = 10% se Água está marcada + 20% se Aeróbico **ou** Musculação está marcado + 70% se as kcal totais não ultrapassam a meta. Marcar os dois exercícios não duplica o peso.
+- Qualidade = base do dia × adesão à dieta. **Acima de 70%** recebe a indicação Boa adesão. Os litros de água e as horas de sono ficam registrados, mas não acrescentam peso à fórmula.
+- Sem calorias registradas, adesão e qualidade ficam sem nota. Os resumos mensal/anual usam a média diária apenas dos dias com calorias registradas; não contam dias vazios como zero. Não é a razão dos totais do período.
+- O resumo mensal permite abrir os dias para revisão. O resumo anual permite selecionar o mês. Não há importação automática da planilha histórica nesta primeira versão.
+
+### Fontes, imagens e funcionamento
+
+TACO: NEPA/UNICAMP, https://nepa.unicamp.br/publicacoes/tabela-taco-excel/ ; procedência e transformações em lib/data/TACO-FONTE.md. Nomes e identificadores da fonte são preservados. Categorias/nomes associam alimentos às ilustrações locais Microsoft Fluent Emoji, com licença MIT em public/emoji/fluent-food/LICENSE.txt; o mesmo ícone pode representar várias preparações. Personalizar um cadastro permite escolher outra ilustração.
+
+Open Food Facts: https://world.openfoodfacts.org/ (dados ODbL); fotos de seus colaboradores sob CC BY-SA 3.0. Créditos e links ficam na área de alimentação. Fotos dos produtos são externas; esta primeira versão não envia uma cópia dessas fotos para o Notion nem oferece upload de foto própria de alimento. O registro mantém os dados nutricionais mesmo se o link da foto deixar de funcionar.
+
+A busca online tem cache público no Upstash por seis horas e limite global conservador de oito consultas novas por minuto. Só os resultados públicos são guardados no cache; alimentação e dados pessoais permanecem no fluxo privado do Notion. Favoritos e buscas TACO não dependem desse serviço externo. Falhas na busca não apagam registros e não impedem cadastro manual.
+
+### Salvamento e backup
+
+Lançamentos, rotina, metas, favoritos e receitas entram no salvamento automático, rascunho privado e sincronização ao retornar ao foco. Edições enviam apenas os registros alterados do novo banco. A API valida privacidade, cálculos, duplicatas por dia e conflitos entre instâncias. Uma criação concorrente do mesmo dia pode pedir Atualizar antes de continuar, preservando o rascunho; não mescla JSON de rotina silenciosamente.
+
+O backup manual inclui o banco Acompanhamento automaticamente quando configurado, preservando os dados e as cópias nutricionais dos lançamentos. Os ícones/TACO acompanham o código; fotos externas de produtos não entram como arquivos do Notion. **Crie um novo backup após adicionar o banco**: backups antigos com um conjunto menor de bancos não podem ser ativados automaticamente pelo app. Não é necessário reimportar veículos ou qualquer outra área.

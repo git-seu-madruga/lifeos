@@ -11,6 +11,7 @@ import Brand from '../components/Brand';
 import {useRecadoNotification} from '../lib/useRecadoNotification';
 import AccountMenu from '../components/AccountMenu';
 import QrLock from '../components/QrLock';
+import NutritionView from '../components/NutritionView';
 import VehiclesView from '../components/VehiclesView';
 import QrSessions from '../components/QrSessions';
 import BackupView from '../components/BackupView';
@@ -80,7 +81,7 @@ export default function Home() {
   const [newTaskId, setNewTaskId] = useState(null);
 
 
-  const personalOnly = ["financas", "diario", "aniversarios", "bemestar", "entretenimento", "recados", "veiculos"].includes(tabId);
+  const personalOnly = ["financas", "diario", "aniversarios", "bemestar", "entretenimento", "recados", "veiculos", "acompanhamento"].includes(tabId);
   const effectiveContext = personalOnly ? "personal" : context;
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
@@ -293,6 +294,8 @@ export default function Home() {
           <ShoppingView lists={remote.shopping || []} setLists={remote.setShopping} selected={shoppingSelected} onSelect={setShoppingSelected} context={context} configured={remote.shoppingConfigured} creating={shoppingCreating} onCreate={()=>setShoppingCreating(true)} onCreated={()=>setShoppingCreating(false)}/>
         ) : tabId === "aniversarios" ? (
           <BirthdaysView contacts={remote.contacts || []} setContacts={remote.setContacts} configured={remote.contactsConfigured} openContact={contactOpen} onOpenHandled={()=>setContactOpen(null)}/>
+        ) : tabId === "acompanhamento" ? (
+          <NutritionView records={remote.nutrition||[]} setRecords={remote.setNutrition} configured={remote.nutritionConfigured}/>
         ) : tabId === "veiculos" ? (
           <VehiclesView records={remote.vehicles||[]} setRecords={remote.setVehicles} onImport={remote.importVehicles} configured={remote.vehiclesConfigured} context={effectiveContext}/>
         ) : tabId === "financas" ? (

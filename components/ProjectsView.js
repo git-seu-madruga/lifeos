@@ -61,6 +61,13 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
       setProjectError("Um marco ultrapassa o prazo final do projeto. Ajuste o marco antes de antecipar o prazo final.");
       return;
     }
+    if (patch.status === "done" && current.status !== "done") {
+      const openTasks = tasks.filter(t => t.project === id && t.status !== "done");
+      const openMilestones = next.milestones.filter(m => !m.done);
+      if ((openTasks.length || openMilestones.length) && !window.confirm(`Concluir “${current.name}”? Há ${openTasks.length} tarefa(s) e ${openMilestones.length} marco(s) em aberto. Ao confirmar, todas as tarefas e marcos ainda abertos deste projeto também serão concluídos automaticamente. O histórico será preservado.`)) return;
+      next.milestones = next.milestones.map(m => m.done ? m : { ...m, done: true });
+      setTasks(prev => prev.map(t => t.project === id && t.status !== "done" ? patchTask(t, { status: "done" }) : t));
+    }
     if('shared' in patch){setTasks(prev=>prev.map(t=>t.project===id?{...t,shared:!!next.shared,responsible:next.shared?(t.responsible||user?.email):''}:t));}
     setProjectError("");
     setProjects(prev => prev.map(p => p.id === id ? next : p));
