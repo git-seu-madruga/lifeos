@@ -721,3 +721,6 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
   .nutrition-meal-heading strong{font-size:18px}
  }
 }
+
+/* A aba ativa já identifica a página; a primeira linha mantém apenas ações/filtros. */
+.head-row.page-actions,.finance-heading.page-actions{justify-content:flex-end}

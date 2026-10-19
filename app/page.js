@@ -251,13 +251,13 @@ export default function Home() {
 
       {backupOpen&&remote.user?.isLegacyOwner&&<BackupView onClose={()=>setBackupOpen(false)} beforeStart={remote.flush} onStatus={remote.setMaintenance} onFinished={()=>{remote.checkMaintenance();refresh();}}/>}
       {remote.maintenance&&!backupOpen&&<div className="backup-warning" role="status"><h2>Backup ou restauração em andamento</h2><p>As edições estão temporariamente bloqueadas para os dois usuários. Seus textos pendentes foram preservados.</p><p>O aplicativo verificará a liberação enquanto esta tela estiver visível.</p></div>}
-      <main className="content" hidden={backupOpen||remote.maintenance}>
+      <main className="content" aria-label={tab.label} hidden={backupOpen||remote.maintenance}>
         {remote.error && <p className="date-error" role="alert">{remote.error}</p>}
         {remote.error && <button className="ghost" onClick={() => remote.flush().catch(() => {})}>Tentar salvar novamente</button>}
         {ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}
 
         {!saving&&['compras','aniversarios','financas','veiculos'].includes(tabId)&&(()=>{const keys=tabId==='veiculos'?['vehicles']:tabId==='compras'?['shopping']:tabId==='aniversarios'?['contacts']:['categories','transactions'];const latest=keys.map(key=>remote.sharedActivity?.[key]).filter(Boolean).sort((a,b)=>b.at.localeCompare(a.at))[0];return latest?<p className="muted small shared-editor">Última alteração no LifeOS por {latest.name} · {new Date(latest.at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}</p>:null;})()}
-        {!["diario","financas","aniversarios","compras","bemestar","entretenimento","recados"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
+        {tab.subs.length > 1 && !["diario","financas","aniversarios","compras","bemestar","entretenimento","recados"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
           {tab.subs.map((s) => (
             <button
               key={s.id}

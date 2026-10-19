@@ -5,7 +5,7 @@ import LinkText, {TextLinks} from "./LinkText";
 import { patchTask, newestCompleted } from "../lib/tasks";
 
 import { useEffect, useMemo, useState } from "react";
-import { diffDays, dueLabel, longToday } from "../lib/dates";
+import { diffDays, dueLabel } from "../lib/dates";
 import ModalLayer from './ModalLayer';
 import {useBackLayer} from '../lib/useBackNavigation';
 import TaskDetail from "./TaskDetail";
@@ -102,9 +102,7 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
 
   return (
     <section>
-      <div className="head-row">
-        <div><h1 className="section-title">Tarefas</h1>
-        <p className="section-date"><span className="dot-blue" />{longToday()}</p></div>
+      <div className="head-row page-actions">
         <button className="ghost" onClick={addTask}>+ Nova tarefa</button>
       </div>
 

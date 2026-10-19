@@ -1,7 +1,7 @@
 export default function Placeholder({ tab, sub }) {
   return (
     <section>
-      <h1 className="section-title">{tab.label}</h1>
+      
       <div className="placeholder">
         <p className="placeholder-title">{sub.label}</p>
         <p>Esta tela ainda não foi construída.</p>

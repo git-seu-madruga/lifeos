@@ -15,8 +15,8 @@ try{
  const Chart=require(path.join(root,'components/MeasurementChart')).default;const graph=renderToStaticMarkup(React.createElement(Chart,{type:'pressure',records:[pressure,another]}));assert.equal((graph.match(/<svg/g)||[]).length,1);assert.ok(graph.includes('direita'));assert.ok(graph.includes('Diastólica'));
  const View=require(path.join(root,'components/WellnessView')).default;
  const html=renderToStaticMarkup(React.createElement(View,{remote:{user:{id:'test'},wellness:[pressure,body],cycle:[],setWellness(){},habits:[],habitLogs:[],habitsConfigured:true,wellnessConfigured:true,cycleConfigured:true}}));
- for(const label of ['Bem-estar','Ciclo da Letícia','Pressão e BPM','Peso e gordura','Seu progresso','Mostrar hábitos encerrados','Atualize quando houver uma nova medição'])assert.ok(html.includes(label),label);
- assert.ok(!html.includes('well-petal-overlay'),'Cartão fechado ao iniciar');assert.ok(html.includes('Média de 1 medição'));assert.ok(!html.includes('Preencher / editar'));
+ for(const label of ['Ciclo da Letícia','Pressão e BPM','Peso e gordura','Seu progresso','Mostrar hábitos encerrados','Atualize quando houver uma nova medição'])assert.ok(html.includes(label),label);
+ assert.ok(!html.includes('<h1>Bem-estar</h1>'));assert.ok(!html.includes('Seu dia, seus hábitos e sua evolução.'));assert.ok(!html.includes('well-petal-overlay'),'Cartão fechado ao iniciar');assert.ok(html.includes('Média de 1 medição'));assert.ok(!html.includes('Preencher / editar'));
  assert.ok(html.includes('well-petal'));assert.ok(html.includes('habit-matrix'));
  // Inline choices write only the selected aspect and never open a modal.
  const oldState=React.useState,oldRef=React.useRef,oldEffect=React.useEffect;

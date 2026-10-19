@@ -99,11 +99,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
     const shown = projects.filter((p) => !p._untouchedDraft && p.status === SUB_STATUS[sub] && (context === "all" || p.context === context));
     return (
       <section key="project-list">
-        <div className="head-row">
-          <div>
-            <h1 className="section-title">Projetos</h1>
-            <p className="section-date">{shown.length} {shown.length === 1 ? "projeto" : "projetos"}</p>
-          </div>
+        <div className="head-row page-actions">
           <button className="ghost" onClick={addProject}>+ Novo projeto</button>
         </div>
         {shown.length === 0 && <p className="empty">Nenhum projeto nesta guia.</p>}
