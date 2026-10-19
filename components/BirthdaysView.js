@@ -1,4 +1,5 @@
 "use client";
+import PageActions from "./PageActions";
 import ModalLayer from "./ModalLayer";
 import {useEffect,useState} from 'react';
 import {birthdayLabel,birthdayDayMonth,parseBirthday,birthdaySummary,nextBirthday,upcomingLabel,ageInYear,todayLocal} from '../lib/birthdays';
@@ -15,7 +16,7 @@ export default function BirthdaysView({contacts=[],setContacts,configured,openCo
  function remove(person){if(!window.confirm(`Excluir o contato “${person.name}”? Esta ação não pode ser desfeita no LifeOS.`))return;setContacts(previous=>previous.filter(p=>p.id!==person.id));if(editing?.id===person.id)setEditing(null);}
  const ageText=age=>age===null?'':` · ${age} anos`;
  if(!configured)return <section className="diary-setup"><h2>Configure Aniversários no Notion</h2><p>Crie o banco Contatos com Nome (título), Dia e Mês (número), e Ano de nascimento (número, opcional).</p><p>Adicione <code>NOTION_CONTACTS_DATABASE_ID</code> na Vercel e faça um novo deploy. Consulte o README do pacote.</p></section>;
- return <section className="finance-view birthdays-view"><div className="finance-heading page-actions"><button className="primary" onClick={()=>edit(null)}>+ Novo contato</button></div>
+ return <section className="finance-view birthdays-view"><PageActions><button className="primary" onClick={()=>edit(null)}>+ Novo contato</button></PageActions>
  <input className="search birthday-search" aria-label="Buscar contatos" placeholder="Buscar contato…" value={query} onChange={e=>setQuery(e.target.value)}/>
  <div className="birthday-grid"><section className="birthday-card"><h2>Próximos 7 dias <span className="muted">({summary.week.length})</span></h2>{summary.week.map(person=><button className="birthday-row" key={person.id} onClick={()=>edit(person)}><strong>{person.name}</strong><span>{birthdayDayMonth(person)} · {upcomingLabel(person.next)}{ageText(person.next.age)}</span>{person.next.days===0&&<small className="birthday-today">Aniversário hoje</small>}</button>)}{!summary.week.length&&<p className="muted">Nenhum aniversário nos próximos 7 dias.</p>}</section>
  <section className="birthday-card"><h2>Aniversariantes do mês <span className="muted">({summary.monthly.length})</span></h2><div className="finance-period"><button className="ghost" aria-label="Mês anterior" onClick={()=>shift(-1)}>‹</button><MonthInput value={month} onChange={setMonth} label="Mês dos aniversários"/><button className="ghost" aria-label="Próximo mês" onClick={()=>shift(1)}>›</button><button className="ghost" onClick={()=>setMonth(current)}>Hoje</button></div>{summary.monthly.map(person=><button className="birthday-row" key={person.id} onClick={()=>edit(person)}><strong>{person.name}</strong><span>{birthdayDayMonth(person)}{ageText(ageInYear(person,viewYear))}</span></button>)}{!summary.monthly.length&&<p className="muted">Nenhum aniversário neste mês.</p>}</section></div>

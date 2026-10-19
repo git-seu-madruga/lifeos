@@ -724,3 +724,13 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 
 /* A aba ativa já identifica a página; a primeira linha mantém apenas ações/filtros. */
 .head-row.page-actions,.finance-heading.page-actions{justify-content:flex-end}
+
+/* Main inclusion actions share the sync status row and the same right edge. */
+.page-status-row{display:flex;align-items:center;justify-content:space-between;gap:12px;min-width:0;margin-bottom:16px}
+.page-status-row>p{margin:0;flex:1;min-width:0}
+.page-actions-host{margin-left:auto;min-width:0}
+.page-actions-host:empty{display:none}
+.page-primary-actions{display:flex;align-items:center;justify-content:flex-end;gap:8px;flex-wrap:wrap}
+.page-primary-actions>button{white-space:nowrap;display:inline-flex;align-items:center;justify-content:center;gap:6px}
+.finance-manage-action{margin-left:auto;display:flex;justify-content:flex-end}
+@media(max-width:600px){.page-status-row{gap:8px}.page-status-row>p{font-size:11px}.page-primary-actions{gap:5px}.page-primary-actions>button{font-size:12px;padding:8px 9px}.finance-manage-action{margin-left:auto}}

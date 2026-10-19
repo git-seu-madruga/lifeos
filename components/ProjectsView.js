@@ -1,4 +1,5 @@
 "use client";
+import PageActions from "./PageActions";
 import SharingFields from "./SharingFields";
 import SharedBadge from "./SharedBadge";
 import {RESPONSIBLES} from "../lib/sharing";
@@ -99,9 +100,9 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
     const shown = projects.filter((p) => !p._untouchedDraft && p.status === SUB_STATUS[sub] && (context === "all" || p.context === context));
     return (
       <section key="project-list">
-        <div className="head-row page-actions">
+        <PageActions>
           <button className="ghost" onClick={addProject}>+ Novo projeto</button>
-        </div>
+        </PageActions>
         {shown.length === 0 && <p className="empty">Nenhum projeto nesta guia.</p>}
         <div className="pcards">
           {shown.map((p) => {

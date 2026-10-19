@@ -1,4 +1,5 @@
 "use client";
+import PageActions from "./PageActions";
 import SharedBadge from "./SharedBadge";
 import LinkText, {TextLinks} from "./LinkText";
 
@@ -102,9 +103,9 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
 
   return (
     <section>
-      <div className="head-row page-actions">
+      <PageActions>
         <button className="ghost" onClick={addTask}>+ Nova tarefa</button>
-      </div>
+      </PageActions>
 
       <div className="cards">
         {STATUS.filter((s) => s.key !== "done").map((s) => (
