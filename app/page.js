@@ -1,5 +1,8 @@
 "use client";
 
+import dynamic from 'next/dynamic';
+const SomedayView=dynamic(()=>import('../components/SomedayView'));
+
 import { patchTask } from "../lib/tasks";
 
 
@@ -296,6 +299,8 @@ export default function Home() {
           ) : (
             <p className="empty">Carregando…</p>
           )
+        ) : tabId === "algumdia" ? (
+          <SomedayView records={remote.someday||[]} setRecords={remote.setSomeday} configured={remote.somedayConfigured} context={context} projects={projects||[]} onPromote={remote.promoteSomeday}/>
         ) : tabId === "diario" ? (
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
         ) : tabId === "entretenimento" ? (
