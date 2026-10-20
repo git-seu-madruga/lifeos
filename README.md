@@ -204,6 +204,14 @@ As edições comuns são salvas automaticamente. O botão Atualizar relê o Noti
 
 Durante o salvamento, o app envia apenas os registros envolvidos, suas versões anteriores para detectar conflitos e as dependências necessárias (por exemplo, o projeto e seus marcos de uma tarefa). Imagens e arquivos já enviados não são reenviados. O servidor usa leitura por ID e consultas filtradas, sem varrer bancos inteiros a cada edição. Novas entradas de Diário e marcações de Hábitos consultam a data envolvida para preservar a unicidade e recuperar falhas parciais.
 
+### Conclusão de projetos e recuperação de tarefas pendentes
+
+Concluir um projeto com tarefas ou marcos abertos continua exigindo confirmação e conclui esses filhos antes do projeto. Uma nova tentativa após falha parcial preserva a data das tarefas já concluídas, inclusive quando a interface ainda contém a versão anterior da data. O salvamento devolve ao app o status e a data efetivamente confirmados pelo Notion, sem baixar novamente a coleção. Reabrir uma tarefa ou alterar seu texto enquanto o envio ocorre continua sendo preservado.
+
+O campo técnico **Concluída em** aceita a representação retornada com segundos/milissegundos truncados, sem tratar isso como uma edição concorrente. Datas realmente diferentes e conflitos em outros campos continuam protegidos.
+
+Se uma versão anterior parou com **O campo “Concluída em” foi alterado no Notion** depois de concluir um projeto: publique esta correção, recarregue a página/app para carregar o novo código e toque em **Tentar salvar novamente**, se ainda aparecer pendência. Mantenha o mesmo navegador/perfil e a conta original para recuperar o rascunho. Não escolha descartar alterações nem limpe os dados do navegador para resolver esse caso. A correção não exige editar o banco do Notion, mudar variáveis da Vercel, reimportar dados ou atualizar o APK Captura.
+
 A carga inicial e o botão Atualizar continuam lendo os dados necessários à visão geral. Esta revisão não implementa paginação das telas nem leitura incremental no retorno ao foco; essas leituras gerais ainda podem crescer com o acervo. Clientes antigos permanecem compatíveis com o servidor, mas só passam a enviar dados reduzidos depois de atualizar a página/app.
 
 Ao voltar para uma aba do navegador ou app em segundo plano, o LifeOS consulta os dados em primeiro plano, com intervalo mínimo entre verificações. Não faz consultas periódicas comuns enquanto está escondido. Formulários abertos, edições pendentes ou salvamentos em andamento adiam a substituição dos dados para preservar texto local. Uma consulta em andamento não sobrescreve edições feitas durante ela.
