@@ -159,7 +159,7 @@ export default function Home() {
     const newId = uid(kind === "task" ? "t" : "pr");
     if (kind === "task") {
       setTasks((prev) => [...prev, {
-        id: newId, title: first, status: "todo", due: null, start: null,
+        id: newId, _createdAt:Date.now(), title: first, status: "todo", due: null, start: null,
         priority: "medium", context: ctx, project: null, milestone: null, attachments: [], notes,
         followUp: null, waitingOn: "",
       }]);

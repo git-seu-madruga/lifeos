@@ -67,7 +67,7 @@ global.fetch=async(url,options={})=>{
  calls.push({route,method,body});
  if(failShoppingWrite&&method==='PATCH'&&body?.properties?.Itens){failShoppingWrite=false;return Response.json({message:"Falha simulada na lista"},{status:400});}
  if(failCompletionTaskWrite&&method==='PATCH'&&body?.properties?.Status&&kindBySource(rows.get(route.split('/')[2])?.parent.data_source_id)==='tasks'){failCompletionTaskWrite=false;return Response.json({message:'Falha simulada ao concluir tarefa'},{status:400});}
- if(failCompletionProjectWrite&&method==='PATCH'&&body?.properties?.Status?.select?.name==='Concluído'&&kindBySource(rows.get(route.split('/')[2])?.parent.data_source_id)==='projects'){failCompletionProjectWrite=false;return Response.json({message:'Falha simulada após concluir filhos'},{status:400});}
+ if(failCompletionProjectWrite&&method==='PATCH'&&['Concluído','Cancelado'].includes(body?.properties?.Status?.select?.name)&&kindBySource(rows.get(route.split('/')[2])?.parent.data_source_id)==='projects'){failCompletionProjectWrite=false;return Response.json({message:'Falha simulada após concluir filhos'},{status:400});}
  const reply=value=>Response.json(value);
  if(route.startsWith('/databases/')){const kind=Object.keys(databases).find(kind=>databases[kind]===route.split('/')[2]);assert.ok(kind);return reply({id:databases[kind],data_sources:[{id:sourceIds[kind]}]});}
  if(route.startsWith('/data_sources/')){
@@ -114,6 +114,19 @@ global.fetch=async(url,options={})=>{
  const result=await synchronize(base,next);assert.equal(creates,3);assert.ok(result.bindings['local-project']);assert.ok(result.files['local-file'].url);
  await synchronize(base,next);assert.equal(creates,3,'Reenvio não deve criar duplicatas');
  ({state}=await notionLib.readSnapshot());assert.equal(state.projects.length,1);assert.equal(state.projects[0].milestones.length,1);assert.equal(state.tasks[0].project,state.projects[0].id);assert.equal(state.tasks[0].attachments.length,1);
+ {
+  const source=await notionLib.schema('tasks',true),row=structuredClone(rows.get(state.tasks[0].id));
+  const stamp=Date.parse('2026-10-20T14:35:46.123Z');
+  row.created_time='2026-10-20T14:35:00.000Z';
+  for(const suffix of ['1','123','abcd']){
+   row.properties[source.tracking.name]={rich_text:[{text:{content:'t'+stamp.toString(36)+suffix}}]};
+   assert.equal(notionLib.decode('tasks',row,source)._createdAt,stamp,'Recupera sequência e horário original pelo ID estável');
+  }
+  row.properties[source.tracking.name]={rich_text:[{text:{content:'legacy-task'}}]};
+  assert.equal(notionLib.decode('tasks',row,source)._createdAt,Date.parse(row.created_time),'Tarefas externas usam data de criação do Notion');
+  row.properties['LifeOS Criado originalmente']={date:{start:'2025-01-01T10:00:00.000Z'}};
+  assert.equal(notionLib.decode('tasks',row,source)._createdAt,Date.parse('2025-01-01T10:00:00.000Z'),'Restauração preserva criação original');
+ }
  const edited=structuredClone(state);edited.tasks[0].notes='Nova anotação';
  const beforeCalls=calls.length;await synchronize(state,edited);
  const patches=calls.slice(beforeCalls).filter(call=>call.route.startsWith('/pages/')&&call.body.properties);
@@ -372,45 +385,45 @@ global.fetch=async(url,options={})=>{
 
  }
 
- {
- const A={id:'google:completion-A',email:'periclesbernardes@gmail.com',name:'Péricles'};
+ for(const closingStatus of ['done','cancelled']){
+ const A={id:'google:completion-A-'+closingStatus,email:'periclesbernardes@gmail.com',name:'Péricles'};
  const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
  const save=async(base,next)=>{const d=compactSyncState(base,next);return synchronize(d.base,d.next,A,async()=>{},true);};
  let state=(await notionLib.readSnapshot(false,A)).state;
- const project={id:'completion-project',name:'Conclusão',status:'active',context:'personal',area:'',description:'',due:null,attachments:[],milestones:[{id:'completion-ms',title:'Marco aberto',due:null,done:false}]};
+ const project={id:'completion-project-'+closingStatus,name:'Conclusão '+closingStatus,status:'active',context:'personal',area:'',description:'',due:null,attachments:[],milestones:[{id:'completion-ms',title:'Marco aberto',due:null,done:false}]};
  const task={id:'completion-task',title:'Aberta',project:project.id,milestone:'completion-ms',status:'todo',priority:'medium',context:'personal',notes:'',attachments:[],completedAt:null};
  await save(state,{...state,projects:[...state.projects,project],tasks:[...state.tasks,task]});
- const stale=(await notionLib.readSnapshot(false,A)).state,pid=stale.projects.find(p=>p.name==='Conclusão').id;
+ const stale=(await notionLib.readSnapshot(false,A)).state,pid=stale.projects.find(p=>p.name===project.name).id;
  await save(stale,{...stale,projects:stale.projects.map(p=>p.id===pid?{...p,milestones:[...p.milestones,{id:'remote-completion-ms',title:'Novo marco remoto',due:null,done:false}]}:p),tasks:[...stale.tasks,{...task,id:'remote-completion-task',project:pid,milestone:null,title:'Nova tarefa remota'},{...task,id:'already-complete-task',project:pid,milestone:null,title:'Já concluída',status:'done',completedAt:123000}]});
- const desired={...stale,projects:stale.projects.map(p=>p.id===pid?{...p,status:'done'}:p)};
+ const desired={...stale,projects:stale.projects.map(p=>p.id===pid?{...p,status:closingStatus}:p)};
  failCompletionTaskWrite=true;
  await assert.rejects(()=>save(stale,desired),/Falha simulada/);
  let actual=(await notionLib.readSnapshot(false,A)).state;assert.equal(actual.projects.find(p=>p.id===pid).status,'active','Falha em filho não conclui o projeto');
  const mark=calls.length;await save(stale,desired);await save(stale,desired);
  actual=(await notionLib.readSnapshot(false,A)).state;
- assert.equal(actual.projects.find(p=>p.id===pid).status,'done');assert.equal(actual.projects.find(p=>p.id===pid).milestones.length,2);assert.ok(actual.projects.find(p=>p.id===pid).milestones.every(m=>m.done));
+ assert.equal(actual.projects.find(p=>p.id===pid).status,closingStatus);assert.equal(actual.projects.find(p=>p.id===pid).milestones.length,2);assert.ok(actual.projects.find(p=>p.id===pid).milestones.every(m=>m.done));
  const children=actual.tasks.filter(t=>t.project===pid);assert.equal(children.length,3);assert.ok(children.every(t=>t.status==='done'));assert.equal(children.find(t=>t.title==='Já concluída').completedAt,123000);
  const writes=calls.slice(mark).filter(c=>c.method==='PATCH'&&c.body?.properties);const firstProject=writes.findIndex(c=>c.route===`/pages/${pid}`);assert.ok(firstProject>writes.findIndex(c=>kindBySource(rows.get(c.route.split('/')[2])?.parent.data_source_id)==='tasks'),'Filhos são salvos antes do projeto');
  const reopened={...actual,projects:actual.projects.map(p=>p.id===pid?{...p,status:'active'}:p)};await save(actual,reopened);actual=(await notionLib.readSnapshot(false,A)).state;assert.ok(actual.tasks.filter(t=>t.project===pid).every(t=>t.status==='done'));
  }
 
- {
- const A={id:'google:completion-precision',email:'periclesbernardes@gmail.com',name:'Péricles'};
+ for(const closingStatus of ['done','cancelled']){
+ const A={id:'google:completion-precision-'+closingStatus,email:'periclesbernardes@gmail.com',name:'Péricles'};
  const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
  const save=async(base,next)=>{const d=compactSyncState(base,next);return synchronize(d.base,d.next,A,async()=>{},true);};
  let initial=(await notionLib.readSnapshot(false,A)).state;
- const project={id:'precision-project',name:'Conclusão com data normalizada',status:'active',context:'personal',area:'',description:'',due:null,attachments:[],milestones:[]};
+ const project={id:'precision-project-'+closingStatus,name:'Conclusão com data normalizada '+closingStatus,status:'active',context:'personal',area:'',description:'',due:null,attachments:[],milestones:[]};
  const task={id:'precision-task',title:'Tarefa da interface',project:project.id,milestone:null,status:'todo',priority:'medium',context:'personal',notes:'',attachments:[],completedAt:null};
  await save(initial,{...initial,projects:[...initial.projects,project],tasks:[...initial.tasks,task]});
  const base=(await notionLib.readSnapshot(false,A)).state,pid=base.projects.find(p=>p.name===project.name).id;
  const time=Date.parse('2026-10-20T13:59:28.437Z');
- const desired={...base,projects:base.projects.map(p=>p.id===pid?{...p,status:'done'}:p),tasks:base.tasks.map(t=>t.project===pid?{...t,status:'done',completedAt:time}:t)};
+ const desired={...base,projects:base.projects.map(p=>p.id===pid?{...p,status:closingStatus}:p),tasks:base.tasks.map(t=>t.project===pid?{...t,status:'done',completedAt:time}:t)};
  normalizeCompletionDates=true;failCompletionProjectWrite=true;
  await assert.rejects(()=>save(base,desired),/Falha simulada após concluir filhos/);
  assert.equal((await notionLib.readSnapshot(false,A)).state.projects.find(p=>p.id===pid).status,'active');
  const recovered=await save(base,desired); // Must recover a pending draft with the UI's original timestamp.
  const actual=(await notionLib.readSnapshot(false,A)).state;
- assert.equal(actual.projects.find(p=>p.id===pid).status,'done');
+ assert.equal(actual.projects.find(p=>p.id===pid).status,closingStatus);
  const completedTask=actual.tasks.find(t=>t.project===pid),canonical=Math.floor(time/60000)*60000;
  assert.equal(completedTask.completedAt,canonical);assert.deepEqual(recovered.taskCompletions[completedTask.id],{status:'done',completedAt:canonical});
  await save(base,desired); // Repeating the original request must remain safe.
