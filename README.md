@@ -14,7 +14,7 @@ A sincronização grava os itens vinculados antes de concluir um projeto existen
 2. Extraia o ZIP. Envie o **conteúdo da pasta lifeos** para a raiz do repositório, substituindo os arquivos existentes. Não crie uma segunda pasta lifeos dentro do projeto.
 3. Mantenha as variáveis e os bancos já configurados. O login por QR Code usa o mesmo Google, Vercel e Upstash: não exige novos bancos, chaves ou callbacks. Caso ainda não tenha configurado Bem-estar e Ciclo da Letícia, siga a seção Bem-estar antes de usar esses cartões.
 4. Faça o deploy na Vercel e atualize a página/app instalado.
-5. Para habilitar Acompanhamento, crie o banco e a variável descritos na seção **Acompanhamento** ao final deste guia. As áreas existentes continuam usando suas configurações atuais.
+5. Para habilitar **Algum dia**, crie o banco e a variável descritos na seção **Algum dia — configuração** abaixo. Para Acompanhamento, siga a seção correspondente ao final deste guia. As áreas existentes continuam usando suas configurações atuais.
 6. Remova do repositório os antigos arquivos INSTRUCOES-*.md: o envio pelo navegador não remove arquivos que deixaram de existir no ZIP. Todas as instruções atuais estão aqui.
 
 Para enviar mais de 100 arquivos pelo navegador do GitHub, crie uma branch, envie em lotes e faça merge apenas quando todos os arquivos estiverem presentes. Isso evita publicar uma versão parcial em produção. Git/GitHub Desktop também permitem enviar o projeto completo.
@@ -22,6 +22,8 @@ Para enviar mais de 100 arquivos pelo navegador do GitHub, crie uma branch, envi
 Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de ambiente locais. O arquivo .env.example é apenas um modelo sem segredos.
 
 ### Mudanças desta revisão
+
+- **Algum dia**: nova aba privada de ideias, áreas de interesse, favoritos, cartões ilustrados, cores e editor rico com imagens e prévias de links. Exige apenas um novo banco e `NOTION_SOMEDAY_DATABASE_ID`. As novas ilustrações e o editor são um piloto exclusivo desta aba; o Inbox não recebe opção de conversão nem integração nova. O APK Captura permanece na versão atual.
 
 - Favoritos e Minhas receitas mostram todos os itens salvos ao abrir, em ordem alfabética. Digitar filtra; limpar mostra todos novamente. Trocar de guia limpa a busca anterior. A busca geral e ingredientes continuam vazios antes da digitação. Sem consulta externa para listar favoritos/receitas.
 
@@ -31,9 +33,9 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 - Nos cartões de pressão/BPM e peso/gordura, o toggle da escala direita fica na mesma linha dos valores, eliminando a linha exclusiva do botão. Cálculos, seleção de pontos, edição e registro de BPM/gordura permanecem como antes. Sem novos campos ou variáveis.
 
-- Busca de alimentos/ingredientes começa vazia e mostra resultados locais ao digitar; limpar o texto recolhe a lista. Navegações com calendário seguem seta esquerda → campo → seta direita → calendário → Hoje. Ajustado também o campo digitado de mês no resumo de Acompanhamento. Backup do catálogo utilizado está em Importacao/TACO (JSON exato, CSV para consulta e procedência). Esta revisão não exige novos bancos ou variáveis.
+- Busca de alimentos/ingredientes começa vazia e mostra resultados locais ao digitar; limpar o texto recolhe a lista. Navegações com calendário seguem seta esquerda → campo → seta direita → calendário → Hoje. Ajustado também o campo digitado de mês no resumo de Acompanhamento. Backup do catálogo utilizado está em Importacao/TACO (JSON exato, CSV para consulta e procedência). Esses ajustes de busca e calendário não exigem novos bancos ou variáveis.
 
-- Abas principais compactas: inativas mostram somente o ícone; a selecionada mostra o nome com transição breve. No mobile, Ordenar abas revela todos os nomes e Concluir volta à apresentação compacta. Aviso COMPARTILHADO aparece com o nome e continua no rótulo acessível dos ícones. Sem mudanças de bancos ou variáveis nesta revisão visual.
+- Abas principais compactas: inativas mostram somente o ícone; a selecionada mostra o nome com transição breve. No mobile, Ordenar abas revela todos os nomes e Concluir volta à apresentação compacta. Aviso COMPARTILHADO aparece com o nome e continua no rótulo acessível dos ícones. Essa apresentação compacta não exige mudanças de bancos ou variáveis.
 
 - Nova aba **Acompanhamento**, privada por usuário e com Pessoal fixo. Registro em kcal, busca TACO local, busca de produtos Open Food Facts, favoritos, alimentos próprios, receitas com cálculo por ingredientes, ilustrações e resumos por mês/ano. Água, sono, aeróbico e musculação possuem registros independentes de Bem-estar. Exige apenas o novo banco Acompanhamento e NOTION_NUTRITION_DATABASE_ID.
 
@@ -80,7 +82,7 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 - Sessão por QR: até 1 hora, com bloqueio após 10 minutos sem interação e desbloqueio pelo código original apenas no navegador autorizado. Cinco erros seguidos encerram a sessão. O limite de 1 hora nunca é renovado.
 
 - Peso/% gordura aceita apenas um registro por data, por usuário. Para corrigir, edite pelo gráfico ou histórico. Pressão mantém várias medições por dia e suas médias.
-- Cada gráfico tem um toggle discreto BPM/% gordura: oculta ou mostra a série e escala da direita, ajustando os limites e a largura aos dados visíveis. Não altera nem exclui dados. Esta revisão não exige novos campos, bancos ou variáveis.
+- Cada gráfico tem um toggle discreto BPM/% gordura: oculta ou mostra a série e escala da direita, ajustando os limites e a largura aos dados visíveis. Não altera nem exclui dados. O toggle não exige novos campos, bancos ou variáveis.
 
 - Links externos solicitam nova aba. No PWA instalado em Android, links HTTP/HTTPS sem fragmento tentam abrir o Chrome por um Android Intent, com endereço original como fallback. Links que chegam ao PWA usam launch_handler navigate-new onde suportado, preservando uma janela já aberta para edição. A decisão de capturar links continua sendo do navegador/sistema.
 
@@ -97,6 +99,7 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 | Inbox, Diário, Hábitos e registros, Bem-estar (dia e medidas), Entretenimento | Privado de cada conta |
 | Projetos, Marcos e Tarefas | Privado por padrão; compartilhamento opcional entre as duas contas |
 | Acompanhamento (alimentação, rotina, metas, favoritos e receitas) | Privado por usuário |
+| Algum dia (ideias, referências e áreas de interesse) | Privado por usuário; contextos Pessoal e Trabalho |
 | Compras, Aniversários, Finanças, Veículos | Compartilhado entre as duas contas |
 | Ciclo da Letícia | Dados sempre dela; ambos podem ver e editar nesta versão de testes |
 | Recados | Mensagens entre as duas contas, com leitura confirmada pelo destinatário |
@@ -446,6 +449,48 @@ O app acrescenta propriedades técnicas: **LifeOS ID**, **LifeOS Usuário** nas 
 
 Registros privados criados diretamente no Notion sem LifeOS Usuário pertencem à conta principal. Para a segunda conta, prefira criar pelo aplicativo. Em Inbox, preencha Conteúdo: Nome é apenas o título resumido. Em Diário, preencha Data e Conteúdo, evitando duplicar um dia do mesmo usuário. Aniversários usa números separados para admitir ano desconhecido.
 
+## Algum dia — configuração e uso
+
+### Criar o banco no Notion
+
+1. Dentro da página **LifeOS** já autorizada à conexão interna, crie um **banco de dados em página inteira**, chamado **Algum dia**. Não é uma página vazia nem uma relação com outro banco.
+2. Configure estas propriedades, respeitando nomes e tipos:
+
+| Propriedade | Tipo no Notion | Uso |
+| --- | --- | --- |
+| Nome | Título | Nome da ideia ou área |
+| Tipo | Texto | Tipo técnico `idea` ou `area`, preenchido pelo app |
+| Contexto | Selecionar | Opções **Pessoal** e **Trabalho** |
+| Dados | Texto | Documento e configurações, preenchidos pelo app |
+| Anexos | Arquivos e mídia | Cópias das imagens inseridas |
+
+3. Confira se a conexão interna existente tem acesso ao banco, com leitura, inserção e atualização. Não crie uma nova integração.
+4. Copie o ID deste banco e adicione **`NOTION_SOMEDAY_DATABASE_ID`** às variáveis da Vercel nos ambientes usados. Use o ID do banco, não o parâmetro `v=` da visualização. Somente se o banco tiver múltiplas fontes, configure também `NOTION_SOMEDAY_DATA_SOURCE_ID` com o ID da fonte correta.
+5. Envie o conteúdo atualizado de `lifeos/` à raiz do repositório e faça novo deploy. Preserve todas as variáveis existentes, especialmente o segredo de sessão. Atualize o app instalado. **Não é necessário atualizar o APK Captura, o OAuth Google ou criar outra chave de API.**
+
+O app acrescenta **LifeOS ID** e **LifeOS Usuário** automaticamente. Ideias e áreas de cada conta ficam privadas. Não edite manualmente o JSON de Dados nem os identificadores técnicos. Sem a variável, a aba apresenta orientação de configuração e não grava ideias.
+
+### Usar a nova aba
+
+- **Nova ideia** abre o painel; uma ideia fechada sem nenhuma ação não é registrada. Título, anotações e demais edições são salvos pelo fluxo automático existente. Aguarde **Salvo no Notion** antes de fechar o app se houver alterações pendentes.
+- **Áreas** cria ou renomeia assuntos, com ilustração e cor. Há opções para criar sugestões ou copiar os nomes das áreas já usados nos projetos. Essa cópia não cria relações nem altera os projetos. Ocultar uma área impede novas seleções, preservando suas ideias; reativar recupera a mesma área.
+- Os cartões permitem busca por título/texto/área, filtro por área e favoritos. Os contextos Pessoal/Trabalho seguem o seletor geral. O catálogo de áreas é do usuário e pode organizar ideias dos dois contextos.
+- O editor oferece parágrafos, títulos, negrito, itálico e listas. **Enter** cria um parágrafo e **Shift + Enter** uma quebra de linha. Limite de 30.000 caracteres por ideia, sujeito também ao limite de estrutura do documento.
+- Cole uma imagem, arraste um arquivo ou use **Imagem**. JPEG, PNG e WebP são reduzidos para até 1.600 px e enviados ao Notion; GIF mantém a animação. Originais de até 20 MB são aceitos para processamento; o resultado enviado precisa ter até 4 MB (GIF até 4 MB). As imagens aparecem dentro das anotações e também na lista de anexos. Retirar a imagem do texto não exclui o arquivo; **Excluir** na lista de anexos pede confirmação e retira ambos.
+- Colar um endereço **HTTPS** sozinho ou usar **Link** cria um cartão com título, descrição e miniatura quando a página permite. Se a fonte bloquear a consulta, o endereço continua clicável. O botão **Manter apenas o link** substitui o cartão por um link de texto.
+- **Transformar em projeto/tarefa** pede confirmação e copia título, texto simples e anexos. A ideia original permanece com sua formatação e recebe a indicação de transformação. As outras telas mantêm os editores atuais. O app aguarda o salvamento dos arquivos e usa um identificador estável para retomar falhas sem duplicar o destino.
+- **O Inbox mantém as funções existentes. Não há integração com Algum dia nesta revisão**, nem nova opção no menu de transformação.
+
+### Recursos gráficos, tráfego e backup
+
+As dez ilustrações Microsoft Fluent Emoji são arquivos locais com licença MIT em `public/emoji/fluent-ideas/`. O editor usa pacotes gratuitos e abertos do Tiptap, fixados no package-lock; não exige conta, assinatura ou chave Tiptap. Este piloto não muda os ícones nem os campos de texto das outras abas.
+
+As prévias consultam páginas públicas pelo servidor do LifeOS, sem cookies ou credenciais. Endereços internos/privados e redirecionamentos inseguros são bloqueados. Metadados ficam em cache no Upstash por sete dias, separados por usuário; há limite de 60 novas consultas por usuário/hora. A leitura de HTML usa até 256 KB e as miniaturas até 1 MB, com cache privado do navegador. Sites podem bloquear prévias. As miniaturas de páginas continuam sendo referências externas; **não são copiadas para o Notion**. Imagens que você cola ou envia ao editor são copiadas.
+
+Verificação desta funcionalidade: suíte completa `npm test` e compilação `npm run build`; inspeção no Chromium em desktop e viewport mobile, com APIs simuladas, incluindo edição, link, imagem, favoritos, busca, áreas e descarte de ideia intocada. Isso não substitui o teste no Android/iPhone real. Nenhum serviço de produção foi alterado.
+
+O novo banco participa da sincronização incremental, atualização ao retornar ao foco, rascunhos privados e backup/restauração existentes. Criar um backup depois de configurar o banco inclui as duas contas, documentos e arquivos enviados. Restaurar preserva os vínculos das imagens pelo nome estável. Backups antigos não contêm este banco: use uma cópia criada após sua inclusão; a restauração verifica a compatibilidade dos bancos. Não há consulta periódica nova em segundo plano.
+
 ## 6. Vercel: variáveis
 
 Configure em Settings → Environment Variables. Aplique em Production e nos ambientes de teste realmente usados; após qualquer alteração faça novo deploy. Todos os tokens/segredos ficam somente no servidor, sem prefixo NEXT_PUBLIC_.
@@ -453,6 +498,7 @@ Configure em Settings → Environment Variables. Aplique em Production e nos amb
 | Variável | Uso |
 | --- | --- |
 | `NOTION_TOKEN` | Token da conexão interna Notion |
+| `NOTION_SOMEDAY_DATABASE_ID` | Novo banco Algum dia; ver configuração abaixo |
 | `NOTION_PROJECTS_DATABASE_ID` | ID do banco correspondente no Notion |
 | `NOTION_MILESTONES_DATABASE_ID` | ID do banco correspondente no Notion |
 | `NOTION_TASKS_DATABASE_ID` | ID do banco correspondente no Notion |
@@ -647,7 +693,7 @@ Marque **Abastecimento anterior não registrado** ao criar ou editar o abastecim
 
 O botão **Importar CSV** fica nos cartões **Abastecimentos** e **Despesas do veículo**, e permanece disponível para futuras importações. Selecione **Abastecimentos** ou **Manutenções e outras despesas** no painel. Cada tipo tem seu modelo CSV. O importador não cria lembretes avulsos automaticamente.
 
-**Seu histórico preparado:** o ZIP desta entrega contém, fora da pasta `lifeos`, a pasta `Importacao`, com `abastecimentos-suzuki-gsr125.csv`. Envie ao GitHub apenas o conteúdo de `lifeos`. Guarde `Importacao` no computador para carregar pelo aplicativo. O CSV não precisa ser publicado no repositório e não deve ser importado diretamente pelo Notion.
+**Histórico preparado anteriormente:** os passos abaixo descrevem o arquivo pessoal `abastecimentos-suzuki-gsr125.csv`, entregue na etapa de importação. Guarde aquela cópia para eventual retomada; este ZIP contém os modelos vazios e o backup do catálogo TACO em `Importacao`, sem repetir o histórico pessoal. Envie ao GitHub apenas o conteúdo de `lifeos`. Os CSVs devem ser carregados pelo aplicativo, não diretamente pelo Notion.
 
 1. Publique o conteúdo atualizado de `lifeos` e atualize a página/PWA. Não altere variáveis nem propriedades no Notion; os novos campos ficam em Dados, no banco Veículos existente.
 2. Abra **Veículos** e selecione a motocicleta correta. Se ainda não a cadastrou, crie **Suzuki GSR125**, tipo Motocicleta, ano **2016**. A km atual pode permanecer em 61.805 km ou no valor atual real; o histórico começa em 2.678 km. A importação não substitui nome, placa, ano, ícone ou cor do veículo.
