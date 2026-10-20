@@ -739,3 +739,5 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 
 /* Birthday reminder colors only the tab icon, preserving its shape and spacing. */
 .tabs .tab-icon.birthday-notice{color:#ffc857;filter:drop-shadow(0 0 4px #ffc85740)}
+
+.birthday-contact-notes{display:block;color:var(--muted);font-size:11px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:5px;max-width:420px}

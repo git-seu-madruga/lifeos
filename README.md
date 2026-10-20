@@ -170,7 +170,7 @@ Filtre pelo mês, ano ou intervalo DD/MM/AAAA. Hoje volta ao mês atual. Saldo r
 
 ### Aniversários
 
-Cadastre nome, dia e mês; ano de nascimento é opcional. Com ano conhecido, o resumo informa a idade que a pessoa fará; sem ano, mostra apenas o aniversário. Há busca e destaques da semana/mês. Não complete um ano desconhecido com o ano atual.
+Cadastre nome, dia e mês; ano de nascimento é opcional. Com ano conhecido, o resumo informa a idade que a pessoa fará; sem ano, mostra apenas o aniversário. Há busca e destaques da semana/mês. O cadastro inclui Observações, com múltiplas linhas (até 5.000 caracteres), exibidas discretamente abaixo do nome na lista de contatos, com links clicáveis. A informação é compartilhada entre as duas contas e pode ser editada ou apagada. A coluna Observações (Texto) é adicionada automaticamente ao banco existente na primeira conexão após o deploy; não precisa criar outro banco ou variável. Não complete um ano desconhecido com o ano atual.
 
 ### Compras
 
@@ -360,6 +360,7 @@ Baixe **modelo-despesas-lifeos.csv** no importador selecionando o tipo Manutenç
 | Dia | Número |  |
 | Mês | Número |  |
 | Ano de nascimento | Número | Opcional |
+| Observações | Texto | Criado automaticamente se ausente; até 5.000 caracteres |
 
 ### Listas de compras
 
