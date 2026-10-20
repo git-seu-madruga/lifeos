@@ -3,7 +3,7 @@ import PageActions from "./PageActions";
 import SharedBadge from "./SharedBadge";
 import LinkText, {TextLinks} from "./LinkText";
 
-import { patchTask, newestCompleted } from "../lib/tasks";
+import { patchTask, newestCompleted, oldestInserted, taskDate } from "../lib/tasks";
 
 import { useEffect, useMemo, useState } from "react";
 import { diffDays, dueLabel } from "../lib/dates";
@@ -24,7 +24,7 @@ const PRIO_LABEL = { high: "Alta", medium: "Média", low: "Baixa" };
 const CTX = { work: "Trabalho", personal: "Pessoal" };
 
 // Em hold a data que importa é a da cobrança; nas demais, o prazo.
-const keyDate = (t) => (t.status === "hold" ? t.followUp : t.due) || "9999-99-99";
+const keyDate = taskDate;
 const SORTERS = {
   due: (a, b) => keyDate(a).localeCompare(keyDate(b)),
   priority: (a, b) => PRIO[a.priority] - PRIO[b.priority] || keyDate(a).localeCompare(keyDate(b)),
@@ -70,7 +70,7 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
 
   const groups = useMemo(() => {
     const list = filtered.filter((t) => !quick || t.status === quick)
-      .sort((a, b) => ORDER[a.status] - ORDER[b.status] || (isClosed(a) ? newestCompleted(a, b) : SORTERS[sort](a, b)));
+      .sort((a, b) => ORDER[a.status] - ORDER[b.status] || (isClosed(a) ? newestCompleted(a, b) : SORTERS[sort](a, b) || oldestInserted(a,b)));
 
     const map = new Map();
     for (const t of list) {
@@ -91,7 +91,7 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
   function addTask() {
     const id = `t${Date.now().toString(36)}${Math.random().toString(36).slice(2, 6)}`;
     const project = projects.find((p) => p.id === projEff);
-    setTasks((prev) => [...prev, { id, _untouchedDraft:true,shared:!!project?.shared,responsible:project?.shared?(user?.email):'', title: "Nova tarefa", status: "todo", due: null, start: null, completedAt: null, priority: "medium", context: project?.context || (context === "all" ? "personal" : context), project: project?.id || null, milestone: null, attachments: [], notes: "", followUp: null, waitingOn: "" }]);
+    setTasks((prev) => [...prev, { id, _createdAt:Date.now(), _untouchedDraft:true,shared:!!project?.shared,responsible:project?.shared?(user?.email):'', title: "Nova tarefa", status: "todo", due: null, start: null, completedAt: null, priority: "medium", context: project?.context || (context === "all" ? "personal" : context), project: project?.id || null, milestone: null, attachments: [], notes: "", followUp: null, waitingOn: "" }]);
     setCreatedId(id);
     setOpenId(id);
   }

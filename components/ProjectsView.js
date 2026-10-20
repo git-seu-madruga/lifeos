@@ -8,7 +8,7 @@ import LinkText, {TextLinks} from "./LinkText";
 import ProjectAttachments from "./ProjectAttachments";
 import DateInput from "./DateInput";
 
-import { patchTask, newestCompleted } from "../lib/tasks";
+import { patchTask, newestCompleted, oldestInserted, taskDate } from "../lib/tasks";
 
 import { useEffect, useState } from "react";
 import { formatDateInput } from "../lib/dateInput";
@@ -62,10 +62,11 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
       setProjectError("Um marco ultrapassa o prazo final do projeto. Ajuste o marco antes de antecipar o prazo final.");
       return;
     }
-    if (patch.status === "done" && current.status !== "done") {
+    if (["done","cancelled"].includes(patch.status) && current.status !== patch.status) {
       const openTasks = tasks.filter(t => t.project === id && t.status !== "done");
       const openMilestones = next.milestones.filter(m => !m.done);
-      if ((openTasks.length || openMilestones.length) && !window.confirm(`Concluir “${current.name}”? Há ${openTasks.length} tarefa(s) e ${openMilestones.length} marco(s) em aberto. Ao confirmar, todas as tarefas e marcos ainda abertos deste projeto também serão concluídos automaticamente. O histórico será preservado.`)) return;
+      const action = patch.status === "cancelled" ? "Cancelar" : "Concluir";
+      if ((openTasks.length || openMilestones.length) && !window.confirm(`${action} “${current.name}”? Há ${openTasks.length} tarefa(s) e ${openMilestones.length} marco(s) em aberto. Ao confirmar, todas as tarefas e marcos ainda abertos deste projeto também serão concluídos automaticamente. O histórico será preservado.`)) return;
       next.milestones = next.milestones.map(m => m.done ? m : { ...m, done: true });
       setTasks(prev => prev.map(t => t.project === id && t.status !== "done" ? patchTask(t, { status: "done" }) : t));
     }
@@ -125,7 +126,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
   }
 
   // ---------- Detalhe editável ----------
-  const pts = tasks.filter((t) => t.project === project.id);
+  const pts = tasks.filter((t) => t.project === project.id).sort((a, b) => ORDER[a.status] - ORDER[b.status] || (a.status === "done" ? newestCompleted(a, b) : taskDate(a).localeCompare(taskDate(b)) || oldestInserted(a,b)));
   const all = progress(pts);
   const ms = project.milestones; // a ordem é a sequência definida em "Marcos do projeto"
   const current = ms.find((m) => !m.done);
@@ -143,7 +144,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
     if(project.shared&&!RESPONSIBLES.some(p=>p.email===nt.responsible)){setProjectError("Escolha o responsável pela nova tarefa.");return;}
     updateProject(project.id,{_untouchedDraft:false});
     setTasks((prev) => [...prev, {
-      id: uid("t"), shared:!!project.shared,responsible:project.shared?nt.responsible:'', title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
+      id: uid("t"), _createdAt:Date.now(), shared:!!project.shared,responsible:project.shared?nt.responsible:'', title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
       project: project.id, milestone: nt.ms || null, attachments: [], notes: "", followUp: null, waitingOn: "",
     }]);
     setNt({ ...nt, title: "",responsible:"" });
@@ -159,7 +160,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
       </span>
     </li>
   );
-  const byMs = (mid) => pts.filter((t) => (t.milestone || null) === mid).sort((a, b) => ORDER[a.status] - ORDER[b.status] || (a.status === "done" ? newestCompleted(a, b) : 0));
+  const byMs = (mid) => pts.filter((t) => (t.milestone || null) === mid);
   const loose = byMs(null);
   const openTask = tasks.find((t) => t.id === openId);
 
