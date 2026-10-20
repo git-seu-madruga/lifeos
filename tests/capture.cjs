@@ -29,7 +29,7 @@ const principal={id:'google:p',name:'Péricles',email:'periclesbernardes@gmail.c
 const request=(cookie='',input,headers={})=>new Request('https://lifeos.test/api/capture/device',{method:input?'POST':'GET',headers:{cookie,origin:'https://lifeos.test',...headers},...(input?{body:JSON.stringify(input)}:{})});
 const dataOf=start=>{const url=new URL(start.url),params=new URLSearchParams(url.hash.slice(1));return {id:params.get('id'),token:params.get('token')};};
 const digest=v=>createHash('sha256').update(v).digest('hex');
-const redisFetch=global.fetch,pages=new Map(),calls=[];let postCount=0,uncertainAfter=false,uncertainBefore=false;
+const redisFetch=global.fetch,pages=new Map(),calls=[];let postCount=0,uncertainAfter=false,uncertainBefore=false,rejectCreate=0;
 process.env.NOTION_INBOX_DATABASE_ID='inbox-test';
 let source={id:'inbox-source',properties:{Nome:{name:'Nome',type:'title'},Conteúdo:{name:'Conteúdo',type:'rich_text'}}};
 global.fetch=async(url,options={})=>{
@@ -47,6 +47,7 @@ global.fetch=async(url,options={})=>{
  }
  if(path==='/pages'&&options.method==='POST'){
   postCount++;if(uncertainBefore){uncertainBefore=false;throw Error('Network lost before write');}
+  if(rejectCreate)return Response.json({message:'Simulated rejection'},{status:rejectCreate,headers:{'retry-after':'0'}});
   const page={id:randomUUID(),properties:body.properties,parent:body.parent};pages.set(page.id,page);
   if(uncertainAfter){uncertainAfter=false;throw Error('Response lost after write');}return Response.json(page);
  }
@@ -71,6 +72,17 @@ global.fetch=async(url,options={})=>{
  await assert.rejects(capture.captureInbox(native,{...item,text:'Outro texto'}),e=>e.status===422);
  uncertainAfter=true;const lost={id:randomUUID(),text:'Resposta perdida'};await assert.rejects(capture.captureInbox(native,lost));const before=postCount;assert.equal((await capture.captureInbox(native,lost)).saved,true);assert.equal(postCount,before,'Consulta exata recupera gravação de resposta perdida');
  uncertainBefore=true;const ambiguous={id:randomUUID(),text:'Resultado incerto'};await assert.rejects(capture.captureInbox(native,ambiguous));const after=postCount;await assert.rejects(capture.captureInbox(native,ambiguous),e=>e.status===409);assert.equal(postCount,after,'Falha ambígua não dispara um segundo POST');
+ for(const status of [400,401,403,404,413,422,429]){
+  rejectCreate=status;const retry={id:randomUUID(),text:'Recusada explicitamente '+status},size=pages.size;
+  await assert.rejects(capture.captureInbox(native,retry),e=>e.notionStatus===status);
+  assert.equal(pages.size,size,'Recusa não criou página');
+  await assert.rejects(capture.captureInbox(native,{...retry,text:'Mudou o texto'}),e=>e.status===422,'Recibo mantém proteção do conteúdo');
+  rejectCreate=0;assert.equal((await capture.captureInbox(native,retry)).saved,true,'Recusa explícita permite nova tentativa segura');
+  const posts=postCount;await capture.captureInbox(native,retry);assert.equal(postCount,posts,'Nova confirmação não duplica');
+ }
+ rejectCreate=503;const serverError={id:randomUUID(),text:'Falha 5xx incerta'};
+ await assert.rejects(capture.captureInbox(native,serverError),e=>e.notionStatus===503);
+ rejectCreate=0;const uncertainPosts=postCount;await assert.rejects(capture.captureInbox(native,serverError),e=>e.status===409);assert.equal(postCount,uncertainPosts,'5xx não autoriza criar uma cópia');
  store.set('lifeos:maintenance:v1',JSON.stringify({id:'backup'}));await assert.rejects(capture.captureInbox(native,{id:randomUUID(),text:'Durante backup'}),e=>e.status===423);store.delete('lifeos:maintenance:v1');
  await assert.rejects(capture.captureInbox(native,{id:randomUUID(),text:'a'.repeat(10001)}),e=>e.status===400);
  await assert.rejects(capture.captureStatus(request('',undefined,{authorization:'Bearer '+start.id+'.'+'b'.repeat(64)})),e=>e.status===401);

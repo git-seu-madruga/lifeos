@@ -2,4 +2,7 @@
  <style name="AppTheme" parent="android:style/Theme.Material.NoActionBar">
   <item name="android:fontFamily">sans</item><item name="android:colorAccent">#58A6FF</item><item name="android:windowLightStatusBar">false</item><item name="android:windowBackground">#0D1117</item><item name="android:statusBarColor">#0D1117</item><item name="android:navigationBarColor">#0D1117</item>
  </style>
+ <style name="QuickCaptureTheme" parent="android:style/Theme.Material.Dialog.NoActionBar">
+  <item name="android:fontFamily">sans</item><item name="android:colorAccent">#58A6FF</item><item name="android:windowIsFloating">true</item><item name="android:windowNoTitle">true</item><item name="android:windowBackground">@android:color/transparent</item><item name="android:backgroundDimEnabled">true</item><item name="android:backgroundDimAmount">0.35</item><item name="android:windowCloseOnTouchOutside">true</item>
+ </style>
 </resources>

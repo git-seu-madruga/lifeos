@@ -1,8 +1,9 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical" android:padding="16dp" android:background="@drawable/widget_background">
- <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:gravity="center_vertical">
-  <ImageView android:layout_width="25dp" android:layout_height="25dp" android:src="@drawable/ic_brand" android:contentDescription="LifeOS"/>
-  <TextView android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:paddingStart="9dp" android:text="LifeOS · Captura" android:textColor="#E8EDF5" android:textSize="16sp" android:textStyle="bold"/>
-  <ImageView android:id="@+id/widget_status" android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_clock" android:contentDescription="Envio pendente"/>
- </LinearLayout>
- <Button android:id="@+id/widget_add" android:layout_width="match_parent" android:layout_height="48dp" android:layout_marginTop="10dp" android:background="@drawable/button_background" android:text="＋ Nova captura" android:textAllCaps="false" android:textColor="#FFFFFF" android:textSize="16sp"/>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android" android:layout_width="match_parent" android:layout_height="match_parent">
+ <ImageView android:id="@+id/widget_background" android:layout_width="match_parent" android:layout_height="match_parent" android:scaleType="fitXY" android:src="@drawable/widget_background" android:importantForAccessibility="no"/>
+ <LinearLayout android:id="@+id/widget_capture" android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="horizontal" android:gravity="center_vertical" android:padding="10dp" android:contentDescription="Abrir captura rápida do Inbox">
+ <ImageView android:layout_width="26dp" android:layout_height="26dp" android:src="@drawable/ic_brand" android:contentDescription="LifeOS"/>
+ <TextView android:id="@+id/widget_brand" android:layout_width="wrap_content" android:layout_height="wrap_content" android:layout_marginStart="7dp" android:layout_marginEnd="8dp" android:text="LifeOS" android:textColor="#E8EDF5" android:textSize="20sp" android:fontFamily="sans-serif-medium" android:textStyle="bold" android:singleLine="true" android:visibility="gone" android:importantForAccessibility="no"/>
+ <TextView android:id="@+id/widget_prompt" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:gravity="center" android:paddingStart="5dp" android:paddingEnd="5dp" android:text="＋ Inbox" android:textColor="#E8EDF5" android:textSize="18sp" android:textStyle="bold" android:singleLine="true" android:ellipsize="end"/>
+ <ImageView android:id="@+id/widget_status" android:layout_width="22dp" android:layout_height="22dp" android:src="@drawable/ic_clock" android:contentDescription="Envio pendente"/>
 </LinearLayout>
+</FrameLayout>

@@ -41,12 +41,17 @@ public class CaptureActivity extends Activity {
         add(body,label("Guardado no aparelho antes do envio. Você pode sair após a confirmação local.",12,Color.parseColor("#91A2BA")),10);
         account=label("",12,Color.parseColor("#91A2BA"));add(body,account,24);
         connect=button("Conectar ao LifeOS",false,this::pair);add(body,connect,12);
-        add(body,button("Tentar sincronizar agora",false,()->{SyncWorker.schedule(this);refresh();toast("Envio agendado. Os textos continuam protegidos no aparelho.");}),10);
+        add(body,button("Tentar sincronizar agora",false,()->{SyncWorker.retryNow(this);refresh();toast("Nova tentativa solicitada. Se já houver um envio em curso, ele será preservado.");}),10);
         add(body,button("Abrir LifeOS",false,()->openBrowser(BuildConfig.LIFEOS_URL)),10);
         LinearLayout extras=new LinearLayout(this);extras.setOrientation(LinearLayout.HORIZONTAL);
         Button copy=button("Copiar pendentes",false,this::copyPending);Button exit=button("Desconectar",false,this::disconnect);
         LinearLayout.LayoutParams half=new LinearLayout.LayoutParams(0,-2,1);half.setMargins(0,0,dp(6),0);extras.addView(copy,half);extras.addView(exit,new LinearLayout.LayoutParams(0,-2,1));add(body,extras,16);
         add(body,label("O widget mostra só o relógio dourado enquanto houver pendências e o check verde quando a fila terminar. Não exibe o conteúdo das capturas.",12,Color.parseColor("#91A2BA")),16);
+        int transparency=0;try{String value=store.get("widgetTransparency");if(!value.isEmpty())transparency=Math.max(0,Math.min(100,Integer.parseInt(value)));}catch(Exception ignored){}
+        TextView transparencyLabel=label("Transparência do fundo: "+transparency+"%",14,Color.parseColor("#C2D1E5"));add(body,transparencyLabel,24);
+        SeekBar transparencyBar=new SeekBar(this);transparencyBar.setMax(100);transparencyBar.setProgress(transparency);transparencyBar.setContentDescription("Transparência do fundo do widget");add(body,transparencyBar,8);
+        add(body,label("0%: fundo sólido · 100%: sem fundo. Textos e símbolos mantêm a visibilidade. O widget ocupa uma linha de 2 a 4 colunas.",12,Color.parseColor("#91A2BA")),4);
+        transparencyBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener(){public void onStartTrackingTouch(SeekBar bar){}public void onStopTrackingTouch(SeekBar bar){}public void onProgressChanged(SeekBar bar,int progress,boolean fromUser){transparencyLabel.setText("Transparência do fundo: "+progress+"%");if(fromUser)try{store.put("widgetTransparency",String.valueOf(progress));CaptureWidget.updateAll(CaptureActivity.this);}catch(Exception e){toast("Não foi possível salvar a transparência.");}}});
         text.requestFocus();if(getIntent().getBooleanExtra("quick",false))text.postDelayed(()->((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(text,InputMethodManager.SHOW_IMPLICIT),200);
     }
     private void capture(){
@@ -57,7 +62,7 @@ public class CaptureActivity extends Activity {
         CaptureWidget.updateAll(this);refresh();saving=false;toast("Guardado no aparelho. O envio continuará em segundo plano.");if(getIntent().getBooleanExtra("quick",false))finish();
     }
     private void refresh(){
-        try{int count=store.count();boolean authorized=store.authorized();status.setText(count>0?"◷ "+count+" envio(s) pendente(s)"+(authorized?"":" · conecte ao LifeOS"):authorized?"✓ Tudo sincronizado":"Conecte para enviar. Você já pode digitar.");status.setTextColor(Color.parseColor(count>0?"#FFC857":authorized?"#79D9A8":"#A8B8CE"));JSONObject u=store.userInfo();String message=store.get("lastError");account.setText((u.optString("email").isEmpty()?"":u.optString("email")+"\n")+message);connect.setText(authorized?"Ver dispositivos autorizados":"Conectar ao LifeOS");}
+        try{int count=store.count();boolean authorized=store.authorized();status.setText(count>0?"◷ "+count+" envio(s) pendente(s)"+(authorized?"":" · conecte ao LifeOS"):authorized?"✓ Tudo sincronizado":"Conecte para enviar. Você já pode digitar.");status.setTextColor(Color.parseColor(count>0?"#FFC857":authorized?"#79D9A8":"#A8B8CE"));JSONObject u=store.userInfo();String message=count>0||!authorized?store.get("lastError"):"";String stamp=store.get(count>0?"lastAttemptAt":"lastSavedAt");String timing=stamp.isEmpty()?"":(count>0?"Última tentativa: ":"Último envio confirmado: ")+java.text.DateFormat.getDateTimeInstance(java.text.DateFormat.SHORT,java.text.DateFormat.SHORT).format(new java.util.Date(Long.parseLong(stamp)));account.setText((u.optString("email").isEmpty()?"":u.optString("email")+"\n")+timing+(message.isEmpty()?"":"\n"+message));connect.setText(authorized?"Ver dispositivos autorizados":"Conectar ao LifeOS");}
         catch(Exception e){status.setText("Falha no armazenamento. Não desinstale; os dados precisam ser recuperados.");}
     }
     private void pair(){

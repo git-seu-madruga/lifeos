@@ -761,22 +761,22 @@ Botões principais de inclusão em Projetos, Tarefas, Compras, Aniversários e V
 O ícone da aba Aniversários fica dourado quando há contatos na lista dos próximos 7 dias (hoje e os seis dias seguintes). Usa os contatos já carregados e a mesma regra do resumo, sem filtro da busca e sem consulta extra. Sem aniversários nessa janela, retorna ao ícone padrão; só o ícone recebe cor.
 
 
-## LifeOS Captura — aplicativo Android e widget (v1.0.0)
+## LifeOS Captura — aplicativo Android e widget (v1.0.3)
 
 Aplicativo complementar **somente para adicionar textos ao Inbox privado**, independente do PWA. Não mostra a lista do Inbox nem lê os outros bancos. Android 8.0 ou mais recente. O domínio desta compilação é `https://lifeos-two-kohl-18.vercel.app`.
 
 ### Implantação e primeira conexão
 
 1. Publique primeiro o conteúdo de `lifeos/` deste pacote no repositório/Vercel, incluindo as novas rotas `app/api/capture/` e a página `app/capture/pair/`. Preserve as variáveis já configuradas. Não há novo banco Notion, nova variável ou cliente OAuth Android.
-2. No Android, baixe e instale **LifeOS-Captura-1.0.0.apk**. Se solicitado, permita a instalação por essa fonte. O app tem nome/ícone próprios e não substitui o LifeOS PWA.
+2. No Android, baixe e instale **LifeOS-Captura-1.0.3.apk**. Se solicitado, permita a instalação por essa fonte. O app tem nome/ícone próprios e não substitui o LifeOS PWA. Se já estiver instalado, atualize por cima, sem desinstalar.
 3. Abra **LifeOS Captura**, toque **Conectar ao LifeOS**, confira o código e abra a autorização no navegador. Use o login Google de uma das duas contas existentes e confirme **Autorizar captura**. A página não carrega os bancos completos.
 4. Volte ao aplicativo Android. Ele conclui o pareamento e vincula os envios à conta autorizada. Se houver capturas feitas antes da primeira conexão, serão enviadas a essa conta; a página de autorização explica isso.
 5. Na home do Android, mantenha pressionado um espaço vazio, abra **Widgets**, escolha **LifeOS Captura** e adicione o widget. O caminho exato depende do launcher.
 
 ### Capturar e sincronizar
 
-- **＋ Nova captura** abre uma tela nativa leve, com o campo ativo e teclado. Enter cria novas linhas; o texto mantém as integrações existentes do Inbox (primeira linha, demais linhas etc.). O widget não faz essas conversões: elas continuam sendo executadas dentro do LifeOS.
-- Toque **Adicionar ao Inbox**. Primeiro a entrada é gravada em uma fila SQLite privada, com conteúdo criptografado usando Android Keystore. Só depois é agendado o envio. A confirmação **Guardado no aparelho** permite sair; abrir pelo widget fecha a captura após guardar.
+- O widget compacto ocupa **uma linha e duas colunas**, podendo ser alargado para **uma linha e quatro colunas** (a grade exata depende do launcher). Toque na faixa **＋ Inbox / ＋ Capturar no Inbox** para abrir uma **janela flutuante sobre a home**, somente com título discreto, campo multilinha, fechar e Enviar ao Inbox. O campo fica ativo e o teclado abre, sem passar pela tela principal do app. Fechar ou tocar fora mantém o rascunho. A tela principal continua disponível pelo ícone LifeOS Captura para conexão e configurações. Enter cria novas linhas; o texto mantém as integrações existentes do Inbox (primeira linha, demais linhas etc.). O widget não faz essas conversões: elas continuam sendo executadas dentro do LifeOS.
+- Toque **Adicionar ao Inbox**. Primeiro a entrada é gravada em uma fila SQLite privada, com conteúdo criptografado usando Android Keystore. Só depois é agendado o envio. A confirmação **Guardado no aparelho** permite sair; abrir pelo widget fecha a janela após guardar.
 - **Relógio dourado:** existem entradas ainda não confirmadas. **Check verde:** não há envios pendentes e a conexão local está autorizada. **Símbolo cinza de conexão:** falta conectar/reautorizar. Nenhum título ou conteúdo de captura aparece no widget.
 - A fila é processada pelo WorkManager quando há rede, com novas tentativas e atraso progressivo. Não baixa o Inbox nem faz varredura de bancos; não mantém serviço permanentemente ativo nem consulta periodicamente por novas entradas. O Android decide o momento de execução, especialmente com economia de bateria. Forçar parada ou restringir o app pode exigir reabri-lo para retomar.
 - Só se remove uma entrada local após o servidor confirmar `saved` para o mesmo ID. Os registros confirmados continuam no Notion e são exibidos no Inbox normal quando o LifeOS se atualiza, conforme o fluxo já existente.
@@ -795,6 +795,10 @@ O servidor usa o lock global já existente (inclusive o bloqueio de backup/resta
 
 Se o Notion perder a resposta depois de gravar, a próxima tentativa procura somente aquele ID e recupera a confirmação. Se o resultado continuar ambíguo e o registro não for encontrado, o servidor **não cria outra cópia automaticamente**: a entrada fica pendente com aviso. Confira o Inbox e use Copiar pendentes para resgate, se necessário; não interprete relógio dourado como confirmação. Uma falha ou indisponibilidade nunca deve virar check verde com itens na fila.
 
+Recusas explícitas de criação pelo Notion (validação, acesso ou limite de chamadas) permitem repetir o envio após corrigir a causa, mantendo o mesmo ID e texto. Falhas de rede, respostas 5xx ou resultados desconhecidos continuam protegidos como ambíguos. Recibos antigos que já ficaram ambíguos não são liberados automaticamente, porque não é possível saber se houve gravação, conversão ou exclusão posterior.
+
+**Tentar sincronizar agora** reinicia uma tentativa que esteja adiada pelo atraso progressivo, sem interromper um envio já em curso. Pedidos automáticos são agrupados, preservando o próximo processamento quando uma captura chega no final da execução. A tela principal informa a última tentativa ou o último envio confirmado e o motivo da pendência quando disponível. Relógio dourado significa pendência, não necessariamente uma requisição em andamento. Economia de bateria, ausência de rede e manutenção/backup também podem adiar o envio; essas situações não apagam a fila.
+
 ### Atualizar o APK e guardar a assinatura
 
 Instale as próximas versões **por cima**, mantendo `applicationId=app.lifeos.capture`, a mesma chave de assinatura e `versionCode` crescente. Isso preserva a fila e o vínculo do aparelho. Guarde **LifeOS-Captura-Assinatura-PRIVADA.zip** em local seguro: contém a chave e a senha para futuras compilações assinadas. **Nunca envie esse ZIP, a chave ou sua senha ao GitHub/Vercel.** Ele é entregue separado do código.
@@ -804,3 +808,17 @@ O projeto Android está em `lifeos/android-capture/`. Pode ser aberto no Android
 ### Verificação desta entrega
 
 Os testes do servidor usam serviços simulados e scripts Redis Lua reais em VM: pareamento de uso único, duas contas, revogação, limites, origem, escopo restrito, isolamento, manutenção, envio incremental, reenvio e respostas perdidas. A compilação Next valida as novas rotas/página. Compilação e lint do Android verificam o pacote; uso em aparelho real, restrições de bateria e comportamento do launcher devem ser confirmados no seu teste inicial. Não houve gravação ou migração nos serviços de produção durante o desenvolvimento.
+
+### Atualização 1.0.3 — sincronização e widget
+
+O widget ocupa uma linha horizontal de duas até quatro colunas, conforme o launcher. Mostra o ícone e **LifeOS**, com OS em azul, quando a largura comporta a marca completa; no tamanho menor fica só o ícone. O texto da ação passa a 18sp, com alinhamento central no espaço restante. Redimensionar recalcula a apresentação. Relógio/check continuam sem títulos das capturas.
+
+Na tela principal LifeOS Captura, ajuste **Transparência do fundo** de 0% (sólido) a 100% (sem fundo). A preferência é local, vale para os widgets desse aparelho e não altera a cor/opacidade dos textos e símbolos nem o painel de captura. Widgets existentes podem manter o tamanho antigo: redimensione pela home; se o launcher não oferecer uma linha, remova somente o widget e adicione novamente. Isso não apaga a fila.
+
+Para aplicar esta entrega:
+
+1. Publique o código completo do ZIP na Vercel, pelo fluxo habitual do GitHub. Esta versão também corrige o tratamento de recusas explícitas do Notion no servidor.
+2. Instale **LifeOS-Captura-1.0.3.apk** sobre a versão existente, **sem desinstalar nem limpar os dados**. A assinatura é a mesma, com versionCode 4; a fila, o rascunho, a transparência e as credenciais são preservados.
+3. Abra LifeOS Captura e, se houver pendências, toque em **Tentar sincronizar agora**. Confira a mensagem de erro na tela se a fila não terminar. Não reinstale do zero para resolver pendências.
+
+Não há novos campos/bancos no Notion, variáveis na Vercel ou configuração Google. Para desenvolvimento, `npm run test:android-queue` requer JDK 17 em JAVA_HOME/PATH e executa o Java real do worker com substitutos locais de Android, rede e armazenamento. Verifica agendamento, reenvio manual, confirmação do ID, timeout, autorização e lotes; não equivale a teste em aparelho.

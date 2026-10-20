@@ -6,6 +6,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test:android-queue": "node tests/android-capture.cjs",
     "test": "node tests/notion.cjs && node tests/client-sync.cjs && node tests/diary.cjs && node tests/finance.cjs && node tests/birthdays.cjs && node tests/shopping.cjs && node tests/habits.cjs && node tests/google.cjs && node tests/pwa.cjs && node tests/media.cjs && node tests/mobile-tabs.cjs && node tests/links.cjs && node tests/back-navigation.cjs && node tests/inbox-mobile.cjs && node tests/recados.cjs && node tests/backup.cjs && node tests/recado-notification.cjs && node tests/tasks-ui.cjs && node tests/backdrop-gesture.cjs && node tests/wellness.cjs && node tests/qr-login.cjs && node tests/external-links.cjs && node tests/vehicles.cjs && node tests/vehicle-import.cjs && node tests/nutrition.cjs && node tests/nutrition-ui.cjs && node tests/capture.cjs"
   },
   "dependencies": {
