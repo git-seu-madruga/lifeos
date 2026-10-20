@@ -79,9 +79,9 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
               <span className="label">Conteúdo</span>
               <AutoTextarea className="search notes" rows={6} value={item.text} onChange={(e) => onUpdate(item.id, e.target.value)} /><TextLinks text={item.text}/>
             </div>
-            <p className="muted small">{tabId === "habitos" ? "Para criar um hábito, use + Novo hábito na tela Hábitos." : target.kind === "recado" ? "Primeira linha: título do recado. Demais linhas: mensagem. A entrada permanece no Inbox até o envio ser concluído." : target.kind === "shopping" ? "Primeira linha: nome da lista. Separe os itens nas linhas seguintes (Enter no celular ou Shift + Enter no computador)." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>
+            {target&&<p className="muted small">{tabId === "habitos" ? "Para criar um hábito, use + Novo hábito na tela Hábitos." : target.kind === "recado" ? "Primeira linha: título do recado. Demais linhas: mensagem. A entrada permanece no Inbox até o envio ser concluído." : target.kind === "shopping" ? "Primeira linha: nome da lista. Separe os itens nas linhas seguintes (Enter no celular ou Shift + Enter no computador)." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>}
             <div className="inbox-actions">
-              {tabId !== "habitos" && <button className="primary" disabled={!target.kind} onClick={convert}>
+              {tabId !== "habitos" && target && <button className="primary" disabled={!target.kind} onClick={convert}>
                 Transformar em {target.label}{target.kind ? "" : " (em breve)"}
               </button>}
               <button className="danger" onClick={remove}>Excluir</button>
