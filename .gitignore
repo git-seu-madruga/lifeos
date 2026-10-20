@@ -18,3 +18,9 @@ node_modules/
 .google-test/
 
 .media-test/
+
+android-capture/.gradle/
+android-capture/**/build/
+android-capture/local.properties
+*.jks
+*.keystore

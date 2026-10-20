@@ -124,3 +124,13 @@ Botões principais de inclusão em Projetos, Tarefas, Compras, Aniversários e V
 O ícone da aba Aniversários fica dourado quando há contatos na lista dos próximos 7 dias (hoje e os seis dias seguintes). Usa os contatos já carregados e a mesma regra do resumo, sem filtro da busca e sem consulta extra. Sem aniversários nessa janela, retorna ao ícone padrão; só o ícone recebe cor.
 
 Aniversários admite notes (Observações) opcional, até 5.000 caracteres, com múltiplas linhas e links na lista. Campo rich_text Observações criado automaticamente no schema existente. Incluir notes no diff e validação; preservar contatos antigos sem o campo e compartilhamento das duas contas.
+
+
+## LifeOS Captura Android
+
+- android-capture/ é o app nativo auxiliar somente para criação de Inbox; não expandir para leitura/histórico ou outras abas sem pedido. Widget mostra botão e apenas relógio dourado/check verde (cinza sem conexão), nunca texto das capturas.
+- Java, minSdk 26, compile/target 35, WorkManager 2.10.0; usar fila SQLite durável com textos criptografados no Android Keystore. Guardar captura e limpar rascunho na mesma transação. Retirar da fila apenas após confirmação do ID. Sem polling permanente ou serviço sempre ativo. Preservar filas/rascunhos ao sair e não misturar proprietários no pareamento.
+- Credenciais nativas são de 90 dias e restritas ao endpoint de criação. Pareamento por sessão Google existente e código de conferência; prova do aparelho não vai na URL do navegador. Aprovação e revogação atômicas em Redis. Tokens do app não são sessões web, e sessões QR não podem autorizar dispositivos. API de envio usa lock/manutenção/roteamento ativos, proprietário derivado da credencial e consulta por ID exato, nunca snapshot completo.
+- Recibos técnicos sem texto ficam no Redis para idempotência, inclusive após conversão/exclusão. Resposta ambígua sem registro encontrado permanece pendente; não repetir POST cegamente.
+- Android applicationId app.lifeos.capture, assinatura estável, versionCode crescente. Não incluir .gradle, build/, local.properties, JKS, senha ou ZIP de assinatura no código/GitHub. Assinatura entregue separadamente e mantida para futuras atualizações. Sem dependência de novo cliente OAuth ou banco.
+- README é também o guia Android único; não criar instruções paralelas. Testes capture.cjs simulam serviços e executam Lua de produção; não usar produção para validar o APK. Nunca alegar teste em aparelho quando houve apenas build/lint.
