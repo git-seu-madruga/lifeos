@@ -17,7 +17,7 @@ const {useNotionState}=require(path.join(folder,'lib/useNotionState'));
 function render(){if(!active)return;index=0;effects=[];hook=useNotionState();const pending=effects;effects=[];pending.forEach(effect=>effect());}
 const {readState,saveState,readPrivateDraft}=require(path.join(folder,'lib/storage'));
 const testUser={id:'google:test-user',email:'periclesbernardes@gmail.com',name:'Péricles',isLegacyOwner:true,draftKey:Buffer.alloc(32,7).toString('base64')};
-let sessionAuthenticated=false,sessionQueries=0;let remote={user:testUser,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true},syncCount=0,uploadCount=0,failure=false,gate=null,readCount=0,readGate=null,readFailure=false;
+let sessionAuthenticated=false,sessionQueries=0;let remote={user:testUser,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true},syncCount=0,uploadCount=0,failure=false,gate=null,readCount=0,readGate=null,readFailure=false,normalizeCompletionDates=false;const syncBodies=[];
 global.fetch=async(url,options={})=>{
  if(url==='/api/auth/qr')return Response.json({authenticated:true});
  if(url==='/api/backup')return Response.json({maintenance:false});
@@ -27,12 +27,13 @@ global.fetch=async(url,options={})=>{
  if(url==='/api/notion/sync'){
   syncCount++;if(gate)await gate;
   if(failure){failure=false;return Response.json({error:'Falha simulada'},{status:502});}
-  const {next,base,partial}=JSON.parse(options.body),bindings={},files={};
+  const {next,base,partial}=JSON.parse(options.body),bindings={},files={},taskCompletions={};syncBodies.push(structuredClone({next,base}));
   for(const item of [...(next.mediaSections||[]),...(next.media||[]),...next.projects,...next.projects.flatMap(project=>project.milestones),...next.tasks,...next.inbox,...next.diary,...(next.shopping || []),...next.categories,...next.transactions,...(next.habits||[]),...(next.habitLogs||[]),...(next.vehicles||[]),...(next.wellness||[]),...(next.cycle||[]),...(next.nutrition||[])]){
    bindings[item.id]=item._notionId||`remote-${item.id}`;
    for(const file of item.attachments||[])if(file.uploadId)files[file.id]={id:file.id,name:file.name,notion:{type:'file',name:file.name,file:{url:'https://files.test/ref'}},pageId:bindings[item.id],index:0,kind:(next.media||[]).includes(item)?'media':next.diary.includes(item)?'diary':next.tasks.includes(item)?'tasks':'projects',url:'https://files.test/ref'};
   }
-  if(partial){for(const kind of Object.keys(next)){const ids=new Set([...(base[kind]||[]),...next[kind]].map(item=>item.id));remote[kind]=[...(remote[kind]||[]).filter(item=>!ids.has(item.id)),...next[kind]];}}else remote={...next,user:testUser};return Response.json({bindings,files});
+  if(normalizeCompletionDates)next.tasks=next.tasks.map(task=>{const completedAt=task.completedAt?Math.floor(task.completedAt/60000)*60000:null;taskCompletions[task.id]={status:task.status,completedAt};return {...task,completedAt};});
+  if(partial){for(const kind of Object.keys(next)){const ids=new Set([...(base[kind]||[]),...next[kind]].map(item=>item.id));remote[kind]=[...(remote[kind]||[]).filter(item=>!ids.has(item.id)),...next[kind]];}}else remote={...next,user:testUser};return Response.json({bindings,files,taskCompletions});
  }
  throw new Error(`Rota inesperada ${url}`);
 };
@@ -50,6 +51,15 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  hook.setTasks(previous=>previous.map(task=>({...task,title:'Em voo'})));
  const saving=hook.flush();await tick();hook.setTasks(previous=>previous.map(task=>({...task,title:'Edição durante salvamento'})));release();gate=null;
  await saving;await tick();assert.equal(hook.tasks[0].title,'Edição durante salvamento');assert.equal(remote.tasks[0].title,'Edição durante salvamento');assert.equal(hook.pending,false);
+ normalizeCompletionDates=true;const completionTime=Date.parse('2026-10-20T13:59:28.437Z'),canonical=Math.floor(completionTime/60000)*60000;
+ hook.setTasks(previous=>previous.map(task=>({...task,status:'done',completedAt:completionTime})));await hook.flush();await tick();assert.equal(hook.tasks[0].completedAt,canonical,'Adoptar data realmente confirmada');assert.equal(hook.pending,false);
+ hook.setTasks(previous=>previous.map(task=>({...task,status:'todo',completedAt:null})));await hook.flush();await tick();
+ gate=new Promise(resolve=>release=resolve);hook.setTasks(previous=>previous.map(task=>({...task,status:'done',completedAt:completionTime})));
+ const completing=hook.flush();await tick();hook.setTasks(previous=>previous.map(task=>({...task,status:'todo',completedAt:null,notes:'Reaberta durante envio'})));release();gate=null;await completing;await tick();
+ assert.equal(hook.tasks[0].status,'todo','Resposta tardia não desfaz reabertura');assert.equal(hook.tasks[0].completedAt,null);assert.equal(hook.tasks[0].notes,'Reaberta durante envio');assert.equal(syncBodies.at(-1).base.tasks[0].completedAt,canonical,'Reabertura usa data confirmada como base');assert.equal(hook.pending,false);
+ gate=new Promise(resolve=>release=resolve);hook.setTasks(previous=>previous.map(task=>({...task,status:'done',completedAt:completionTime})));
+ const completingWithNotes=hook.flush();await tick();hook.setTasks(previous=>previous.map(task=>({...task,notes:'Comentário durante conclusão'})));release();gate=null;await completingWithNotes;await tick();assert.equal(hook.tasks[0].completedAt,canonical);assert.equal(hook.tasks[0].notes,'Comentário durante conclusão');assert.equal(hook.pending,false);
+ normalizeCompletionDates=false;
  hook.setInbox([{id:'i',text:'Entrada\ncom duas linhas',createdAt:Date.now()}]);await hook.flush();await tick();assert.equal(remote.inbox[0].text,'Entrada\ncom duas linhas');assert.equal(hook.inbox[0]._notionId,'remote-i');
  hook.setInbox([]);await hook.flush();await tick();assert.equal(remote.inbox.length,0);
  hook.setDiary([{id:'d2026-10-04',date:'2026-10-04',text:'**Anotação**\nSegunda linha',attachments:[]}]);await hook.flush();await tick();assert.equal(remote.diary[0].date,'2026-10-04');assert.equal(hook.diary[0]._notionId,'remote-d2026-10-04');assert.equal(hook.pending,false);

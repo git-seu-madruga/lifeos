@@ -41,12 +41,13 @@ const specs={
 };
 const sources={};for(const [kind,spec] of Object.entries(specs))sources[kind]={id:sourceIds[kind],properties:Object.fromEntries(Object.entries(spec).map(([name,type])=>[name,{id:randomUUID(),name,type,...(type==='relation'?{relation:{data_source_id:sourceIds[name==='Seção'?'mediaSections':name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects'],database_id:databases[name==='Seção'?'mediaSections':name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects']}}:{})}]))};
 process.env.UPSTASH_REDIS_REST_URL='https://redis.test';process.env.UPSTASH_REDIS_REST_TOKEN='redis-test-token';
-const rows=new Map(),calls=[],redisRows=new Map();let creates=0,paginate=false,failShoppingWrite=false,failCompletionTaskWrite=false;
+const rows=new Map(),calls=[],redisRows=new Map();let creates=0,paginate=false,failShoppingWrite=false,failCompletionTaskWrite=false,failCompletionProjectWrite=false,normalizeCompletionDates=false;
 const kindBySource=id=>Object.keys(sourceIds).find(kind=>sourceIds[kind]===id);
 function normalizeProperties(kind,properties) {
  return Object.fromEntries(Object.entries(properties).map(([name,value])=>{
   const type=sources[kind].properties[name].type;
   if(type==='files')value={files:value.files.map(file=>file.type==='file_upload'?{name:file.name,type:'file',file:{url:`https://files.notion.test/${file.file_upload.id}?signature=current`,expiry_time:'2099-01-01'}}:file)};
+  if(normalizeCompletionDates&&kind==='tasks'&&name==='Concluída em'&&value.date?.start)value={date:{...value.date,start:new Date(Math.floor(Date.parse(value.date.start)/60000)*60000).toISOString()}};
   return [name,{...value,type}];
  }));
 }
@@ -66,6 +67,7 @@ global.fetch=async(url,options={})=>{
  calls.push({route,method,body});
  if(failShoppingWrite&&method==='PATCH'&&body?.properties?.Itens){failShoppingWrite=false;return Response.json({message:"Falha simulada na lista"},{status:400});}
  if(failCompletionTaskWrite&&method==='PATCH'&&body?.properties?.Status&&kindBySource(rows.get(route.split('/')[2])?.parent.data_source_id)==='tasks'){failCompletionTaskWrite=false;return Response.json({message:'Falha simulada ao concluir tarefa'},{status:400});}
+ if(failCompletionProjectWrite&&method==='PATCH'&&body?.properties?.Status?.select?.name==='Concluído'&&kindBySource(rows.get(route.split('/')[2])?.parent.data_source_id)==='projects'){failCompletionProjectWrite=false;return Response.json({message:'Falha simulada após concluir filhos'},{status:400});}
  const reply=value=>Response.json(value);
  if(route.startsWith('/databases/')){const kind=Object.keys(databases).find(kind=>databases[kind]===route.split('/')[2]);assert.ok(kind);return reply({id:databases[kind],data_sources:[{id:sourceIds[kind]}]});}
  if(route.startsWith('/data_sources/')){
@@ -390,6 +392,44 @@ global.fetch=async(url,options={})=>{
  const children=actual.tasks.filter(t=>t.project===pid);assert.equal(children.length,3);assert.ok(children.every(t=>t.status==='done'));assert.equal(children.find(t=>t.title==='Já concluída').completedAt,123000);
  const writes=calls.slice(mark).filter(c=>c.method==='PATCH'&&c.body?.properties);const firstProject=writes.findIndex(c=>c.route===`/pages/${pid}`);assert.ok(firstProject>writes.findIndex(c=>kindBySource(rows.get(c.route.split('/')[2])?.parent.data_source_id)==='tasks'),'Filhos são salvos antes do projeto');
  const reopened={...actual,projects:actual.projects.map(p=>p.id===pid?{...p,status:'active'}:p)};await save(actual,reopened);actual=(await notionLib.readSnapshot(false,A)).state;assert.ok(actual.tasks.filter(t=>t.project===pid).every(t=>t.status==='done'));
+ }
+
+ {
+ const A={id:'google:completion-precision',email:'periclesbernardes@gmail.com',name:'Péricles'};
+ const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
+ const save=async(base,next)=>{const d=compactSyncState(base,next);return synchronize(d.base,d.next,A,async()=>{},true);};
+ let initial=(await notionLib.readSnapshot(false,A)).state;
+ const project={id:'precision-project',name:'Conclusão com data normalizada',status:'active',context:'personal',area:'',description:'',due:null,attachments:[],milestones:[]};
+ const task={id:'precision-task',title:'Tarefa da interface',project:project.id,milestone:null,status:'todo',priority:'medium',context:'personal',notes:'',attachments:[],completedAt:null};
+ await save(initial,{...initial,projects:[...initial.projects,project],tasks:[...initial.tasks,task]});
+ const base=(await notionLib.readSnapshot(false,A)).state,pid=base.projects.find(p=>p.name===project.name).id;
+ const time=Date.parse('2026-10-20T13:59:28.437Z');
+ const desired={...base,projects:base.projects.map(p=>p.id===pid?{...p,status:'done'}:p),tasks:base.tasks.map(t=>t.project===pid?{...t,status:'done',completedAt:time}:t)};
+ normalizeCompletionDates=true;failCompletionProjectWrite=true;
+ await assert.rejects(()=>save(base,desired),/Falha simulada após concluir filhos/);
+ assert.equal((await notionLib.readSnapshot(false,A)).state.projects.find(p=>p.id===pid).status,'active');
+ const recovered=await save(base,desired); // Must recover a pending draft with the UI's original timestamp.
+ const actual=(await notionLib.readSnapshot(false,A)).state;
+ assert.equal(actual.projects.find(p=>p.id===pid).status,'done');
+ const completedTask=actual.tasks.find(t=>t.project===pid),canonical=Math.floor(time/60000)*60000;
+ assert.equal(completedTask.completedAt,canonical);assert.deepEqual(recovered.taskCompletions[completedTask.id],{status:'done',completedAt:canonical});
+ await save(base,desired); // Repeating the original request must remain safe.
+ // Older browser drafts can contain a date with more precision than the remote field.
+ const oldPrecision={...actual,tasks:actual.tasks.map(t=>t.id===completedTask.id?{...t,completedAt:time}:t)};
+ const reopen={...oldPrecision,tasks:oldPrecision.tasks.map(t=>t.id===completedTask.id?{...t,status:'todo',completedAt:null}:t)};
+ await save(oldPrecision,reopen);
+ const open=(await notionLib.readSnapshot(false,A)).state;
+ const finish={...open,tasks:open.tasks.map(t=>t.id===completedTask.id?{...t,status:'done',completedAt:time}:t)};
+ const response=await save(open,finish);assert.equal(response.taskCompletions[completedTask.id].completedAt,canonical);
+ await save(open,finish); // Standalone retry also accepts the returned date representation.
+ const original=(await notionLib.readSnapshot(false,A)).state;
+ rows.get(completedTask.id).properties['Concluída em'].date.start='2026-10-19T13:59:00.000Z';
+ const conflicting={...original,tasks:original.tasks.map(t=>t.id===completedTask.id?{...t,status:'todo',completedAt:null}:t)};
+ await assert.rejects(()=>save(original,conflicting),/Concluída em/,'Mudança real de data remota continua protegida');
+ rows.get(completedTask.id).properties['Concluída em'].date.start=new Date(canonical).toISOString();
+ const {sameCompletionTime}=require(path.join(temp,'lib/tasks'));
+ assert.equal(sameCompletionTime(canonical,time),true);assert.equal(sameCompletionTime(canonical+1000,time),false);assert.equal(sameCompletionTime(canonical+50,time),false);assert.equal(sameCompletionTime(null,time),false);
+ normalizeCompletionDates=false;
  }
 
  {process.env.NOTION_NUTRITION_DATABASE_ID=databases.nutrition;
