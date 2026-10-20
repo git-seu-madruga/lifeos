@@ -204,9 +204,13 @@ As edições comuns são salvas automaticamente. O botão Atualizar relê o Noti
 
 Durante o salvamento, o app envia apenas os registros envolvidos, suas versões anteriores para detectar conflitos e as dependências necessárias (por exemplo, o projeto e seus marcos de uma tarefa). Imagens e arquivos já enviados não são reenviados. O servidor usa leitura por ID e consultas filtradas, sem varrer bancos inteiros a cada edição. Novas entradas de Diário e marcações de Hábitos consultam a data envolvida para preservar a unicidade e recuperar falhas parciais.
 
-### Conclusão de projetos e recuperação de tarefas pendentes
+### Conclusão/cancelamento de projetos e recuperação de tarefas pendentes
 
-Concluir um projeto com tarefas ou marcos abertos continua exigindo confirmação e conclui esses filhos antes do projeto. Uma nova tentativa após falha parcial preserva a data das tarefas já concluídas, inclusive quando a interface ainda contém a versão anterior da data. O salvamento devolve ao app o status e a data efetivamente confirmados pelo Notion, sem baixar novamente a coleção. Reabrir uma tarefa ou alterar seu texto enquanto o envio ocorre continua sendo preservado.
+Nas tarefas em aberto, o status mantém precedência. Dentro do mesmo status e data, as mais antigas aparecem primeiro e as novas ficam abaixo, no quadro de Tarefas e dentro dos projetos/marcos. Em On hold, a data considerada é a de cobrança. Os seletores explícitos de prioridade/nome continuam funcionando. Concluídas mantêm a conclusão mais recente primeiro; Compras mantém sua ordenação própria. A criação é recuperada dos identificadores LifeOS existentes ou da data original do Notion, sem campo novo, alteração em massa ou reimportação.
+
+Marcar um projeto como **Concluído** ou **Cancelado** com tarefas ou marcos abertos exige confirmação e conclui esses filhos antes de salvar o status final do projeto. Ao cancelar a confirmação, nada é alterado. O projeto cancelado permanece em Cancelados, com o histórico preservado; as tarefas vinculadas ficam concluídas e os marcos marcados como concluídos. Tarefas/marcos adicionados em outra instância também entram nesse processamento. Reabrir o projeto não reabre seus filhos.
+
+Uma nova tentativa após falha parcial preserva a data das tarefas já concluídas, inclusive quando a interface ainda contém a versão anterior da data. O salvamento devolve ao app o status e a data efetivamente confirmados pelo Notion, sem baixar novamente a coleção. Reabrir uma tarefa ou alterar seu texto enquanto o envio ocorre continua sendo preservado.
 
 O campo técnico **Concluída em** aceita a representação retornada com segundos/milissegundos truncados, sem tratar isso como uma edição concorrente. Datas realmente diferentes e conflitos em outros campos continuam protegidos.
 
