@@ -2,6 +2,18 @@
 
 Documento único da versão atual. Este README substitui os arquivos INSTRUCOES das entregas anteriores e deve ser atualizado nas próximas revisões, sem acumular orientações de versões antigas.
 
+## Catálogo ampliado de ilustrações
+
+255 novas ilustrações Microsoft Fluent Emoji 3D, organizadas por viagens e lugares, videogames e lazer, esportes, frutas e vegetais, refeições, doces e bebidas, natureza e animais, casa, estudos e criação. A seleção oferece busca em português (sem exigir acentos), filtro por tema e identificação da escolha atual.
+
+- **Algum dia e cadastro de áreas de Projetos/Algum dia:** 265 opções, incluindo as 10 anteriores.
+- **Acompanhamento/alimentação:** 122 opções para alimentos e receitas, incluindo as 21 anteriores e 101 novas.
+- **Hábitos/Bem-estar:** 271 opções. Os 16 ícones anteriores continuam disponíveis em Clássicos, e as novas ilustrações podem ser usadas em hábitos.
+
+As opções já salvas e o histórico permanecem. As ilustrações novas são arquivos WebP locais, com transparência, até 128 × 128 px e carregamento sob demanda do navegador; o catálogo não consulta serviços externos nem ocupa o banco do Notion. Licença e origem dos arquivos estão em public/emoji/fluent-expanded/. Nenhuma assinatura ou integração adicional.
+
+Para atualizar, envie o pacote completo e faça o deploy, incluindo os novos arquivos de public/emoji/. Não há alteração de bancos/campos do Notion, variáveis, APK ou necessidade de reimportar dados. O editor amplo e o catálogo integrado de áreas da entrega anterior estão incluídos. Inbox permanece com o comportamento existente.
+
 ## Conclusão de projetos
 
 Ao mudar um projeto para **Concluído**, se houver tarefas ou marcos abertos, o app informa as quantidades e pede confirmação. Cancelar mantém tudo como estava. Confirmar conclui também todas as tarefas e marcos vinculados, preservando o histórico, anexos, responsáveis e datas dos itens já concluídos. Isso inclui pendências criadas em outra instância desde a última atualização. Reabrir o projeto não reabre seus itens automaticamente.
@@ -14,7 +26,7 @@ A sincronização grava os itens vinculados antes de concluir um projeto existen
 2. Extraia o ZIP. Envie o **conteúdo da pasta lifeos** para a raiz do repositório, substituindo os arquivos existentes. Não crie uma segunda pasta lifeos dentro do projeto.
 3. Mantenha as variáveis e os bancos já configurados. O login por QR Code usa o mesmo Google, Vercel e Upstash: não exige novos bancos, chaves ou callbacks. Caso ainda não tenha configurado Bem-estar e Ciclo da Letícia, siga a seção Bem-estar antes de usar esses cartões.
 4. Faça o deploy na Vercel e atualize a página/app instalado.
-5. Para habilitar Acompanhamento, crie o banco e a variável descritos na seção **Acompanhamento** ao final deste guia. As áreas existentes continuam usando suas configurações atuais.
+5. Para habilitar **Algum dia**, crie o banco e a variável descritos na seção **Algum dia — configuração** abaixo. Para Acompanhamento, siga a seção correspondente ao final deste guia. Os bancos existentes continuam com os mesmos campos; as áreas de Projetos passam a usar o catálogo de Algum dia.
 6. Remova do repositório os antigos arquivos INSTRUCOES-*.md: o envio pelo navegador não remove arquivos que deixaram de existir no ZIP. Todas as instruções atuais estão aqui.
 
 Para enviar mais de 100 arquivos pelo navegador do GitHub, crie uma branch, envie em lotes e faça merge apenas quando todos os arquivos estiverem presentes. Isso evita publicar uma versão parcial em produção. Git/GitHub Desktop também permitem enviar o projeto completo.
@@ -22,6 +34,10 @@ Para enviar mais de 100 arquivos pelo navegador do GitHub, crie uma branch, envi
 Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de ambiente locais. O arquivo .env.example é apenas um modelo sem segredos.
 
 ### Mudanças desta revisão
+
+- **Editor amplo e áreas integradas**: Nova ideia e edição de ideias ocupam a largura de conteúdo, como o editor de Projetos, com espaço maior para as anotações. Projetos e Algum dia usam o mesmo catálogo de áreas, acessível em **Gerenciar áreas** nas duas telas. Os botões de sugestões/importação foram removidos. **Não exige alterações adicionais no Notion, variáveis ou APK** se Algum dia já estiver configurado.
+
+- **Algum dia**: nova aba privada de ideias, áreas de interesse, favoritos, cartões ilustrados, cores e editor rico com imagens e prévias de links. Exige apenas um novo banco e `NOTION_SOMEDAY_DATABASE_ID`. As novas ilustrações e o editor são um piloto exclusivo desta aba; o Inbox não recebe opção de conversão nem integração nova. O APK Captura permanece na versão atual.
 
 - Favoritos e Minhas receitas mostram todos os itens salvos ao abrir, em ordem alfabética. Digitar filtra; limpar mostra todos novamente. Trocar de guia limpa a busca anterior. A busca geral e ingredientes continuam vazios antes da digitação. Sem consulta externa para listar favoritos/receitas.
 
@@ -31,9 +47,9 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 - Nos cartões de pressão/BPM e peso/gordura, o toggle da escala direita fica na mesma linha dos valores, eliminando a linha exclusiva do botão. Cálculos, seleção de pontos, edição e registro de BPM/gordura permanecem como antes. Sem novos campos ou variáveis.
 
-- Busca de alimentos/ingredientes começa vazia e mostra resultados locais ao digitar; limpar o texto recolhe a lista. Navegações com calendário seguem seta esquerda → campo → seta direita → calendário → Hoje. Ajustado também o campo digitado de mês no resumo de Acompanhamento. Backup do catálogo utilizado está em Importacao/TACO (JSON exato, CSV para consulta e procedência). Esta revisão não exige novos bancos ou variáveis.
+- Busca de alimentos/ingredientes começa vazia e mostra resultados locais ao digitar; limpar o texto recolhe a lista. Navegações com calendário seguem seta esquerda → campo → seta direita → calendário → Hoje. Ajustado também o campo digitado de mês no resumo de Acompanhamento. Backup do catálogo utilizado está em Importacao/TACO (JSON exato, CSV para consulta e procedência). Esses ajustes de busca e calendário não exigem novos bancos ou variáveis.
 
-- Abas principais compactas: inativas mostram somente o ícone; a selecionada mostra o nome com transição breve. No mobile, Ordenar abas revela todos os nomes e Concluir volta à apresentação compacta. Aviso COMPARTILHADO aparece com o nome e continua no rótulo acessível dos ícones. Sem mudanças de bancos ou variáveis nesta revisão visual.
+- Abas principais compactas: inativas mostram somente o ícone; a selecionada mostra o nome com transição breve. No mobile, Ordenar abas revela todos os nomes e Concluir volta à apresentação compacta. Aviso COMPARTILHADO aparece com o nome e continua no rótulo acessível dos ícones. Essa apresentação compacta não exige mudanças de bancos ou variáveis.
 
 - Nova aba **Acompanhamento**, privada por usuário e com Pessoal fixo. Registro em kcal, busca TACO local, busca de produtos Open Food Facts, favoritos, alimentos próprios, receitas com cálculo por ingredientes, ilustrações e resumos por mês/ano. Água, sono, aeróbico e musculação possuem registros independentes de Bem-estar. Exige apenas o novo banco Acompanhamento e NOTION_NUTRITION_DATABASE_ID.
 
@@ -80,7 +96,7 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 - Sessão por QR: até 1 hora, com bloqueio após 10 minutos sem interação e desbloqueio pelo código original apenas no navegador autorizado. Cinco erros seguidos encerram a sessão. O limite de 1 hora nunca é renovado.
 
 - Peso/% gordura aceita apenas um registro por data, por usuário. Para corrigir, edite pelo gráfico ou histórico. Pressão mantém várias medições por dia e suas médias.
-- Cada gráfico tem um toggle discreto BPM/% gordura: oculta ou mostra a série e escala da direita, ajustando os limites e a largura aos dados visíveis. Não altera nem exclui dados. Esta revisão não exige novos campos, bancos ou variáveis.
+- Cada gráfico tem um toggle discreto BPM/% gordura: oculta ou mostra a série e escala da direita, ajustando os limites e a largura aos dados visíveis. Não altera nem exclui dados. O toggle não exige novos campos, bancos ou variáveis.
 
 - Links externos solicitam nova aba. No PWA instalado em Android, links HTTP/HTTPS sem fragmento tentam abrir o Chrome por um Android Intent, com endereço original como fallback. Links que chegam ao PWA usam launch_handler navigate-new onde suportado, preservando uma janela já aberta para edição. A decisão de capturar links continua sendo do navegador/sistema.
 
@@ -97,6 +113,7 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 | Inbox, Diário, Hábitos e registros, Bem-estar (dia e medidas), Entretenimento | Privado de cada conta |
 | Projetos, Marcos e Tarefas | Privado por padrão; compartilhamento opcional entre as duas contas |
 | Acompanhamento (alimentação, rotina, metas, favoritos e receitas) | Privado por usuário |
+| Algum dia (ideias, referências e áreas de interesse) | Privado por usuário; contextos Pessoal e Trabalho |
 | Compras, Aniversários, Finanças, Veículos | Compartilhado entre as duas contas |
 | Ciclo da Letícia | Dados sempre dela; ambos podem ver e editar nesta versão de testes |
 | Recados | Mensagens entre as duas contas, com leitura confirmada pelo destinatário |
@@ -203,6 +220,18 @@ Em sessões Google, texto e título do rascunho são guardados localmente por us
 As edições comuns são salvas automaticamente. O botão Atualizar relê o Notion; não é obrigatório clicar para cada edição. Envio/leitura de Recados usa salvamento imediato. O horário no cabeçalho indica a última leitura bem-sucedida dos dados, enquanto Salvo no Notion indica a gravação.
 
 Durante o salvamento, o app envia apenas os registros envolvidos, suas versões anteriores para detectar conflitos e as dependências necessárias (por exemplo, o projeto e seus marcos de uma tarefa). Imagens e arquivos já enviados não são reenviados. O servidor usa leitura por ID e consultas filtradas, sem varrer bancos inteiros a cada edição. Novas entradas de Diário e marcações de Hábitos consultam a data envolvida para preservar a unicidade e recuperar falhas parciais.
+
+### Conclusão/cancelamento de projetos e recuperação de tarefas pendentes
+
+Nas tarefas em aberto, o status mantém precedência. Dentro do mesmo status e data, as mais antigas aparecem primeiro e as novas ficam abaixo, no quadro de Tarefas e dentro dos projetos/marcos. Em On hold, a data considerada é a de cobrança. Os seletores explícitos de prioridade/nome continuam funcionando. Concluídas mantêm a conclusão mais recente primeiro; Compras mantém sua ordenação própria. A criação é recuperada dos identificadores LifeOS existentes ou da data original do Notion, sem campo novo, alteração em massa ou reimportação.
+
+Marcar um projeto como **Concluído** ou **Cancelado** com tarefas ou marcos abertos exige confirmação e conclui esses filhos antes de salvar o status final do projeto. Ao cancelar a confirmação, nada é alterado. O projeto cancelado permanece em Cancelados, com o histórico preservado; as tarefas vinculadas ficam concluídas e os marcos marcados como concluídos. Tarefas/marcos adicionados em outra instância também entram nesse processamento. Reabrir o projeto não reabre seus filhos.
+
+Uma nova tentativa após falha parcial preserva a data das tarefas já concluídas, inclusive quando a interface ainda contém a versão anterior da data. O salvamento devolve ao app o status e a data efetivamente confirmados pelo Notion, sem baixar novamente a coleção. Reabrir uma tarefa ou alterar seu texto enquanto o envio ocorre continua sendo preservado.
+
+O campo técnico **Concluída em** aceita a representação retornada com segundos/milissegundos truncados, sem tratar isso como uma edição concorrente. Datas realmente diferentes e conflitos em outros campos continuam protegidos.
+
+Se uma versão anterior parou com **O campo “Concluída em” foi alterado no Notion** depois de concluir um projeto: publique esta correção, recarregue a página/app para carregar o novo código e toque em **Tentar salvar novamente**, se ainda aparecer pendência. Mantenha o mesmo navegador/perfil e a conta original para recuperar o rascunho. Não escolha descartar alterações nem limpe os dados do navegador para resolver esse caso. A correção não exige editar o banco do Notion, mudar variáveis da Vercel, reimportar dados ou atualizar o APK Captura.
 
 A carga inicial e o botão Atualizar continuam lendo os dados necessários à visão geral. Esta revisão não implementa paginação das telas nem leitura incremental no retorno ao foco; essas leituras gerais ainda podem crescer com o acervo. Clientes antigos permanecem compatíveis com o servidor, mas só passam a enviar dados reduzidos depois de atualizar a página/app.
 
@@ -434,6 +463,50 @@ O app acrescenta propriedades técnicas: **LifeOS ID**, **LifeOS Usuário** nas 
 
 Registros privados criados diretamente no Notion sem LifeOS Usuário pertencem à conta principal. Para a segunda conta, prefira criar pelo aplicativo. Em Inbox, preencha Conteúdo: Nome é apenas o título resumido. Em Diário, preencha Data e Conteúdo, evitando duplicar um dia do mesmo usuário. Aniversários usa números separados para admitir ano desconhecido.
 
+## Algum dia — configuração e uso
+
+### Criar o banco no Notion
+
+1. Dentro da página **LifeOS** já autorizada à conexão interna, crie um **banco de dados em página inteira**, chamado **Algum dia**. Não é uma página vazia nem uma relação com outro banco.
+2. Configure estas propriedades, respeitando nomes e tipos:
+
+| Propriedade | Tipo no Notion | Uso |
+| --- | --- | --- |
+| Nome | Título | Nome da ideia ou área |
+| Tipo | Texto | Tipo técnico `idea` ou `area`, preenchido pelo app |
+| Contexto | Selecionar | Opções **Pessoal** e **Trabalho** |
+| Dados | Texto | Documento e configurações, preenchidos pelo app |
+| Anexos | Arquivos e mídia | Cópias das imagens inseridas |
+
+3. Confira se a conexão interna existente tem acesso ao banco, com leitura, inserção e atualização. Não crie uma nova integração.
+4. Copie o ID deste banco e adicione **`NOTION_SOMEDAY_DATABASE_ID`** às variáveis da Vercel nos ambientes usados. Use o ID do banco, não o parâmetro `v=` da visualização. Somente se o banco tiver múltiplas fontes, configure também `NOTION_SOMEDAY_DATA_SOURCE_ID` com o ID da fonte correta.
+5. Envie o conteúdo atualizado de `lifeos/` à raiz do repositório e faça novo deploy. Preserve todas as variáveis existentes, especialmente o segredo de sessão. Atualize o app instalado. **Não é necessário atualizar o APK Captura, o OAuth Google ou criar outra chave de API.**
+
+O app acrescenta **LifeOS ID** e **LifeOS Usuário** automaticamente. Ideias e o catálogo de áreas de cada conta ficam privados; o mesmo catálogo é usado para seus projetos e ideias. Não edite manualmente o JSON de Dados nem os identificadores técnicos. Sem a variável, a aba apresenta orientação de configuração e não grava ideias.
+
+### Usar a nova aba
+
+- **Nova ideia** abre um editor amplo, usando toda a largura disponível na área de conteúdo, como o editor de novo projeto; uma ideia fechada sem nenhuma ação não é registrada. Título, anotações e demais edições são salvos pelo fluxo automático existente. Aguarde **Salvo no Notion** antes de fechar o app se houver alterações pendentes.
+- **Áreas / Gerenciar áreas** abre o mesmo cadastro em Algum dia e no editor de Projetos. Criar uma área disponibiliza o assunto nas duas telas. Renomear mantém o identificador das ideias e atualiza o campo Área dos projetos correspondentes, nos dois contextos e em todos os status. Campos, textos, anexos e tarefas desses projetos são preservados. Ocultar impede novas seleções nas duas telas, mas mantém os vínculos existentes; reativar recupera a mesma área.
+- O campo **Área** de Projetos é um seletor. As áreas já preenchidas nos projetos são cadastradas automaticamente ao carregar o app, sem reescrever os projetos nem precisar de botão de importação. Nomes equivalentes por acentuação, maiúsculas e espaços nas pontas reutilizam o mesmo assunto. O catálogo admite até 100 áreas; valores antigos excedentes permanecem nos projetos e no seletor. Os projetos compartilhados continuam seguindo suas regras existentes: a alteração do nome da área aparece para quem tem acesso ao projeto, mas não compartilha as ideias ou o catálogo privado.
+- **Configuração desta revisão:** nenhuma alteração adicional no Notion. O catálogo usa os registros `area` do banco Algum dia e os projetos mantêm o campo existente **Área (Selecionar)**. Não converta esse campo em relação nem crie outro banco. Basta manter a conexão autorizada e `NOTION_SOMEDAY_DATABASE_ID` já configurado. Sem essa configuração, as áreas antigas continuam selecionáveis nos projetos; o gerenciamento fica desabilitado.
+- Os cartões permitem busca por título/texto/área, filtro por área e favoritos. Os contextos Pessoal/Trabalho seguem o seletor geral. O catálogo de áreas é do usuário e pode organizar ideias dos dois contextos.
+- O editor oferece parágrafos, títulos, negrito, itálico e listas. **Enter** cria um parágrafo e **Shift + Enter** uma quebra de linha. Limite de 30.000 caracteres por ideia, sujeito também ao limite de estrutura do documento.
+- Cole uma imagem, arraste um arquivo ou use **Imagem**. JPEG, PNG e WebP são reduzidos para até 1.600 px e enviados ao Notion; GIF mantém a animação. Originais de até 20 MB são aceitos para processamento; o resultado enviado precisa ter até 4 MB (GIF até 4 MB). As imagens aparecem dentro das anotações e também na lista de anexos. Retirar a imagem do texto não exclui o arquivo; **Excluir** na lista de anexos pede confirmação e retira ambos.
+- Colar um endereço **HTTPS** sozinho ou usar **Link** cria um cartão com título, descrição e miniatura quando a página permite. Se a fonte bloquear a consulta, o endereço continua clicável. O botão **Manter apenas o link** substitui o cartão por um link de texto.
+- **Transformar em projeto/tarefa** pede confirmação e copia título, texto simples e anexos. A ideia original permanece com sua formatação e recebe a indicação de transformação. As outras telas mantêm os editores atuais. O app aguarda o salvamento dos arquivos e usa um identificador estável para retomar falhas sem duplicar o destino.
+- **O Inbox mantém as funções existentes. Não há integração com Algum dia nesta revisão**, nem nova opção no menu de transformação.
+
+### Recursos gráficos, tráfego e backup
+
+As dez ilustrações Microsoft Fluent Emoji são arquivos locais com licença MIT em `public/emoji/fluent-ideas/`. O editor usa pacotes gratuitos e abertos do Tiptap, fixados no package-lock; não exige conta, assinatura ou chave Tiptap. Este piloto não muda os ícones nem os editores de texto das outras abas. O campo Área de Projetos usa o catálogo integrado descrito acima.
+
+As prévias consultam páginas públicas pelo servidor do LifeOS, sem cookies ou credenciais. Endereços internos/privados e redirecionamentos inseguros são bloqueados. Metadados ficam em cache no Upstash por sete dias, separados por usuário; há limite de 60 novas consultas por usuário/hora. A leitura de HTML usa até 256 KB e as miniaturas até 1 MB, com cache privado do navegador. Sites podem bloquear prévias. As miniaturas de páginas continuam sendo referências externas; **não são copiadas para o Notion**. Imagens que você cola ou envia ao editor são copiadas.
+
+Verificação desta funcionalidade: suíte completa `npm test` e compilação `npm run build`; inspeção no Chromium em desktop e viewport mobile, com APIs simuladas, incluindo edição, link, imagem, favoritos, busca, áreas e descarte de ideia intocada. Isso não substitui o teste no Android/iPhone real. Nenhum serviço de produção foi alterado.
+
+O novo banco participa da sincronização incremental, atualização ao retornar ao foco, rascunhos privados e backup/restauração existentes. Criar um backup depois de configurar o banco inclui as duas contas, documentos e arquivos enviados. Restaurar preserva os vínculos das imagens pelo nome estável. Backups antigos não contêm este banco: use uma cópia criada após sua inclusão; a restauração verifica a compatibilidade dos bancos. Não há consulta periódica nova em segundo plano.
+
 ## 6. Vercel: variáveis
 
 Configure em Settings → Environment Variables. Aplique em Production e nos ambientes de teste realmente usados; após qualquer alteração faça novo deploy. Todos os tokens/segredos ficam somente no servidor, sem prefixo NEXT_PUBLIC_.
@@ -441,6 +514,7 @@ Configure em Settings → Environment Variables. Aplique em Production e nos amb
 | Variável | Uso |
 | --- | --- |
 | `NOTION_TOKEN` | Token da conexão interna Notion |
+| `NOTION_SOMEDAY_DATABASE_ID` | Novo banco Algum dia; ver configuração abaixo |
 | `NOTION_PROJECTS_DATABASE_ID` | ID do banco correspondente no Notion |
 | `NOTION_MILESTONES_DATABASE_ID` | ID do banco correspondente no Notion |
 | `NOTION_TASKS_DATABASE_ID` | ID do banco correspondente no Notion |
@@ -635,7 +709,7 @@ Marque **Abastecimento anterior não registrado** ao criar ou editar o abastecim
 
 O botão **Importar CSV** fica nos cartões **Abastecimentos** e **Despesas do veículo**, e permanece disponível para futuras importações. Selecione **Abastecimentos** ou **Manutenções e outras despesas** no painel. Cada tipo tem seu modelo CSV. O importador não cria lembretes avulsos automaticamente.
 
-**Seu histórico preparado:** o ZIP desta entrega contém, fora da pasta `lifeos`, a pasta `Importacao`, com `abastecimentos-suzuki-gsr125.csv`. Envie ao GitHub apenas o conteúdo de `lifeos`. Guarde `Importacao` no computador para carregar pelo aplicativo. O CSV não precisa ser publicado no repositório e não deve ser importado diretamente pelo Notion.
+**Histórico preparado anteriormente:** os passos abaixo descrevem o arquivo pessoal `abastecimentos-suzuki-gsr125.csv`, entregue na etapa de importação. Guarde aquela cópia para eventual retomada; este ZIP contém os modelos vazios e o backup do catálogo TACO em `Importacao`, sem repetir o histórico pessoal. Envie ao GitHub apenas o conteúdo de `lifeos`. Os CSVs devem ser carregados pelo aplicativo, não diretamente pelo Notion.
 
 1. Publique o conteúdo atualizado de `lifeos` e atualize a página/PWA. Não altere variáveis nem propriedades no Notion; os novos campos ficam em Dados, no banco Veículos existente.
 2. Abra **Veículos** e selecione a motocicleta correta. Se ainda não a cadastrou, crie **Suzuki GSR125**, tipo Motocicleta, ano **2016**. A km atual pode permanecer em 61.805 km ou no valor atual real; o histórico começa em 2.678 km. A importação não substitui nome, placa, ano, ícone ou cor do veículo.

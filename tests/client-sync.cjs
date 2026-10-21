@@ -2,7 +2,7 @@
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
 const swc=require('next/dist/build/swc'),React=require('react');
 const folder=path.resolve('.client-test');fs.mkdirSync(path.join(folder,'lib'),{recursive:true});
-for(const name of ['vehicleImportRunner.js','vehicles.js','useNotionState.js','editingGuard.js','notionDiff.js','entryDrafts.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
+for(const name of ['illustrations.js','someday.js','vehicleImportRunner.js','vehicles.js','useNotionState.js','editingGuard.js','notionDiff.js','entryDrafts.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
 require('fake-indexeddb/auto');
 let loginDestination,poll;const popup={closed:false};const handlers=new Map(),documentHandlers=new Map();const originalNow=Date.now;let clockOffset=0;Date.now=()=>originalNow()+clockOffset;global.window={document:{hidden:false,addEventListener:(name,fn)=>documentHandlers.set(name,documentHandlers.has(name)?((old)=>e=>{old(e);fn(e);})(documentHandlers.get(name)):fn),removeEventListener:name=>documentHandlers.delete(name)},location:{origin:'https://lifeos.test',replace:()=>{throw Error('Login must not navigate the app');}},open:url=>{loginDestination=url;return popup;},setInterval:fn=>{poll=fn;return 1;},clearInterval:()=>{poll=null;},addEventListener:(name,fn)=>handlers.set(name,handlers.has(name)?((old)=>e=>{old(e);fn(e);})(handlers.get(name)):fn),removeEventListener:name=>handlers.delete(name)};
 const original={useState:React.useState,useRef:React.useRef,useCallback:React.useCallback,useEffect:React.useEffect};
@@ -17,7 +17,7 @@ const {useNotionState}=require(path.join(folder,'lib/useNotionState'));
 function render(){if(!active)return;index=0;effects=[];hook=useNotionState();const pending=effects;effects=[];pending.forEach(effect=>effect());}
 const {readState,saveState,readPrivateDraft}=require(path.join(folder,'lib/storage'));
 const testUser={id:'google:test-user',email:'periclesbernardes@gmail.com',name:'Péricles',isLegacyOwner:true,draftKey:Buffer.alloc(32,7).toString('base64')};
-let sessionAuthenticated=false,sessionQueries=0;let remote={user:testUser,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true},syncCount=0,uploadCount=0,failure=false,gate=null,readCount=0,readGate=null,readFailure=false;
+let sessionAuthenticated=false,sessionQueries=0;let remote={user:testUser,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true},syncCount=0,uploadCount=0,failure=false,gate=null,readCount=0,readGate=null,readFailure=false,normalizeCompletionDates=false;const syncBodies=[];
 global.fetch=async(url,options={})=>{
  if(url==='/api/auth/qr')return Response.json({authenticated:true});
  if(url==='/api/backup')return Response.json({maintenance:false});
@@ -27,12 +27,13 @@ global.fetch=async(url,options={})=>{
  if(url==='/api/notion/sync'){
   syncCount++;if(gate)await gate;
   if(failure){failure=false;return Response.json({error:'Falha simulada'},{status:502});}
-  const {next,base,partial}=JSON.parse(options.body),bindings={},files={};
-  for(const item of [...(next.mediaSections||[]),...(next.media||[]),...next.projects,...next.projects.flatMap(project=>project.milestones),...next.tasks,...next.inbox,...next.diary,...(next.shopping || []),...next.categories,...next.transactions,...(next.habits||[]),...(next.habitLogs||[]),...(next.vehicles||[]),...(next.wellness||[]),...(next.cycle||[]),...(next.nutrition||[])]){
+  const {next,base,partial}=JSON.parse(options.body),bindings={},files={},taskCompletions={};syncBodies.push(structuredClone({next,base}));
+  for(const item of [...(next.someday||[]),...(next.mediaSections||[]),...(next.media||[]),...next.projects,...next.projects.flatMap(project=>project.milestones),...next.tasks,...next.inbox,...next.diary,...(next.shopping || []),...next.categories,...next.transactions,...(next.habits||[]),...(next.habitLogs||[]),...(next.vehicles||[]),...(next.wellness||[]),...(next.cycle||[]),...(next.nutrition||[])]){
    bindings[item.id]=item._notionId||`remote-${item.id}`;
    for(const file of item.attachments||[])if(file.uploadId)files[file.id]={id:file.id,name:file.name,notion:{type:'file',name:file.name,file:{url:'https://files.test/ref'}},pageId:bindings[item.id],index:0,kind:(next.media||[]).includes(item)?'media':next.diary.includes(item)?'diary':next.tasks.includes(item)?'tasks':'projects',url:'https://files.test/ref'};
   }
-  if(partial){for(const kind of Object.keys(next)){const ids=new Set([...(base[kind]||[]),...next[kind]].map(item=>item.id));remote[kind]=[...(remote[kind]||[]).filter(item=>!ids.has(item.id)),...next[kind]];}}else remote={...next,user:testUser};return Response.json({bindings,files});
+  if(normalizeCompletionDates)next.tasks=next.tasks.map(task=>{const completedAt=task.completedAt?Math.floor(task.completedAt/60000)*60000:null;taskCompletions[task.id]={status:task.status,completedAt};return {...task,completedAt};});
+  if(partial){for(const kind of Object.keys(next)){const ids=new Set([...(base[kind]||[]),...next[kind]].map(item=>item.id));remote[kind]=[...(remote[kind]||[]).filter(item=>!ids.has(item.id)),...next[kind]];}}else remote={...next,user:testUser};return Response.json({bindings,files,taskCompletions});
  }
  throw new Error(`Rota inesperada ${url}`);
 };
@@ -50,6 +51,15 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  hook.setTasks(previous=>previous.map(task=>({...task,title:'Em voo'})));
  const saving=hook.flush();await tick();hook.setTasks(previous=>previous.map(task=>({...task,title:'Edição durante salvamento'})));release();gate=null;
  await saving;await tick();assert.equal(hook.tasks[0].title,'Edição durante salvamento');assert.equal(remote.tasks[0].title,'Edição durante salvamento');assert.equal(hook.pending,false);
+ normalizeCompletionDates=true;const completionTime=Date.parse('2026-10-20T13:59:28.437Z'),canonical=Math.floor(completionTime/60000)*60000;
+ hook.setTasks(previous=>previous.map(task=>({...task,status:'done',completedAt:completionTime})));await hook.flush();await tick();assert.equal(hook.tasks[0].completedAt,canonical,'Adoptar data realmente confirmada');assert.equal(hook.pending,false);
+ hook.setTasks(previous=>previous.map(task=>({...task,status:'todo',completedAt:null})));await hook.flush();await tick();
+ gate=new Promise(resolve=>release=resolve);hook.setTasks(previous=>previous.map(task=>({...task,status:'done',completedAt:completionTime})));
+ const completing=hook.flush();await tick();hook.setTasks(previous=>previous.map(task=>({...task,status:'todo',completedAt:null,notes:'Reaberta durante envio'})));release();gate=null;await completing;await tick();
+ assert.equal(hook.tasks[0].status,'todo','Resposta tardia não desfaz reabertura');assert.equal(hook.tasks[0].completedAt,null);assert.equal(hook.tasks[0].notes,'Reaberta durante envio');assert.equal(syncBodies.at(-1).base.tasks[0].completedAt,canonical,'Reabertura usa data confirmada como base');assert.equal(hook.pending,false);
+ gate=new Promise(resolve=>release=resolve);hook.setTasks(previous=>previous.map(task=>({...task,status:'done',completedAt:completionTime})));
+ const completingWithNotes=hook.flush();await tick();hook.setTasks(previous=>previous.map(task=>({...task,notes:'Comentário durante conclusão'})));release();gate=null;await completingWithNotes;await tick();assert.equal(hook.tasks[0].completedAt,canonical);assert.equal(hook.tasks[0].notes,'Comentário durante conclusão');assert.equal(hook.pending,false);
+ normalizeCompletionDates=false;
  hook.setInbox([{id:'i',text:'Entrada\ncom duas linhas',createdAt:Date.now()}]);await hook.flush();await tick();assert.equal(remote.inbox[0].text,'Entrada\ncom duas linhas');assert.equal(hook.inbox[0]._notionId,'remote-i');
  hook.setInbox([]);await hook.flush();await tick();assert.equal(remote.inbox.length,0);
  hook.setDiary([{id:'d2026-10-04',date:'2026-10-04',text:'**Anotação**\nSegunda linha',attachments:[]}]);await hook.flush();await tick();assert.equal(remote.diary[0].date,'2026-10-04');assert.equal(hook.diary[0]._notionId,'remote-d2026-10-04');assert.equal(hook.pending,false);
@@ -104,6 +114,24 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  const beforeFailureTime=hook.refreshedAt;readFailure=true;clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(hook.error,'Consulta indisponível');assert.equal(hook.refreshedAt,beforeFailureTime,'Failed query does not update the time');assert.equal(hook.ready,true);clockOffset+=11000;handlers.get('focus')();await tick();assert.equal(hook.error,'');
  const well={id:'well-test',name:'Peso',date:'2026-10-09',type:'body',data:{weight:136,fat:28.4}};hook.setWellness(p=>({...p,wellness:[well],cycle:[{...well,id:'cycle-test',type:'cycle',data:{subject:'leticiacost3@gmail.com',menstruation:'Não',flow:'—',cramps:'Nenhuma'}}]}));await hook.flush();await tick();assert.equal(hook.wellness[0].data.weight,136);assert.equal(hook.wellness[0]._notionId,'remote-well-test');assert.equal(hook.cycle[0]._notionId,'remote-cycle-test');assert.equal(remote.wellness.length,1);assert.equal(hook.pending,false);
  const nutrition={id:'nutrition-sync',name:'Rotina',type:'day',date:'2026-10-01',data:{uid:'day:2026-10-01',target:2200,water:true,sleepHours:7}};const wellnessBefore=JSON.stringify(hook.wellness);hook.setNutrition([nutrition]);await hook.flush();await tick();assert.equal(hook.nutrition[0]._notionId,'remote-nutrition-sync');assert.equal(remote.nutrition[0].data.sleepHours,7);assert.equal(JSON.stringify(hook.wellness),wellnessBefore,'Rotina de alimentação é independente do Bem-estar');assert.equal(hook.pending,false);
+ const {makeArea,makeIdea}=require(path.join(folder,'lib/someday'));
+ const ideaArea=makeArea('Ideias privadas'),idea=makeIdea(ideaArea);idea.name='Minha possibilidade';idea.data.doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Uma anotação'}]}]};
+ hook.setSomeday([ideaArea,idea]);await hook.flush();await tick();assert.equal(hook.someday.length,2);assert.ok(hook.someday.every(r=>r._notionId));assert.equal(hook.pending,false);
+ const inboxBefore=JSON.stringify(hook.inbox);await hook.promoteSomeday(idea.id,'task');await tick();assert.ok(hook.tasks.some(t=>t.id==='someday-task:'+idea.data.uid&&t.title===idea.name));assert.equal(hook.someday.find(r=>r.id===idea.id).data.promoted.kind,'task');assert.equal(hook.pending,false);assert.equal(JSON.stringify(hook.inbox),inboxBefore,'Algum dia não altera o Inbox');
+ // The shared area editor changes both collections in one durable draft.
+ remote.somedayConfigured=true;await hook.load();await tick();
+ hook.setProjects(previous=>[...previous,{id:'area-project',name:'Projeto com área',status:'active',context:'work',area:'Ideias privadas',description:'',due:null,milestones:[],attachments:[]}]);await hook.flush();await tick();
+ const savedArea=hook.someday.find(r=>r.data.uid===ideaArea.data.uid);
+ failure=true;hook.saveArea({...savedArea,name:'Criação compartilhada entre abas'});
+ await assert.rejects(()=>hook.flush(),/Falha simulada/);await tick();
+ assert.equal(hook.projects.find(p=>p.id==='area-project').area,'Criação compartilhada entre abas');
+ assert.equal(hook.someday.find(r=>r.id===savedArea.id).name,'Criação compartilhada entre abas');
+ assert.equal(hook.pending,true);await hook.flush();await tick();
+ assert.equal(remote.projects.find(p=>p.id==='area-project').area,'Criação compartilhada entre abas');assert.equal(hook.pending,false);
+ assert.equal(hook.someday.find(r=>r.id===idea.id).data.area,ideaArea.data.uid);assert.equal(JSON.stringify(hook.inbox),inboxBefore);
+ hook.setProjects(previous=>[...previous,{id:'legacy-area-project',name:'Projeto antigo',status:'active',context:'personal',area:'Casa antiga',description:'',due:null,milestones:[],attachments:[]}]);await tick();
+ assert.equal(hook.someday.filter(r=>r.type==='area'&&r.name==='Casa antiga').length,1);await hook.flush();await tick();
+ await hook.load();await tick();assert.equal(hook.someday.filter(r=>r.type==='area'&&r.name==='Casa antiga').length,1,'Recarregar não duplica a área importada');
  const testVehicle={id:'sync-car',name:'Meu carro',type:'vehicle',date:null,data:{uid:'stable-car-uid',kind:'car',model:'hatch',color:'#58a6ff',context:'personal',plate:'',km:1000,warningKm:500}};hook.setVehicles([testVehicle]);await hook.flush();await tick();assert.equal(remote.vehicles[0].data.uid,'stable-car-uid');assert.equal(hook.vehicles[0]._notionId,'remote-sync-car');assert.equal(hook.pending,false);
  const importRows=Array.from({length:12},(_,i)=>({id:'batch-'+i,type:'entry',name:'Abastecimento',date:'2026-10-01',data:{uid:'batch-'+i,vehicle:testVehicle.data.uid,category:'fuel',fuel:true,full:true,km:1000+i,liters:10,amount:5000,importSourceId:'source-'+i}}));
  const importProgress=[],importBefore=syncCount;await hook.importVehicles(importRows,p=>importProgress.push(p));await tick();assert.equal(syncCount-importBefore,3,'Fuel importer uses three incremental writes for twelve entries');assert.equal(hook.pending,false);assert.equal(remote.vehicles.filter(r=>r.type==='entry').length,12);assert.ok(hook.vehicles.filter(r=>r.type==='entry').every(r=>r._notionId));assert.equal(importProgress.at(-1).done,12);

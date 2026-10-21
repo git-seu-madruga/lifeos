@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict'),fs=require('fs'),path=require('path'),swc=require('next/dist/build/swc');
 const root=path.resolve('.nutrition-test');fs.mkdirSync(path.join(root,'lib/server'),{recursive:true});
-for(const name of ['nutrition','habits'])fs.writeFileSync(path.join(root,'lib',name+'.js'),swc.transformSync(fs.readFileSync('lib/'+name+'.js','utf8'),{jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
+for(const name of ['nutrition','habits','illustrations'])fs.writeFileSync(path.join(root,'lib',name+'.js'),swc.transformSync(fs.readFileSync('lib/'+name+'.js','utf8'),{jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
 fs.writeFileSync(path.join(root,'lib/server/foodSearch.js'),swc.transformSync(fs.readFileSync('lib/server/foodSearch.js','utf8'),{jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
 let count=0,fetches=0;const cache=new Map();
 class AppError extends Error{constructor(message,status=422){super(message);this.status=status;}}
@@ -24,7 +24,7 @@ require.cache[path.join(root,'lib/server/coordination.js')]={exports:{redis:asyn
  assert.equal(n.validateNutrition(day),'');assert.ok(n.validateNutrition({...day,data:{...day.data,sleepHours:25}}));assert.ok(n.validateNutrition({...day,date:'2026-02-30'}));assert.ok(n.validateNutrition({...records[1],data:{...records[1].data,kcal:1}}));
  const recipeRecord={id:'recipe',name:recipe.name,type:'food',date:null,data:{uid:'recipe',food:recipe,favorite:false,archived:false,ingredients:[{food,quantity:300,measure:'g'}],yieldGrams:400}};assert.equal(n.validateNutrition(recipeRecord),'');assert.ok(n.validateNutrition({...recipeRecord,data:{...recipeRecord.data,yieldGrams:200}}));
  const taco=require('../lib/data/taco.json');assert.equal(taco.length,591);assert.equal(new Set(taco.map(p=>p.id)).size,591);assert.ok(taco.every(p=>n.validFood(p)));assert.ok(taco.every(p=>p.category!=='Número do'));assert.equal(taco.find(p=>p.id==='taco:3').kcal100,128.2585);
- for(const icon of n.FOOD_ICONS){const b=fs.readFileSync('public/emoji/fluent-food/'+icon+'.png');assert.equal(b.subarray(1,4).toString(),'PNG');}
+ for(const icon of n.FOOD_ICONS){const art=require(path.join(root,'lib/illustrations')).illustrationById(icon),b=fs.readFileSync(art?'public'+art.src:'public/emoji/fluent-food/'+icon+'.png');assert.equal(art?b.subarray(8,12).toString():b.subarray(1,4).toString(),art?'WEBP':'PNG');}
  const product={code:'1234567890123',product_name:'Produto',product_name_pt:'Produto brasileiro',brands:'Marca',quantity:'1 L',serving_quantity:200,serving_quantity_unit:'ml',nutriments:{'energy-kcal_100g':60},image_front_small_url:'https://images.openfoodfacts.org/product.png'};
  let result=s.normalizeProducts({products:[product,{...product,code:'missing',nutriments:{}},{...product,code:'zero',nutriments:{'energy-kcal_100g':0}}]});assert.equal(result.length,2);assert.equal(result[0].unit,'ml');assert.equal(result[0].portionQuantity,200);assert.equal(result[0].kcal100,60);assert.equal(result[1].kcal100,0);
  assert.equal(s.normalizeProducts({products:[{...product,nutriments:{energy_100g:418.4}}]})[0].kcal100,100);

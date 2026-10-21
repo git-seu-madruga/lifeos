@@ -7,8 +7,9 @@ React.useState=value=>{const i=index++;if(!(i in slots))slots[i]=typeof value===
 const walk=(node,result=[])=>{if(Array.isArray(node)){node.forEach(n=>walk(n,result));return result;}if(node?.props){result.push(node);walk(node.props.children,result);}return result;};
 try{
  const View=require(path.join(folder,'components/TasksView')).default;
- let tasks=[],projectOpened=null;const user={email:'leticiacost3@gmail.com'},projects=[{id:'p',name:'Projeto',context:'personal',shared:true,responsible:'periclesbernardes@gmail.com',milestones:[]}];
- const props=()=>({tasks,projects,setTasks:fn=>{tasks=fn(tasks);},user,context:'all',sub:'status',onOpenProject:id=>{projectOpened=id;}});
+ const Someday=require(path.join(folder,'components/SomedayView')).default;
+ let tasks=[],projectOpened=null,sub='status';const user={email:'leticiacost3@gmail.com'},projects=[{id:'p',name:'Projeto',context:'personal',shared:true,responsible:'periclesbernardes@gmail.com',milestones:[]}];
+ const props=()=>({tasks,projects,setTasks:fn=>{tasks=fn(tasks);},user,context:'all',sub,onOpenProject:id=>{projectOpened=id;}});
  const tree=()=>{index=0;return walk(View(props()));};
  for(let n=0;n<3;n++){
   tree().find(e=>e.type==='button'&&e.props.children==='+ Nova tarefa').props.onClick();assert.equal(tasks.length,1);
@@ -18,6 +19,13 @@ try{
  tasks=[{id:'blank',title:'',status:'todo',priority:'medium',context:'personal',project:'p',shared:true,responsible:user.email}];
  let nodes=tree(),row=nodes.find(e=>e.type==='li');row.props.onClick({target:{closest:()=>null}});assert.ok(tree().some(e=>e.type?.name==='ModalLayer'&&e.props.open),'Clicar no espaço abre tarefa sem título');
  tree().find(e=>e.type?.name==='ModalLayer').props.onClose();nodes=tree();nodes.find(e=>e.type==='button'&&e.props.className==='proj').props.onClick();row=nodes.find(e=>e.type==='li');row.props.onClick({target:{closest:()=>({})}});assert.equal(projectOpened,'p');assert.equal(tree().find(e=>e.type?.name==='ModalLayer').props.open,false,'Botão do projeto não abre a tarefa');
+ const fixture=(id,status,due,created,extra={})=>({id,title:id,status,due,priority:'medium',context:'personal',project:'p',milestone:null,_createdAt:created,...extra});
+ const orderedTasks=[fixture('new','todo','2026-10-22',3000),fixture('old','todo','2026-10-22',1000),fixture('doing','doing','2026-10-01',1),fixture('earlier-date','todo','2026-10-21',4000),fixture('hold-new','hold',null,5000,{followUp:'2026-10-23'}),fixture('hold-old','hold',null,2000,{followUp:'2026-10-23'}),fixture('closed-old','done',null,1,{completedAt:10}),fixture('closed-new','done',null,9000,{completedAt:20})];
+ const priorTasks=tasks;tasks=orderedTasks;
+ tree().find(e=>e.type==='button'&&e.props.children==='Expandir tudo').props.onClick();
+ const expectedOrder=['earlier-date','old','new','doing','hold-old','hold-new','closed-new','closed-old'];
+ assert.deepEqual(tree().filter(e=>e.type==='li').map(e=>e.key),expectedOrder,'Status e data antes da inclusão; concluídas continuam mais recentes primeiro');
+ sub='projeto';assert.deepEqual(tree().filter(e=>e.type==='li').map(e=>e.key),expectedOrder,'Mesma ordem na visualização por projeto');sub='status';tasks=priorTasks;
  const Fields=require(path.join(folder,'components/SharingFields')).default;let patch;walk(Fields({item:{},user,onChange:p=>patch=p})).find(e=>e.type==='input').props.onChange({target:{checked:true}});assert.equal(patch.responsible,user.email,'Responsável inicial é o usuário logado');
  const shared={shared:true,responsible:user.email,_ownerEmail:'periclesbernardes@gmail.com'};let message='',approve=false;global.window={confirm:value=>{message=value;return approve;}};patch=undefined;
  const unshare=()=>walk(Fields({item:shared,user,onChange:p=>patch=p})).find(e=>e.type==='input').props.onChange({target:{checked:false}});
@@ -30,14 +38,40 @@ try{
  projectTree().find(e=>e.props['aria-label']==='Responsável pela nova tarefa').props.onChange({target:{value:'periclesbernardes@gmail.com'}});projectTree().find(e=>e.type==='button'&&e.props.children==='+ Tarefa').props.onClick();assert.equal(tasks.at(-1).responsible,'periclesbernardes@gmail.com');assert.equal(tasks.at(-1).shared,true);assert.equal(projectTree().find(e=>e.props['aria-label']==='Responsável pela nova tarefa').props.value,'','Próxima tarefa exige nova escolha');
  projectList=projectList.map(p=>({...p,shared:false}));assert.ok(!projectTree().some(e=>e.props['aria-label']==='Responsável pela nova tarefa'),'Projeto privado dispensa responsável');
  const Badge=require(path.join(folder,'components/SharedBadge')).default;assert.ok(renderToStaticMarkup(React.createElement(Badge,{responsible:user.email})).includes('Compartilhada')&&renderToStaticMarkup(React.createElement(Badge,{responsible:user.email})).includes('Letícia'));
- // Completing an active project asks once, cancellation is inert, completion preserves history.
+ const areaDomain=require(path.join(folder,'lib/someday')),catalogArea=areaDomain.makeArea('Criação'),hiddenArea=areaDomain.makeArea('Antiga');hiddenArea.data.archived=true;
+ const renderProjectAreas=()=>{index=0;return walk(ProjectView({...{user,tasks,setTasks:fn=>tasks=fn(tasks),projects:projectList,setProjects:fn=>projectList=fn(projectList),context:'all',sub:'ativos',selected:'p',onSelect(){}},areas:[catalogArea,hiddenArea],areasConfigured:true,onManageAreas:()=>{projectOpened='areas';}}));};
+ let areaNodes=renderProjectAreas(),selector=areaNodes.find(e=>e.props['aria-label']==='Área do projeto');
+ assert.equal(selector.type,'select');assert.ok(walk(selector).some(e=>e.type==='option'&&e.props.value==='Criação'));assert.ok(!walk(selector).some(e=>e.type==='option'&&e.props.value==='Antiga'),'Área oculta não é nova escolha');
+ selector.props.onChange({target:{value:'Criação'}});assert.equal(projectList[0].area,'Criação');
+ renderProjectAreas().find(e=>e.type==='button'&&e.props.children==='Gerenciar áreas').props.onClick();assert.equal(projectOpened,'areas');
+ projectList=projectList.map(p=>({...p,area:'Antiga'}));areaNodes=renderProjectAreas();assert.ok(walk(areaNodes.find(e=>e.props['aria-label']==='Área do projeto')).some(e=>e.type==='option'&&e.props.value==='Antiga'),'Área oculta existente é preservada');
+ slots=[];let somedayRecords=[],manageOpened=false;
+ const somedayTree=()=>{index=0;return walk(Someday({records:somedayRecords,setRecords:update=>somedayRecords=update(somedayRecords),configured:true,context:'personal',onManageAreas:()=>manageOpened=true,onPromote(){}}));};
+ somedayTree().find(e=>e.type==='button'&&e.props.children==='+ Nova ideia').props.onClick();
+ assert.ok(somedayTree().some(e=>e.props.className==='sd-editor-workspace'),'Nova ideia usa toda a área de conteúdo');assert.ok(!somedayTree().some(e=>e.props.className==='sd-collection'),'Coleção não limita a largura do editor');
+ let ideaDetail=somedayTree().find(e=>e.type?.name==='IdeaDetail');ideaDetail.props.onClose();assert.equal(somedayRecords.length,0,'Fechar ideia intocada não grava');
+ somedayTree().find(e=>e.type==='button'&&e.props.children==='+ Áreas').props.onClick();assert.equal(manageOpened,true);
+ slots=[]; // Restore ProjectsView hook slots for the remaining project checks.
+ const beforeOrder=tasks;tasks=orderedTasks;
+ const projectOrder=['doing','hold-old','hold-new','earlier-date','old','new','closed-new','closed-old'];
+ assert.deepEqual(projectTree().filter(e=>e.type==='li'&&e.props.className?.startsWith('row')).map(e=>e.key),projectOrder,'Dentro do projeto preserva precedência atual dos status e desempata por data/inclusão');
+ for(const [label,component] of [['Quadro','ProjectBoard'],['Cronograma','ProjectGantt']]){
+  projectTree().find(e=>e.props.role==='tab'&&e.props.children===label).props.onClick();
+  assert.deepEqual(projectTree().find(e=>e.type?.name===component).props.tasks.map(t=>t.id),projectOrder,'Todas as visualizações do projeto usam a mesma sequência');
+ }
+ projectTree().find(e=>e.props.role==='tab'&&e.props.children==='Lista').props.onClick();tasks=beforeOrder;
+ // Done/cancelled confirm pending children and preserve history on reopening.
+ const originalTasks=structuredClone(tasks);
+ for(const closingStatus of ['done','cancelled']){
+ projectList=projectList.map(p=>({...p,status:'active'}));tasks=structuredClone(originalTasks);
  projectList=projectList.map(p=>({...p,milestones:[{id:'open-ms',title:'Pendente',done:false},{id:'done-ms',title:'Concluído',done:true}]}));
  tasks=tasks.map(t=>({...t,shared:false,responsible:''}));tasks.push({id:'previously-done',title:'Anterior',project:'p',status:'done',completedAt:123});
  const changeStatus=value=>projectTree().find(e=>e.type==='select'&&e.props.value===projectList[0].status).props.onChange({target:{value}});
- const beforeCompletion=JSON.stringify({projectList,tasks});approve=false;changeStatus('done');assert.equal(JSON.stringify({projectList,tasks}),beforeCompletion,'Cancelar conclusão mantém projeto e filhos');assert.ok(message.includes('tarefa(s)')&&message.includes('marco(s)'));
- approve=true;changeStatus('done');assert.equal(projectList[0].status,'done');assert.ok(projectList[0].milestones.every(m=>m.done));assert.ok(tasks.filter(t=>t.project==='p').every(t=>t.status==='done'));assert.equal(tasks.find(t=>t.id==='previously-done').completedAt,123);assert.ok(tasks.find(t=>t.id!=='previously-done').completedAt>0);
+ const beforeCompletion=JSON.stringify({projectList,tasks});approve=false;changeStatus(closingStatus);assert.equal(JSON.stringify({projectList,tasks}),beforeCompletion,'Cancelar conclusão mantém projeto e filhos');assert.ok(message.includes('tarefa(s)')&&message.includes('marco(s)'));assert.ok(message.startsWith(closingStatus==='cancelled'?'Cancelar':'Concluir'));
+ approve=true;changeStatus(closingStatus);assert.equal(projectList[0].status,closingStatus);assert.ok(projectList[0].milestones.every(m=>m.done));assert.ok(tasks.filter(t=>t.project==='p').every(t=>t.status==='done'));assert.equal(tasks.find(t=>t.id==='previously-done').completedAt,123);assert.ok(tasks.find(t=>t.id!=='previously-done').completedAt>0);
  changeStatus('active');assert.ok(tasks.filter(t=>t.project==='p').every(t=>t.status==='done'),'Reabrir projeto preserva conclusões');
- message='';changeStatus('done');assert.equal(message,'','Sem pendências não confirma');
+ message='';changeStatus(closingStatus);assert.equal(message,'','Sem pendências não confirma');
+ }
  tasks.push({id:'unrelated',title:'Avulsa',status:'todo',priority:'medium',context:'personal',project:null});const beforeDelete=tasks.length;approve=false;projectTree().find(e=>e.type==='button'&&e.props.children==='Excluir projeto').props.onClick();assert.equal(projectList.length,1);assert.equal(tasks.length,beforeDelete,'Cancelar exclusão preserva tarefas');approve=true;projectTree().find(e=>e.type==='button'&&e.props.children==='Excluir projeto').props.onClick();assert.equal(projectList.length,0);assert.deepEqual(tasks.map(t=>t.id),['unrelated']);assert.ok(message.includes('todas as suas tarefas')&&message.includes('Cancelado ou Concluído'));
  const Brand=require(path.join(folder,'components/Brand')).default;const notice=renderToStaticMarkup(React.createElement(Brand,{notice:true})),normal=renderToStaticMarkup(React.createElement(Brand));assert.ok(notice.includes('brand-heart')&&notice.includes('Life')&&notice.includes('brand-os'));assert.ok(!normal.includes('<button'),'Logo comum não tem ação');
  console.log('PASSOU: tarefas intocadas descartadas sem acúmulo, área da linha abre tarefa sem título, projeto independente, responsável padrão e logo normal sem ação.');

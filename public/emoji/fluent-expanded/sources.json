@@ -1,0 +1,1282 @@
+{
+  "repository": "https://github.com/microsoft/fluentui-emoji",
+  "revision": "1ffb34c752ecf5d402f04cfb4b392c77f57c54bc",
+  "processing": "3D PNG resized to fit 128x128, WebP quality 86 with alpha",
+  "assets": [
+    {
+      "id": "art-airplane",
+      "path": "assets/Airplane/3D/airplane_3d.png",
+      "file": "airplane.webp"
+    },
+    {
+      "id": "art-luggage",
+      "path": "assets/Luggage/3D/luggage_3d.png",
+      "file": "luggage.webp"
+    },
+    {
+      "id": "art-world-map",
+      "path": "assets/World map/3D/world_map_3d.png",
+      "file": "world-map.webp"
+    },
+    {
+      "id": "art-compass",
+      "path": "assets/Compass/3D/compass_3d.png",
+      "file": "compass.webp"
+    },
+    {
+      "id": "art-globe-showing-americas",
+      "path": "assets/Globe showing americas/3D/globe_showing_americas_3d.png",
+      "file": "globe-showing-americas.webp"
+    },
+    {
+      "id": "art-desert-island",
+      "path": "assets/Desert island/3D/desert_island_3d.png",
+      "file": "desert-island.webp"
+    },
+    {
+      "id": "art-beach-with-umbrella",
+      "path": "assets/Beach with umbrella/3D/beach_with_umbrella_3d.png",
+      "file": "beach-with-umbrella.webp"
+    },
+    {
+      "id": "art-camping",
+      "path": "assets/Camping/3D/camping_3d.png",
+      "file": "camping.webp"
+    },
+    {
+      "id": "art-tent",
+      "path": "assets/Tent/3D/tent_3d.png",
+      "file": "tent.webp"
+    },
+    {
+      "id": "art-mountain",
+      "path": "assets/Mountain/3D/mountain_3d.png",
+      "file": "mountain.webp"
+    },
+    {
+      "id": "art-snow-capped-mountain",
+      "path": "assets/Snow-capped mountain/3D/snow-capped_mountain_3d.png",
+      "file": "snow-capped-mountain.webp"
+    },
+    {
+      "id": "art-national-park",
+      "path": "assets/National park/3D/national_park_3d.png",
+      "file": "national-park.webp"
+    },
+    {
+      "id": "art-sunrise",
+      "path": "assets/Sunrise/3D/sunrise_3d.png",
+      "file": "sunrise.webp"
+    },
+    {
+      "id": "art-sunset",
+      "path": "assets/Sunset/3D/sunset_3d.png",
+      "file": "sunset.webp"
+    },
+    {
+      "id": "art-cityscape",
+      "path": "assets/Cityscape/3D/cityscape_3d.png",
+      "file": "cityscape.webp"
+    },
+    {
+      "id": "art-hotel",
+      "path": "assets/Hotel/3D/hotel_3d.png",
+      "file": "hotel.webp"
+    },
+    {
+      "id": "art-japanese-castle",
+      "path": "assets/Japanese castle/3D/japanese_castle_3d.png",
+      "file": "japanese-castle.webp"
+    },
+    {
+      "id": "art-castle",
+      "path": "assets/Castle/3D/castle_3d.png",
+      "file": "castle.webp"
+    },
+    {
+      "id": "art-statue-of-liberty",
+      "path": "assets/Statue of liberty/3D/statue_of_liberty_3d.png",
+      "file": "statue-of-liberty.webp"
+    },
+    {
+      "id": "art-tokyo-tower",
+      "path": "assets/Tokyo tower/3D/tokyo_tower_3d.png",
+      "file": "tokyo-tower.webp"
+    },
+    {
+      "id": "art-passenger-ship",
+      "path": "assets/Passenger ship/3D/passenger_ship_3d.png",
+      "file": "passenger-ship.webp"
+    },
+    {
+      "id": "art-sailboat",
+      "path": "assets/Sailboat/3D/sailboat_3d.png",
+      "file": "sailboat.webp"
+    },
+    {
+      "id": "art-locomotive",
+      "path": "assets/Locomotive/3D/locomotive_3d.png",
+      "file": "locomotive.webp"
+    },
+    {
+      "id": "art-high-speed-train",
+      "path": "assets/High-speed train/3D/high-speed_train_3d.png",
+      "file": "high-speed-train.webp"
+    },
+    {
+      "id": "art-automobile",
+      "path": "assets/Automobile/3D/automobile_3d.png",
+      "file": "automobile.webp"
+    },
+    {
+      "id": "art-motorcycle",
+      "path": "assets/Motorcycle/3D/motorcycle_3d.png",
+      "file": "motorcycle.webp"
+    },
+    {
+      "id": "art-bus",
+      "path": "assets/Bus/3D/bus_3d.png",
+      "file": "bus.webp"
+    },
+    {
+      "id": "art-rocket",
+      "path": "assets/Rocket/3D/rocket_3d.png",
+      "file": "rocket.webp"
+    },
+    {
+      "id": "art-video-game",
+      "path": "assets/Video game/3D/video_game_3d.png",
+      "file": "video-game.webp"
+    },
+    {
+      "id": "art-joystick",
+      "path": "assets/Joystick/3D/joystick_3d.png",
+      "file": "joystick.webp"
+    },
+    {
+      "id": "art-game-die",
+      "path": "assets/Game die/3D/game_die_3d.png",
+      "file": "game-die.webp"
+    },
+    {
+      "id": "art-puzzle-piece",
+      "path": "assets/Puzzle piece/3D/puzzle_piece_3d.png",
+      "file": "puzzle-piece.webp"
+    },
+    {
+      "id": "art-chess-pawn",
+      "path": "assets/Chess pawn/3D/chess_pawn_3d.png",
+      "file": "chess-pawn.webp"
+    },
+    {
+      "id": "art-spade-suit",
+      "path": "assets/Spade suit/3D/spade_suit_3d.png",
+      "file": "spade-suit.webp"
+    },
+    {
+      "id": "art-joker",
+      "path": "assets/Joker/3D/joker_3d.png",
+      "file": "joker.webp"
+    },
+    {
+      "id": "art-slot-machine",
+      "path": "assets/Slot machine/3D/slot_machine_3d.png",
+      "file": "slot-machine.webp"
+    },
+    {
+      "id": "art-bullseye",
+      "path": "assets/Bullseye/3D/bullseye_3d.png",
+      "file": "bullseye.webp"
+    },
+    {
+      "id": "art-bowling",
+      "path": "assets/Bowling/3D/bowling_3d.png",
+      "file": "bowling.webp"
+    },
+    {
+      "id": "art-performing-arts",
+      "path": "assets/Performing arts/3D/performing_arts_3d.png",
+      "file": "performing-arts.webp"
+    },
+    {
+      "id": "art-clapper-board",
+      "path": "assets/Clapper board/3D/clapper_board_3d.png",
+      "file": "clapper-board.webp"
+    },
+    {
+      "id": "art-popcorn",
+      "path": "assets/Popcorn/3D/popcorn_3d.png",
+      "file": "popcorn.webp"
+    },
+    {
+      "id": "art-television",
+      "path": "assets/Television/3D/television_3d.png",
+      "file": "television.webp"
+    },
+    {
+      "id": "art-admission-tickets",
+      "path": "assets/Admission tickets/3D/admission_tickets_3d.png",
+      "file": "admission-tickets.webp"
+    },
+    {
+      "id": "art-microphone",
+      "path": "assets/Microphone/3D/microphone_3d.png",
+      "file": "microphone.webp"
+    },
+    {
+      "id": "art-headphone",
+      "path": "assets/Headphone/3D/headphone_3d.png",
+      "file": "headphone.webp"
+    },
+    {
+      "id": "art-musical-notes",
+      "path": "assets/Musical notes/3D/musical_notes_3d.png",
+      "file": "musical-notes.webp"
+    },
+    {
+      "id": "art-guitar",
+      "path": "assets/Guitar/3D/guitar_3d.png",
+      "file": "guitar.webp"
+    },
+    {
+      "id": "art-musical-keyboard",
+      "path": "assets/Musical keyboard/3D/musical_keyboard_3d.png",
+      "file": "musical-keyboard.webp"
+    },
+    {
+      "id": "art-violin",
+      "path": "assets/Violin/3D/violin_3d.png",
+      "file": "violin.webp"
+    },
+    {
+      "id": "art-drum",
+      "path": "assets/Drum/3D/drum_3d.png",
+      "file": "drum.webp"
+    },
+    {
+      "id": "art-saxophone",
+      "path": "assets/Saxophone/3D/saxophone_3d.png",
+      "file": "saxophone.webp"
+    },
+    {
+      "id": "art-camera",
+      "path": "assets/Camera/3D/camera_3d.png",
+      "file": "camera.webp"
+    },
+    {
+      "id": "art-camera-with-flash",
+      "path": "assets/Camera with flash/3D/camera_with_flash_3d.png",
+      "file": "camera-with-flash.webp"
+    },
+    {
+      "id": "art-ferris-wheel",
+      "path": "assets/Ferris wheel/3D/ferris_wheel_3d.png",
+      "file": "ferris-wheel.webp"
+    },
+    {
+      "id": "art-roller-coaster",
+      "path": "assets/Roller coaster/3D/roller_coaster_3d.png",
+      "file": "roller-coaster.webp"
+    },
+    {
+      "id": "art-carousel-horse",
+      "path": "assets/Carousel horse/3D/carousel_horse_3d.png",
+      "file": "carousel-horse.webp"
+    },
+    {
+      "id": "art-balloon",
+      "path": "assets/Balloon/3D/balloon_3d.png",
+      "file": "balloon.webp"
+    },
+    {
+      "id": "art-wrapped-gift",
+      "path": "assets/Wrapped gift/3D/wrapped_gift_3d.png",
+      "file": "wrapped-gift.webp"
+    },
+    {
+      "id": "art-party-popper",
+      "path": "assets/Party popper/3D/party_popper_3d.png",
+      "file": "party-popper.webp"
+    },
+    {
+      "id": "art-soccer-ball",
+      "path": "assets/Soccer ball/3D/soccer_ball_3d.png",
+      "file": "soccer-ball.webp"
+    },
+    {
+      "id": "art-basketball",
+      "path": "assets/Basketball/3D/basketball_3d.png",
+      "file": "basketball.webp"
+    },
+    {
+      "id": "art-volleyball",
+      "path": "assets/Volleyball/3D/volleyball_3d.png",
+      "file": "volleyball.webp"
+    },
+    {
+      "id": "art-tennis",
+      "path": "assets/Tennis/3D/tennis_3d.png",
+      "file": "tennis.webp"
+    },
+    {
+      "id": "art-badminton",
+      "path": "assets/Badminton/3D/badminton_3d.png",
+      "file": "badminton.webp"
+    },
+    {
+      "id": "art-ping-pong",
+      "path": "assets/Ping pong/3D/ping_pong_3d.png",
+      "file": "ping-pong.webp"
+    },
+    {
+      "id": "art-american-football",
+      "path": "assets/American football/3D/american_football_3d.png",
+      "file": "american-football.webp"
+    },
+    {
+      "id": "art-baseball",
+      "path": "assets/Baseball/3D/baseball_3d.png",
+      "file": "baseball.webp"
+    },
+    {
+      "id": "art-rugby-football",
+      "path": "assets/Rugby football/3D/rugby_football_3d.png",
+      "file": "rugby-football.webp"
+    },
+    {
+      "id": "art-cricket-game",
+      "path": "assets/Cricket game/3D/cricket_game_3d.png",
+      "file": "cricket-game.webp"
+    },
+    {
+      "id": "art-ice-hockey",
+      "path": "assets/Ice hockey/3D/ice_hockey_3d.png",
+      "file": "ice-hockey.webp"
+    },
+    {
+      "id": "art-field-hockey",
+      "path": "assets/Field hockey/3D/field_hockey_3d.png",
+      "file": "field-hockey.webp"
+    },
+    {
+      "id": "art-flag-in-hole",
+      "path": "assets/Flag in hole/3D/flag_in_hole_3d.png",
+      "file": "flag-in-hole.webp"
+    },
+    {
+      "id": "art-boxing-glove",
+      "path": "assets/Boxing glove/3D/boxing_glove_3d.png",
+      "file": "boxing-glove.webp"
+    },
+    {
+      "id": "art-martial-arts-uniform",
+      "path": "assets/Martial arts uniform/3D/martial_arts_uniform_3d.png",
+      "file": "martial-arts-uniform.webp"
+    },
+    {
+      "id": "art-bicycle",
+      "path": "assets/Bicycle/3D/bicycle_3d.png",
+      "file": "bicycle.webp"
+    },
+    {
+      "id": "art-running-shoe",
+      "path": "assets/Running shoe/3D/running_shoe_3d.png",
+      "file": "running-shoe.webp"
+    },
+    {
+      "id": "art-hiking-boot",
+      "path": "assets/Hiking boot/3D/hiking_boot_3d.png",
+      "file": "hiking-boot.webp"
+    },
+    {
+      "id": "art-skateboard",
+      "path": "assets/Skateboard/3D/skateboard_3d.png",
+      "file": "skateboard.webp"
+    },
+    {
+      "id": "art-roller-skate",
+      "path": "assets/Roller skate/3D/roller_skate_3d.png",
+      "file": "roller-skate.webp"
+    },
+    {
+      "id": "art-skis",
+      "path": "assets/Skis/3D/skis_3d.png",
+      "file": "skis.webp"
+    },
+    {
+      "id": "art-ice-skate",
+      "path": "assets/Ice skate/3D/ice_skate_3d.png",
+      "file": "ice-skate.webp"
+    },
+    {
+      "id": "art-bow-and-arrow",
+      "path": "assets/Bow and arrow/3D/bow_and_arrow_3d.png",
+      "file": "bow-and-arrow.webp"
+    },
+    {
+      "id": "art-fishing-pole",
+      "path": "assets/Fishing pole/3D/fishing_pole_3d.png",
+      "file": "fishing-pole.webp"
+    },
+    {
+      "id": "art-diving-mask",
+      "path": "assets/Diving mask/3D/diving_mask_3d.png",
+      "file": "diving-mask.webp"
+    },
+    {
+      "id": "art-goggles",
+      "path": "assets/Goggles/3D/goggles_3d.png",
+      "file": "goggles.webp"
+    },
+    {
+      "id": "art-trophy",
+      "path": "assets/Trophy/3D/trophy_3d.png",
+      "file": "trophy.webp"
+    },
+    {
+      "id": "art-sports-medal",
+      "path": "assets/Sports medal/3D/sports_medal_3d.png",
+      "file": "sports-medal.webp"
+    },
+    {
+      "id": "art-1st-place-medal",
+      "path": "assets/1st place medal/3D/1st_place_medal_3d.png",
+      "file": "1st-place-medal.webp"
+    },
+    {
+      "id": "art-flexed-biceps",
+      "path": "assets/Flexed biceps/Dark/3D/flexed_biceps_3d_dark.png",
+      "file": "flexed-biceps.webp"
+    },
+    {
+      "id": "art-red-apple",
+      "path": "assets/Red apple/3D/red_apple_3d.png",
+      "file": "red-apple.webp"
+    },
+    {
+      "id": "art-green-apple",
+      "path": "assets/Green apple/3D/green_apple_3d.png",
+      "file": "green-apple.webp"
+    },
+    {
+      "id": "art-pear",
+      "path": "assets/Pear/3D/pear_3d.png",
+      "file": "pear.webp"
+    },
+    {
+      "id": "art-tangerine",
+      "path": "assets/Tangerine/3D/tangerine_3d.png",
+      "file": "tangerine.webp"
+    },
+    {
+      "id": "art-lemon",
+      "path": "assets/Lemon/3D/lemon_3d.png",
+      "file": "lemon.webp"
+    },
+    {
+      "id": "art-banana",
+      "path": "assets/Banana/3D/banana_3d.png",
+      "file": "banana.webp"
+    },
+    {
+      "id": "art-watermelon",
+      "path": "assets/Watermelon/3D/watermelon_3d.png",
+      "file": "watermelon.webp"
+    },
+    {
+      "id": "art-grapes",
+      "path": "assets/Grapes/3D/grapes_3d.png",
+      "file": "grapes.webp"
+    },
+    {
+      "id": "art-strawberry",
+      "path": "assets/Strawberry/3D/strawberry_3d.png",
+      "file": "strawberry.webp"
+    },
+    {
+      "id": "art-blueberries",
+      "path": "assets/Blueberries/3D/blueberries_3d.png",
+      "file": "blueberries.webp"
+    },
+    {
+      "id": "art-cherries",
+      "path": "assets/Cherries/3D/cherries_3d.png",
+      "file": "cherries.webp"
+    },
+    {
+      "id": "art-peach",
+      "path": "assets/Peach/3D/peach_3d.png",
+      "file": "peach.webp"
+    },
+    {
+      "id": "art-mango",
+      "path": "assets/Mango/3D/mango_3d.png",
+      "file": "mango.webp"
+    },
+    {
+      "id": "art-pineapple",
+      "path": "assets/Pineapple/3D/pineapple_3d.png",
+      "file": "pineapple.webp"
+    },
+    {
+      "id": "art-coconut",
+      "path": "assets/Coconut/3D/coconut_3d.png",
+      "file": "coconut.webp"
+    },
+    {
+      "id": "art-kiwi-fruit",
+      "path": "assets/Kiwi fruit/3D/kiwi_fruit_3d.png",
+      "file": "kiwi-fruit.webp"
+    },
+    {
+      "id": "art-melon",
+      "path": "assets/Melon/3D/melon_3d.png",
+      "file": "melon.webp"
+    },
+    {
+      "id": "art-avocado",
+      "path": "assets/Avocado/3D/avocado_3d.png",
+      "file": "avocado.webp"
+    },
+    {
+      "id": "art-tomato",
+      "path": "assets/Tomato/3D/tomato_3d.png",
+      "file": "tomato.webp"
+    },
+    {
+      "id": "art-broccoli",
+      "path": "assets/Broccoli/3D/broccoli_3d.png",
+      "file": "broccoli.webp"
+    },
+    {
+      "id": "art-carrot",
+      "path": "assets/Carrot/3D/carrot_3d.png",
+      "file": "carrot.webp"
+    },
+    {
+      "id": "art-ear-of-corn",
+      "path": "assets/Ear of corn/3D/ear_of_corn_3d.png",
+      "file": "ear-of-corn.webp"
+    },
+    {
+      "id": "art-cucumber",
+      "path": "assets/Cucumber/3D/cucumber_3d.png",
+      "file": "cucumber.webp"
+    },
+    {
+      "id": "art-leafy-green",
+      "path": "assets/Leafy green/3D/leafy_green_3d.png",
+      "file": "leafy-green.webp"
+    },
+    {
+      "id": "art-bell-pepper",
+      "path": "assets/Bell pepper/3D/bell_pepper_3d.png",
+      "file": "bell-pepper.webp"
+    },
+    {
+      "id": "art-hot-pepper",
+      "path": "assets/Hot pepper/3D/hot_pepper_3d.png",
+      "file": "hot-pepper.webp"
+    },
+    {
+      "id": "art-potato",
+      "path": "assets/Potato/3D/potato_3d.png",
+      "file": "potato.webp"
+    },
+    {
+      "id": "art-roasted-sweet-potato",
+      "path": "assets/Roasted sweet potato/3D/roasted_sweet_potato_3d.png",
+      "file": "roasted-sweet-potato.webp"
+    },
+    {
+      "id": "art-eggplant",
+      "path": "assets/Eggplant/3D/eggplant_3d.png",
+      "file": "eggplant.webp"
+    },
+    {
+      "id": "art-onion",
+      "path": "assets/Onion/3D/onion_3d.png",
+      "file": "onion.webp"
+    },
+    {
+      "id": "art-garlic",
+      "path": "assets/Garlic/3D/garlic_3d.png",
+      "file": "garlic.webp"
+    },
+    {
+      "id": "art-mushroom",
+      "path": "assets/Mushroom/3D/mushroom_3d.png",
+      "file": "mushroom.webp"
+    },
+    {
+      "id": "art-peanuts",
+      "path": "assets/Peanuts/3D/peanuts_3d.png",
+      "file": "peanuts.webp"
+    },
+    {
+      "id": "art-chestnut",
+      "path": "assets/Chestnut/3D/chestnut_3d.png",
+      "file": "chestnut.webp"
+    },
+    {
+      "id": "art-cooked-rice",
+      "path": "assets/Cooked rice/3D/cooked_rice_3d.png",
+      "file": "cooked-rice.webp"
+    },
+    {
+      "id": "art-beans",
+      "path": "assets/Beans/3D/beans_3d.png",
+      "file": "beans.webp"
+    },
+    {
+      "id": "art-bread",
+      "path": "assets/Bread/3D/bread_3d.png",
+      "file": "bread.webp"
+    },
+    {
+      "id": "art-baguette-bread",
+      "path": "assets/Baguette bread/3D/baguette_bread_3d.png",
+      "file": "baguette-bread.webp"
+    },
+    {
+      "id": "art-flatbread",
+      "path": "assets/Flatbread/3D/flatbread_3d.png",
+      "file": "flatbread.webp"
+    },
+    {
+      "id": "art-croissant",
+      "path": "assets/Croissant/3D/croissant_3d.png",
+      "file": "croissant.webp"
+    },
+    {
+      "id": "art-bagel",
+      "path": "assets/Bagel/3D/bagel_3d.png",
+      "file": "bagel.webp"
+    },
+    {
+      "id": "art-pretzel",
+      "path": "assets/Pretzel/3D/pretzel_3d.png",
+      "file": "pretzel.webp"
+    },
+    {
+      "id": "art-pancakes",
+      "path": "assets/Pancakes/3D/pancakes_3d.png",
+      "file": "pancakes.webp"
+    },
+    {
+      "id": "art-waffle",
+      "path": "assets/Waffle/3D/waffle_3d.png",
+      "file": "waffle.webp"
+    },
+    {
+      "id": "art-cheese-wedge",
+      "path": "assets/Cheese wedge/3D/cheese_wedge_3d.png",
+      "file": "cheese-wedge.webp"
+    },
+    {
+      "id": "art-egg",
+      "path": "assets/Egg/3D/egg_3d.png",
+      "file": "egg.webp"
+    },
+    {
+      "id": "art-cooking",
+      "path": "assets/Cooking/3D/cooking_3d.png",
+      "file": "cooking.webp"
+    },
+    {
+      "id": "art-cut-of-meat",
+      "path": "assets/Cut of meat/3D/cut_of_meat_3d.png",
+      "file": "cut-of-meat.webp"
+    },
+    {
+      "id": "art-poultry-leg",
+      "path": "assets/Poultry leg/3D/poultry_leg_3d.png",
+      "file": "poultry-leg.webp"
+    },
+    {
+      "id": "art-meat-on-bone",
+      "path": "assets/Meat on bone/3D/meat_on_bone_3d.png",
+      "file": "meat-on-bone.webp"
+    },
+    {
+      "id": "art-fish",
+      "path": "assets/Fish/3D/fish_3d.png",
+      "file": "fish.webp"
+    },
+    {
+      "id": "art-shrimp",
+      "path": "assets/Shrimp/3D/shrimp_3d.png",
+      "file": "shrimp.webp"
+    },
+    {
+      "id": "art-bacon",
+      "path": "assets/Bacon/3D/bacon_3d.png",
+      "file": "bacon.webp"
+    },
+    {
+      "id": "art-hamburger",
+      "path": "assets/Hamburger/3D/hamburger_3d.png",
+      "file": "hamburger.webp"
+    },
+    {
+      "id": "art-sandwich",
+      "path": "assets/Sandwich/3D/sandwich_3d.png",
+      "file": "sandwich.webp"
+    },
+    {
+      "id": "art-hot-dog",
+      "path": "assets/Hot dog/3D/hot_dog_3d.png",
+      "file": "hot-dog.webp"
+    },
+    {
+      "id": "art-pizza",
+      "path": "assets/Pizza/3D/pizza_3d.png",
+      "file": "pizza.webp"
+    },
+    {
+      "id": "art-french-fries",
+      "path": "assets/French fries/3D/french_fries_3d.png",
+      "file": "french-fries.webp"
+    },
+    {
+      "id": "art-taco",
+      "path": "assets/Taco/3D/taco_3d.png",
+      "file": "taco.webp"
+    },
+    {
+      "id": "art-burrito",
+      "path": "assets/Burrito/3D/burrito_3d.png",
+      "file": "burrito.webp"
+    },
+    {
+      "id": "art-stuffed-flatbread",
+      "path": "assets/Stuffed flatbread/3D/stuffed_flatbread_3d.png",
+      "file": "stuffed-flatbread.webp"
+    },
+    {
+      "id": "art-falafel",
+      "path": "assets/Falafel/3D/falafel_3d.png",
+      "file": "falafel.webp"
+    },
+    {
+      "id": "art-green-salad",
+      "path": "assets/Green salad/3D/green_salad_3d.png",
+      "file": "green-salad.webp"
+    },
+    {
+      "id": "art-shallow-pan-of-food",
+      "path": "assets/Shallow pan of food/3D/shallow_pan_of_food_3d.png",
+      "file": "shallow-pan-of-food.webp"
+    },
+    {
+      "id": "art-pot-of-food",
+      "path": "assets/Pot of food/3D/pot_of_food_3d.png",
+      "file": "pot-of-food.webp"
+    },
+    {
+      "id": "art-steaming-bowl",
+      "path": "assets/Steaming bowl/3D/steaming_bowl_3d.png",
+      "file": "steaming-bowl.webp"
+    },
+    {
+      "id": "art-spaghetti",
+      "path": "assets/Spaghetti/3D/spaghetti_3d.png",
+      "file": "spaghetti.webp"
+    },
+    {
+      "id": "art-sushi",
+      "path": "assets/Sushi/3D/sushi_3d.png",
+      "file": "sushi.webp"
+    },
+    {
+      "id": "art-bento-box",
+      "path": "assets/Bento box/3D/bento_box_3d.png",
+      "file": "bento-box.webp"
+    },
+    {
+      "id": "art-dumpling",
+      "path": "assets/Dumpling/3D/dumpling_3d.png",
+      "file": "dumpling.webp"
+    },
+    {
+      "id": "art-canned-food",
+      "path": "assets/Canned food/3D/canned_food_3d.png",
+      "file": "canned-food.webp"
+    },
+    {
+      "id": "art-butter",
+      "path": "assets/Butter/3D/butter_3d.png",
+      "file": "butter.webp"
+    },
+    {
+      "id": "art-olive",
+      "path": "assets/Olive/3D/olive_3d.png",
+      "file": "olive.webp"
+    },
+    {
+      "id": "art-salt",
+      "path": "assets/Salt/3D/salt_3d.png",
+      "file": "salt.webp"
+    },
+    {
+      "id": "art-chocolate-bar",
+      "path": "assets/Chocolate bar/3D/chocolate_bar_3d.png",
+      "file": "chocolate-bar.webp"
+    },
+    {
+      "id": "art-cookie",
+      "path": "assets/Cookie/3D/cookie_3d.png",
+      "file": "cookie.webp"
+    },
+    {
+      "id": "art-cupcake",
+      "path": "assets/Cupcake/3D/cupcake_3d.png",
+      "file": "cupcake.webp"
+    },
+    {
+      "id": "art-shortcake",
+      "path": "assets/Shortcake/3D/shortcake_3d.png",
+      "file": "shortcake.webp"
+    },
+    {
+      "id": "art-birthday-cake",
+      "path": "assets/Birthday cake/3D/birthday_cake_3d.png",
+      "file": "birthday-cake.webp"
+    },
+    {
+      "id": "art-doughnut",
+      "path": "assets/Doughnut/3D/doughnut_3d.png",
+      "file": "doughnut.webp"
+    },
+    {
+      "id": "art-pie",
+      "path": "assets/Pie/3D/pie_3d.png",
+      "file": "pie.webp"
+    },
+    {
+      "id": "art-candy",
+      "path": "assets/Candy/3D/candy_3d.png",
+      "file": "candy.webp"
+    },
+    {
+      "id": "art-lollipop",
+      "path": "assets/Lollipop/3D/lollipop_3d.png",
+      "file": "lollipop.webp"
+    },
+    {
+      "id": "art-ice-cream",
+      "path": "assets/Ice cream/3D/ice_cream_3d.png",
+      "file": "ice-cream.webp"
+    },
+    {
+      "id": "art-soft-ice-cream",
+      "path": "assets/Soft ice cream/3D/soft_ice_cream_3d.png",
+      "file": "soft-ice-cream.webp"
+    },
+    {
+      "id": "art-shaved-ice",
+      "path": "assets/Shaved ice/3D/shaved_ice_3d.png",
+      "file": "shaved-ice.webp"
+    },
+    {
+      "id": "art-honey-pot",
+      "path": "assets/Honey pot/3D/honey_pot_3d.png",
+      "file": "honey-pot.webp"
+    },
+    {
+      "id": "art-glass-of-milk",
+      "path": "assets/Glass of milk/3D/glass_of_milk_3d.png",
+      "file": "glass-of-milk.webp"
+    },
+    {
+      "id": "art-hot-beverage",
+      "path": "assets/Hot beverage/3D/hot_beverage_3d.png",
+      "file": "hot-beverage.webp"
+    },
+    {
+      "id": "art-teacup-without-handle",
+      "path": "assets/Teacup without handle/3D/teacup_without_handle_3d.png",
+      "file": "teacup-without-handle.webp"
+    },
+    {
+      "id": "art-beverage-box",
+      "path": "assets/Beverage box/3D/beverage_box_3d.png",
+      "file": "beverage-box.webp"
+    },
+    {
+      "id": "art-cup-with-straw",
+      "path": "assets/Cup with straw/3D/cup_with_straw_3d.png",
+      "file": "cup-with-straw.webp"
+    },
+    {
+      "id": "art-bubble-tea",
+      "path": "assets/Bubble tea/3D/bubble_tea_3d.png",
+      "file": "bubble-tea.webp"
+    },
+    {
+      "id": "art-mate",
+      "path": "assets/Mate/3D/mate_3d.png",
+      "file": "mate.webp"
+    },
+    {
+      "id": "art-tropical-drink",
+      "path": "assets/Tropical drink/3D/tropical_drink_3d.png",
+      "file": "tropical-drink.webp"
+    },
+    {
+      "id": "art-cocktail-glass",
+      "path": "assets/Cocktail glass/3D/cocktail_glass_3d.png",
+      "file": "cocktail-glass.webp"
+    },
+    {
+      "id": "art-wine-glass",
+      "path": "assets/Wine glass/3D/wine_glass_3d.png",
+      "file": "wine-glass.webp"
+    },
+    {
+      "id": "art-beer-mug",
+      "path": "assets/Beer mug/3D/beer_mug_3d.png",
+      "file": "beer-mug.webp"
+    },
+    {
+      "id": "art-clinking-glasses",
+      "path": "assets/Clinking glasses/3D/clinking_glasses_3d.png",
+      "file": "clinking-glasses.webp"
+    },
+    {
+      "id": "art-fork-and-knife-with-plate",
+      "path": "assets/Fork and knife with plate/3D/fork_and_knife_with_plate_3d.png",
+      "file": "fork-and-knife-with-plate.webp"
+    },
+    {
+      "id": "art-seedling",
+      "path": "assets/Seedling/3D/seedling_3d.png",
+      "file": "seedling.webp"
+    },
+    {
+      "id": "art-potted-plant",
+      "path": "assets/Potted plant/3D/potted_plant_3d.png",
+      "file": "potted-plant.webp"
+    },
+    {
+      "id": "art-herb",
+      "path": "assets/Herb/3D/herb_3d.png",
+      "file": "herb.webp"
+    },
+    {
+      "id": "art-cactus",
+      "path": "assets/Cactus/3D/cactus_3d.png",
+      "file": "cactus.webp"
+    },
+    {
+      "id": "art-evergreen-tree",
+      "path": "assets/Evergreen tree/3D/evergreen_tree_3d.png",
+      "file": "evergreen-tree.webp"
+    },
+    {
+      "id": "art-deciduous-tree",
+      "path": "assets/Deciduous tree/3D/deciduous_tree_3d.png",
+      "file": "deciduous-tree.webp"
+    },
+    {
+      "id": "art-palm-tree",
+      "path": "assets/Palm tree/3D/palm_tree_3d.png",
+      "file": "palm-tree.webp"
+    },
+    {
+      "id": "art-sunflower",
+      "path": "assets/Sunflower/3D/sunflower_3d.png",
+      "file": "sunflower.webp"
+    },
+    {
+      "id": "art-rose",
+      "path": "assets/Rose/3D/rose_3d.png",
+      "file": "rose.webp"
+    },
+    {
+      "id": "art-tulip",
+      "path": "assets/Tulip/3D/tulip_3d.png",
+      "file": "tulip.webp"
+    },
+    {
+      "id": "art-hibiscus",
+      "path": "assets/Hibiscus/3D/hibiscus_3d.png",
+      "file": "hibiscus.webp"
+    },
+    {
+      "id": "art-cherry-blossom",
+      "path": "assets/Cherry blossom/3D/cherry_blossom_3d.png",
+      "file": "cherry-blossom.webp"
+    },
+    {
+      "id": "art-sun",
+      "path": "assets/Sun/3D/sun_3d.png",
+      "file": "sun.webp"
+    },
+    {
+      "id": "art-rainbow",
+      "path": "assets/Rainbow/3D/rainbow_3d.png",
+      "file": "rainbow.webp"
+    },
+    {
+      "id": "art-crescent-moon",
+      "path": "assets/Crescent moon/3D/crescent_moon_3d.png",
+      "file": "crescent-moon.webp"
+    },
+    {
+      "id": "art-star",
+      "path": "assets/Star/3D/star_3d.png",
+      "file": "star.webp"
+    },
+    {
+      "id": "art-dog",
+      "path": "assets/Dog/3D/dog_3d.png",
+      "file": "dog.webp"
+    },
+    {
+      "id": "art-cat",
+      "path": "assets/Cat/3D/cat_3d.png",
+      "file": "cat.webp"
+    },
+    {
+      "id": "art-parrot",
+      "path": "assets/Parrot/3D/parrot_3d.png",
+      "file": "parrot.webp"
+    },
+    {
+      "id": "art-bird",
+      "path": "assets/Bird/3D/bird_3d.png",
+      "file": "bird.webp"
+    },
+    {
+      "id": "art-rabbit",
+      "path": "assets/Rabbit/3D/rabbit_3d.png",
+      "file": "rabbit.webp"
+    },
+    {
+      "id": "art-hamster",
+      "path": "assets/Hamster/3D/hamster_3d.png",
+      "file": "hamster.webp"
+    },
+    {
+      "id": "art-butterfly",
+      "path": "assets/Butterfly/3D/butterfly_3d.png",
+      "file": "butterfly.webp"
+    },
+    {
+      "id": "art-honeybee",
+      "path": "assets/Honeybee/3D/honeybee_3d.png",
+      "file": "honeybee.webp"
+    },
+    {
+      "id": "art-turtle",
+      "path": "assets/Turtle/3D/turtle_3d.png",
+      "file": "turtle.webp"
+    },
+    {
+      "id": "art-tropical-fish",
+      "path": "assets/Tropical fish/3D/tropical_fish_3d.png",
+      "file": "tropical-fish.webp"
+    },
+    {
+      "id": "art-paw-prints",
+      "path": "assets/Paw prints/3D/paw_prints_3d.png",
+      "file": "paw-prints.webp"
+    },
+    {
+      "id": "art-house",
+      "path": "assets/House/3D/house_3d.png",
+      "file": "house.webp"
+    },
+    {
+      "id": "art-house-with-garden",
+      "path": "assets/House with garden/3D/house_with_garden_3d.png",
+      "file": "house-with-garden.webp"
+    },
+    {
+      "id": "art-bed",
+      "path": "assets/Bed/3D/bed_3d.png",
+      "file": "bed.webp"
+    },
+    {
+      "id": "art-couch-and-lamp",
+      "path": "assets/Couch and lamp/3D/couch_and_lamp_3d.png",
+      "file": "couch-and-lamp.webp"
+    },
+    {
+      "id": "art-bathtub",
+      "path": "assets/Bathtub/3D/bathtub_3d.png",
+      "file": "bathtub.webp"
+    },
+    {
+      "id": "art-broom",
+      "path": "assets/Broom/3D/broom_3d.png",
+      "file": "broom.webp"
+    },
+    {
+      "id": "art-basket",
+      "path": "assets/Basket/3D/basket_3d.png",
+      "file": "basket.webp"
+    },
+    {
+      "id": "art-hammer-and-wrench",
+      "path": "assets/Hammer and wrench/3D/hammer_and_wrench_3d.png",
+      "file": "hammer-and-wrench.webp"
+    },
+    {
+      "id": "art-light-bulb",
+      "path": "assets/Light bulb/3D/light_bulb_3d.png",
+      "file": "light-bulb.webp"
+    },
+    {
+      "id": "art-electric-plug",
+      "path": "assets/Electric plug/3D/electric_plug_3d.png",
+      "file": "electric-plug.webp"
+    },
+    {
+      "id": "art-laptop",
+      "path": "assets/Laptop/3D/laptop_3d.png",
+      "file": "laptop.webp"
+    },
+    {
+      "id": "art-desktop-computer",
+      "path": "assets/Desktop computer/3D/desktop_computer_3d.png",
+      "file": "desktop-computer.webp"
+    },
+    {
+      "id": "art-keyboard",
+      "path": "assets/Keyboard/3D/keyboard_3d.png",
+      "file": "keyboard.webp"
+    },
+    {
+      "id": "art-printer",
+      "path": "assets/Printer/3D/printer_3d.png",
+      "file": "printer.webp"
+    },
+    {
+      "id": "art-mobile-phone",
+      "path": "assets/Mobile phone/3D/mobile_phone_3d.png",
+      "file": "mobile-phone.webp"
+    },
+    {
+      "id": "art-robot",
+      "path": "assets/Robot/3D/robot_3d.png",
+      "file": "robot.webp"
+    },
+    {
+      "id": "art-gear",
+      "path": "assets/Gear/3D/gear_3d.png",
+      "file": "gear.webp"
+    },
+    {
+      "id": "art-books",
+      "path": "assets/Books/3D/books_3d.png",
+      "file": "books.webp"
+    },
+    {
+      "id": "art-open-book",
+      "path": "assets/Open book/3D/open_book_3d.png",
+      "file": "open-book.webp"
+    },
+    {
+      "id": "art-graduation-cap",
+      "path": "assets/Graduation cap/3D/graduation_cap_3d.png",
+      "file": "graduation-cap.webp"
+    },
+    {
+      "id": "art-memo",
+      "path": "assets/Memo/3D/memo_3d.png",
+      "file": "memo.webp"
+    },
+    {
+      "id": "art-pencil",
+      "path": "assets/Pencil/3D/pencil_3d.png",
+      "file": "pencil.webp"
+    },
+    {
+      "id": "art-artist-palette",
+      "path": "assets/Artist palette/3D/artist_palette_3d.png",
+      "file": "artist-palette.webp"
+    },
+    {
+      "id": "art-paintbrush",
+      "path": "assets/Paintbrush/3D/paintbrush_3d.png",
+      "file": "paintbrush.webp"
+    },
+    {
+      "id": "art-thread",
+      "path": "assets/Thread/3D/thread_3d.png",
+      "file": "thread.webp"
+    },
+    {
+      "id": "art-yarn",
+      "path": "assets/Yarn/3D/yarn_3d.png",
+      "file": "yarn.webp"
+    },
+    {
+      "id": "art-scissors",
+      "path": "assets/Scissors/3D/scissors_3d.png",
+      "file": "scissors.webp"
+    },
+    {
+      "id": "art-briefcase",
+      "path": "assets/Briefcase/3D/briefcase_3d.png",
+      "file": "briefcase.webp"
+    },
+    {
+      "id": "art-money-bag",
+      "path": "assets/Money bag/3D/money_bag_3d.png",
+      "file": "money-bag.webp"
+    },
+    {
+      "id": "art-chart-increasing",
+      "path": "assets/Chart increasing/3D/chart_increasing_3d.png",
+      "file": "chart-increasing.webp"
+    },
+    {
+      "id": "art-heart-suit",
+      "path": "assets/Heart suit/3D/heart_suit_3d.png",
+      "file": "heart-suit.webp"
+    },
+    {
+      "id": "art-pill",
+      "path": "assets/Pill/3D/pill_3d.png",
+      "file": "pill.webp"
+    },
+    {
+      "id": "art-adhesive-bandage",
+      "path": "assets/Adhesive bandage/3D/adhesive_bandage_3d.png",
+      "file": "adhesive-bandage.webp"
+    },
+    {
+      "id": "art-brain",
+      "path": "assets/Brain/3D/brain_3d.png",
+      "file": "brain.webp"
+    },
+    {
+      "id": "art-sparkles",
+      "path": "assets/Sparkles/3D/sparkles_3d.png",
+      "file": "sparkles.webp"
+    },
+    {
+      "id": "art-magnifying-glass-tilted-left",
+      "path": "assets/Magnifying glass tilted left/3D/magnifying_glass_tilted_left_3d.png",
+      "file": "magnifying-glass-tilted-left.webp"
+    },
+    {
+      "id": "art-telescope",
+      "path": "assets/Telescope/3D/telescope_3d.png",
+      "file": "telescope.webp"
+    },
+    {
+      "id": "art-microscope",
+      "path": "assets/Microscope/3D/microscope_3d.png",
+      "file": "microscope.webp"
+    },
+    {
+      "id": "art-test-tube",
+      "path": "assets/Test tube/3D/test_tube_3d.png",
+      "file": "test-tube.webp"
+    }
+  ]
+}

@@ -9,6 +9,8 @@ import MonthInput from './MonthInput';
 import MonthPicker from './MonthPicker';
 import ModalLayer from './ModalLayer';
 import FoodImage from './FoodImage';
+import IllustrationPicker from './IllustrationPicker';
+import {FOOD_LEGACY_LABELS} from '../lib/illustrations';
 import HabitIcon from './HabitIcon';
 import {TextLinks} from './LinkText';
 import {holdEditor} from '../lib/editingGuard';
@@ -36,7 +38,7 @@ function FoodEditor({record,food:existingFood,recipe,onSave,onClose,foods}){
    <ul className="nutrition-ingredients">{ingredients.map((p,i)=><li key={i}><span>{p.food.name}<small>{fmt(p.quantity,2)} {p.measure==='portion'?'porção':p.measure} · {fmt(foodKcal(p.food,p.quantity,p.measure))} kcal</small></span><button type="button" className="ghost" aria-label={`Remover ingrediente ${p.food.name}`} onClick={()=>setIngredients(p=>p.filter((_,j)=>j!==i))}>×</button></li>)}</ul>
    <label>Peso final da receita pronta (g)<input className="search" inputMode="decimal" value={yieldGrams} onChange={e=>setYield(e.target.value)} required/></label><p className="nutrition-kcal">{calculated?fmt(calculated.kcal100,2):'—'} <small>kcal / 100 g</small></p>
   </>:<div className="field-row"><label>kcal por 100 {unit}<input className="search" inputMode="decimal" value={kcal} onChange={e=>setKcal(e.target.value)} required/></label><label>Unidade<select className="search" value={unit} onChange={e=>setUnit(e.target.value)}><option value="g">Gramas (g)</option><option value="ml">Mililitros (ml)</option></select></label><label>Peso/volume de uma porção ({unit})<input className="search" inputMode="decimal" placeholder="Deixar sem porção" value={portion} onChange={e=>setPortion(e.target.value)}/></label></div>}
-  <span className="label">Ilustração</span><div className="nutrition-icon-palette">{FOOD_ICONS.map(id=><button type="button" key={id} className={'ghost'+(icon===id?' on':'')} aria-label={`Ilustração: ${id}`} aria-pressed={icon===id} onClick={()=>setIcon(id)}><FoodImage food={{icon:id}} size={38}/></button>)}</div>
+  <span className="label">Ilustração</span><IllustrationPicker value={icon} ids={FOOD_ICONS} labels={FOOD_LEGACY_LABELS} kind="food" onChange={setIcon}/>
   {error&&<p className="date-error" role="alert">{error}</p>}<div className="nutrition-actions"><button className="primary" type="submit">Salvar {recipe?'receita':'alimento'}</button><button className="ghost" type="button" onClick={onClose}>Cancelar</button></div>
  </form></div>;
 }

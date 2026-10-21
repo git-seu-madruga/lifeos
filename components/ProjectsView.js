@@ -1,4 +1,5 @@
 "use client";
+import {normalizeAreaName} from "../lib/someday";
 import PageActions from "./PageActions";
 import SharingFields from "./SharingFields";
 import SharedBadge from "./SharedBadge";
@@ -8,7 +9,7 @@ import LinkText, {TextLinks} from "./LinkText";
 import ProjectAttachments from "./ProjectAttachments";
 import DateInput from "./DateInput";
 
-import { patchTask, newestCompleted } from "../lib/tasks";
+import { patchTask, newestCompleted, oldestInserted, taskDate } from "../lib/tasks";
 
 import { useEffect, useState } from "react";
 import { formatDateInput } from "../lib/dateInput";
@@ -40,7 +41,7 @@ function Bar({ pct }) {
   return <div className="bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${pct}%` }} /></div>;
 }
 
-export default function ProjectsView({ user, tasks, setTasks, projects, setProjects, context, sub, selected, onSelect }) {
+export default function ProjectsView({ user, tasks, setTasks, projects, setProjects, context, sub, selected, onSelect, areas=[], areasConfigured=false, onManageAreas }) {
   const [openId, setOpenId] = useState(null);
   const [createdProjectId,setCreatedProjectId]=useState(null);
   useEffect(()=>()=>setProjects(previous=>previous.filter(project=>!project._untouchedDraft)),[setProjects]);
@@ -62,10 +63,11 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
       setProjectError("Um marco ultrapassa o prazo final do projeto. Ajuste o marco antes de antecipar o prazo final.");
       return;
     }
-    if (patch.status === "done" && current.status !== "done") {
+    if (["done","cancelled"].includes(patch.status) && current.status !== patch.status) {
       const openTasks = tasks.filter(t => t.project === id && t.status !== "done");
       const openMilestones = next.milestones.filter(m => !m.done);
-      if ((openTasks.length || openMilestones.length) && !window.confirm(`Concluir “${current.name}”? Há ${openTasks.length} tarefa(s) e ${openMilestones.length} marco(s) em aberto. Ao confirmar, todas as tarefas e marcos ainda abertos deste projeto também serão concluídos automaticamente. O histórico será preservado.`)) return;
+      const action = patch.status === "cancelled" ? "Cancelar" : "Concluir";
+      if ((openTasks.length || openMilestones.length) && !window.confirm(`${action} “${current.name}”? Há ${openTasks.length} tarefa(s) e ${openMilestones.length} marco(s) em aberto. Ao confirmar, todas as tarefas e marcos ainda abertos deste projeto também serão concluídos automaticamente. O histórico será preservado.`)) return;
       next.milestones = next.milestones.map(m => m.done ? m : { ...m, done: true });
       setTasks(prev => prev.map(t => t.project === id && t.status !== "done" ? patchTask(t, { status: "done" }) : t));
     }
@@ -125,7 +127,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
   }
 
   // ---------- Detalhe editável ----------
-  const pts = tasks.filter((t) => t.project === project.id);
+  const pts = tasks.filter((t) => t.project === project.id).sort((a, b) => ORDER[a.status] - ORDER[b.status] || (a.status === "done" ? newestCompleted(a, b) : taskDate(a).localeCompare(taskDate(b)) || oldestInserted(a,b)));
   const all = progress(pts);
   const ms = project.milestones; // a ordem é a sequência definida em "Marcos do projeto"
   const current = ms.find((m) => !m.done);
@@ -143,7 +145,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
     if(project.shared&&!RESPONSIBLES.some(p=>p.email===nt.responsible)){setProjectError("Escolha o responsável pela nova tarefa.");return;}
     updateProject(project.id,{_untouchedDraft:false});
     setTasks((prev) => [...prev, {
-      id: uid("t"), shared:!!project.shared,responsible:project.shared?nt.responsible:'', title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
+      id: uid("t"), _createdAt:Date.now(), shared:!!project.shared,responsible:project.shared?nt.responsible:'', title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
       project: project.id, milestone: nt.ms || null, attachments: [], notes: "", followUp: null, waitingOn: "",
     }]);
     setNt({ ...nt, title: "",responsible:"" });
@@ -159,7 +161,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
       </span>
     </li>
   );
-  const byMs = (mid) => pts.filter((t) => (t.milestone || null) === mid).sort((a, b) => ORDER[a.status] - ORDER[b.status] || (a.status === "done" ? newestCompleted(a, b) : 0));
+  const byMs = (mid) => pts.filter((t) => (t.milestone || null) === mid);
   const loose = byMs(null);
   const openTask = tasks.find((t) => t.id === openId);
 
@@ -181,7 +183,12 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
           </select>
         </div>
         <div className="field"><span className="label">Área</span>
-          <input className="search" value={project.area} onChange={(e) => updateProject(project.id, { area: e.target.value })} />
+          <select aria-label="Área do projeto" value={project.area||''} onChange={(e) => updateProject(project.id, { area: e.target.value })}>
+            <option value="">Sem área</option>
+            {areas.filter(a=>!a.data.archived||normalizeAreaName(a.name)===normalizeAreaName(project.area||'')).map(a=><option key={a.id} value={a.name===project.area?a.name:normalizeAreaName(a.name)===normalizeAreaName(project.area||'')?project.area:a.name}>{a.name}{a.data.archived?' (oculta)':''}</option>)}
+            {[...new Set([project.area,...projects.map(p=>p.area)].filter(Boolean))].filter(name=>!areas.some(a=>normalizeAreaName(a.name)===normalizeAreaName(name))).map(name=><option key={'legacy:'+name} value={name}>{name}</option>)}
+          </select>
+          <button type="button" className="ghost small" disabled={!areasConfigured} onClick={onManageAreas}>Gerenciar áreas</button>
         </div>
         <div className="field"><span className="label">Prazo final</span>
           <DateInput className="search" min={project.milestones.map(m => m.due).filter(Boolean).sort().at(-1)} value={project.due || ""} onChange={(e) => updateProject(project.id, { due: e.target.value || null })} />
