@@ -150,3 +150,19 @@ Widget Captura Android 1.0.3 ocupa uma linha horizontal de duas colunas, redimen
 - Conversão para tarefa/projeto é cópia confirmada de texto simples e anexos; original rico permanece. Atualizar URLs assinadas antes de copiar. Destino usa ID estável; gravar primeiro o destino, depois marcador na ideia, preservando idempotência na retomada. Não transformar em vínculo de página Notion.
 - Sem integração Inbox para Algum dia nesta revisão. Não acrescentar INBOX_TARGETS ou novas opções. As duas guardas de target em Inbox apenas permitem visitar uma aba sem conversão, mantendo demais integrações.
 - Testar validação, acesso entre contas, dependências de áreas, conversão com falha parcial, links/SSRF, arquivos e backup restaurado. QA de browser pode usar serviços simulados; nunca usar produção para criar ideias de teste.
+
+## Editor amplo e catálogo integrado de áreas
+
+- SomedayView abre ideias em painel da própria página, ocupando a largura do conteúdo como ProjectsView; a coleção é recolhida durante a edição. Não voltar à barra lateral estreita nem ao modal estreito no mobile. Preserve retorno, holdEditor, rascunho intocado e bloqueio de saída durante upload.
+- AreaManager/IdeaPalette são reutilizados pelo cadastro acessível nas duas abas. Sem botões de criar áreas sugeridas/copiar nomes e sem novas opções no Inbox. Os cartões/ilustrações aprovados permanecem restritos a Algum dia; só o seletor e cadastro de áreas são integrados a Projetos.
+- Projetos mantém area como nome no select Área existente do Notion; ideias mantêm data.area como UID lógico estável no catálogo privado someday. Nenhum novo campo ou banco. saveProjectArea renomeia a área e os projetos correspondentes em um único snapshot local, preservando status/contexto, conteúdo e anexos; o diff salva somente as alterações. Usar a mesma função pelo hook saveArea, sem setters independentes que possam perder metade da mudança.
+- registerProjectAreas registra nomes dos projetos ausentes no catálogo ao carregar/atualizar dados, somente quando somedayConfigured e conta estão disponíveis. Não reescreve projetos na importação, não duplica áreas ocultas e limita o catálogo a 100; valores legados excedentes continuam selecionáveis. IDs de importação determinísticos por conta/nome evitam propostas diferentes por navegador. Catálogo privado, nos dois contextos, não muda acesso de projetos compartilhados.
+- Renomear/ocultar preserva UID e vínculos existentes; seleção oculta só é permitida para manter o valor atual. Conversão de ideia para projeto usa o nome atual da área. Usar fluxo normal de conflitos, rascunho, backup e retentativa; não executar migração manual em produção.
+
+
+## Catálogo ampliado de ilustrações
+
+- lib/illustrations.js é o catálogo único das 255 novas Fluent Emoji 3D, com IDs estáveis art-*, rótulos, temas, termos de busca e caminhos locais. Arquivos WebP com transparência em public/emoji/fluent-expanded/; preservar LICENSE.txt e sources.json com revisão upstream. Não substituir valores legados nem remover arquivos anteriores.
+- IllustrationPicker atende IdeaPalette (ideias e áreas compartilhadas com Projetos), NutritionView (somente alimentos/bebidas) e HabitsView (catálogo completo + SVGs anteriores). Busca local sem acentos, tema, escolha atual visível mesmo filtrada e grade com altura limitada. Não criar requisição externa para escolher ícones.
+- IDEA_ICONS, FOOD_ICONS e HABIT_ICONS incluem o catálogo relevante para que validação no cliente/servidor, reidratação e backup aceitem os mesmos IDs. IdeaArt/FoodImage/HabitIcon resolvem o novo catálogo e preservam o fallback antigo, inclusive fotos de produtos. Sem migração em massa ou mudança de schema.
+- A ampliação dos seletores é autorizada; não redesenhar outras telas nem criar seleção onde não existia. Veículos mantém modelos/cores específicos; Recados mantém emojis de texto independentes.

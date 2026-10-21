@@ -2,6 +2,7 @@
 
 import dynamic from 'next/dynamic';
 const SomedayView=dynamic(()=>import('../components/SomedayView'));
+const AreaManager=dynamic(()=>import('../components/AreaManager'));
 
 import { patchTask } from "../lib/tasks";
 
@@ -82,6 +83,7 @@ export default function Home() {
   const [backupOpen,setBackupOpen]=useState(false),[sessionsOpen,setSessionsOpen]=useState(false);
   useBackLayer(backupOpen,()=>setBackupOpen(false),10);
   const [selected, setSelected] = useState(null);
+  const [areasOpen,setAreasOpen]=useState(false);
   const remote = useNotionState();
   useAppBackNavigation(remote.authenticated === true,remote.ready);
   const recadoNotice=useRecadoNotification(remote.user,remote.authenticated===true&&remote.ready);
@@ -295,12 +297,12 @@ export default function Home() {
           )
         ) : tabId === "projetos" ? (
           tasks && projects ? (
-            <ProjectsView user={remote.user} tasks={tasks} setTasks={setTasks} projects={projects} setProjects={setProjects} context={context} sub={subId} selected={selected} onSelect={setSelected} />
+            <ProjectsView user={remote.user} tasks={tasks} setTasks={setTasks} projects={projects} setProjects={setProjects} areas={(remote.someday||[]).filter(r=>r.type==='area')} areasConfigured={remote.somedayConfigured} onManageAreas={()=>setAreasOpen(true)} context={context} sub={subId} selected={selected} onSelect={setSelected} />
           ) : (
             <p className="empty">Carregando…</p>
           )
         ) : tabId === "algumdia" ? (
-          <SomedayView records={remote.someday||[]} setRecords={remote.setSomeday} configured={remote.somedayConfigured} context={context} projects={projects||[]} onPromote={remote.promoteSomeday}/>
+          <SomedayView records={remote.someday||[]} setRecords={remote.setSomeday} configured={remote.somedayConfigured} context={context} onManageAreas={()=>setAreasOpen(true)} onPromote={remote.promoteSomeday}/>
         ) : tabId === "diario" ? (
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
         ) : tabId === "entretenimento" ? (
@@ -325,6 +327,7 @@ export default function Home() {
       </PageActionsTarget.Provider></main>
     </div>
     <BackNotice/>
+    <ModalLayer open={areasOpen} onClose={()=>setAreasOpen(false)}>{areasOpen&&<div className="overlay sd-area-layer" onClick={()=>setAreasOpen(false)}><div onClick={e=>e.stopPropagation()}><AreaManager areas={(remote.someday||[]).filter(r=>r.type==='area')} onSave={remote.saveArea} onClose={()=>setAreasOpen(false)}/></div></div>}</ModalLayer>
     <ModalLayer open={!!shoppingInbox} onClose={()=>setShoppingInbox(null)}>{shoppingInbox&&<div className="overlay overlay-context"><div className="panel finance-modal" role="dialog" aria-modal="true" aria-label="Contexto da lista de compras"><h2>Contexto da lista</h2><p className="muted">Escolha onde criar a lista ou acrescentar os itens à lista de mesmo nome.</p><label>Contexto<select className="search" value={shoppingContext} onChange={e=>setShoppingContext(e.target.value)}><option value="personal">Pessoal</option><option value="work">Trabalho</option></select></label><div className="finance-period"><button className="primary" onClick={()=>moveShoppingInbox(shoppingInbox,shoppingContext)}>Mover para lista</button><button className="ghost" onClick={()=>setShoppingInbox(null)}>Cancelar</button></div></div></div>}</ModalLayer>
     <ModalLayer open={!!newTask&&!!projects} onClose={()=>setNewTaskId(null)}>{newTask && projects && <TaskDetail user={remote.user} key={newTask.id} task={newTask} projects={projects} update={updateNewTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setNewTaskId(null)} />}</ModalLayer>
     </div></>
