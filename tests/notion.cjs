@@ -513,7 +513,7 @@ global.fetch=async(url,options={})=>{
  const denied=await get(request);assert.equal(denied.status,401);assert.equal(calls.some(call=>call.route.includes('undefined')),false);
  {
   process.env.NOTION_SOMEDAY_DATABASE_ID=databases.someday;
-  const {makeArea,makeIdea,validateSomeday,promoteIdea,saveProjectArea}=require(path.join(temp,'lib/someday'));
+  const {makeArea,makeIdea,validateSomeday,promoteIdea}=require(path.join(temp,'lib/someday'));
   const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
   const A={id:'google:ideas-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:ideas-B',email:'leticiacost3@gmail.com',name:'Letícia'};
   const save=async(base,next,user=A)=>{const d=compactSyncState(base,next);return synchronize(d.base,d.next,user,async()=>{},true);};
@@ -522,11 +522,7 @@ global.fetch=async(url,options={})=>{
   state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.someday.length,2);assert.equal(state.somedayConfigured,true);assert.ok(state.someday.every(r=>!validateSomeday(r)));assert.equal((await notionLib.readSnapshot(false,B)).state.someday.length,0);
   let loaded=state.someday.find(r=>r.type==='idea'),loadedArea=state.someday.find(r=>r.type==='area');
   assert.notEqual(loaded.attachments[0].id,'image-id');assert.equal(loaded.data.doc.content[1].attrs.attachmentId,loaded.attachments[0].name);
-  const linkedProject={id:'linked-area-project',name:'Um projeto da área',status:'active',context:'work',area:loadedArea.name,description:'',due:null,milestones:[],attachments:[]};
-  await save(state,{...state,projects:[...state.projects,linkedProject]});state=(await notionLib.readSnapshot(false,A)).state;
-  const renamed=saveProjectArea(state,{...loadedArea,name:'Projetos criativos'});await save(state,renamed);await save(state,renamed);state=(await notionLib.readSnapshot(false,A)).state;
-  assert.equal(state.someday.find(r=>r.type==='idea').data.area,loadedArea.data.uid);
-  assert.equal(state.projects.find(p=>p.name===linkedProject.name).area,'Projetos criativos','Renomear persiste o seletor Notion e permite repetir envio');
+  const renamed={...state,someday:state.someday.map(r=>r.type==='area'?{...r,name:'Projetos criativos'}:r)};await save(state,renamed);state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.someday.find(r=>r.type==='idea').data.area,loadedArea.data.uid);
   const userB=(await notionLib.readSnapshot(false,B)).state;await assert.rejects(()=>save({...userB,someday:[loaded]},{...userB,someday:[{...loaded,name:'Tentativa de outra conta'}]},B),e=>e.status===403);
   const duplicate=makeArea('Projetos criativos');await assert.rejects(()=>save(state,{...state,someday:[...state.someday,duplicate]}),/Já existe uma área/);
   loaded=state.someday.find(r=>r.type==='idea');const converted=promoteIdea(state,loaded.id,'task'),beforeTasks=state.tasks.length;failSomedayMarker=true;

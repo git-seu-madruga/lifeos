@@ -2,18 +2,6 @@
 
 Documento único da versão atual. Este README substitui os arquivos INSTRUCOES das entregas anteriores e deve ser atualizado nas próximas revisões, sem acumular orientações de versões antigas.
 
-## Catálogo ampliado de ilustrações
-
-255 novas ilustrações Microsoft Fluent Emoji 3D, organizadas por viagens e lugares, videogames e lazer, esportes, frutas e vegetais, refeições, doces e bebidas, natureza e animais, casa, estudos e criação. A seleção oferece busca em português (sem exigir acentos), filtro por tema e identificação da escolha atual.
-
-- **Algum dia e cadastro de áreas de Projetos/Algum dia:** 265 opções, incluindo as 10 anteriores.
-- **Acompanhamento/alimentação:** 122 opções para alimentos e receitas, incluindo as 21 anteriores e 101 novas.
-- **Hábitos/Bem-estar:** 271 opções. Os 16 ícones anteriores continuam disponíveis em Clássicos, e as novas ilustrações podem ser usadas em hábitos.
-
-As opções já salvas e o histórico permanecem. As ilustrações novas são arquivos WebP locais, com transparência, até 128 × 128 px e carregamento sob demanda do navegador; o catálogo não consulta serviços externos nem ocupa o banco do Notion. Licença e origem dos arquivos estão em public/emoji/fluent-expanded/. Nenhuma assinatura ou integração adicional.
-
-Para atualizar, envie o pacote completo e faça o deploy, incluindo os novos arquivos de public/emoji/. Não há alteração de bancos/campos do Notion, variáveis, APK ou necessidade de reimportar dados. O editor amplo e o catálogo integrado de áreas da entrega anterior estão incluídos. Inbox permanece com o comportamento existente.
-
 ## Conclusão de projetos
 
 Ao mudar um projeto para **Concluído**, se houver tarefas ou marcos abertos, o app informa as quantidades e pede confirmação. Cancelar mantém tudo como estava. Confirmar conclui também todas as tarefas e marcos vinculados, preservando o histórico, anexos, responsáveis e datas dos itens já concluídos. Isso inclui pendências criadas em outra instância desde a última atualização. Reabrir o projeto não reabre seus itens automaticamente.
@@ -26,7 +14,7 @@ A sincronização grava os itens vinculados antes de concluir um projeto existen
 2. Extraia o ZIP. Envie o **conteúdo da pasta lifeos** para a raiz do repositório, substituindo os arquivos existentes. Não crie uma segunda pasta lifeos dentro do projeto.
 3. Mantenha as variáveis e os bancos já configurados. O login por QR Code usa o mesmo Google, Vercel e Upstash: não exige novos bancos, chaves ou callbacks. Caso ainda não tenha configurado Bem-estar e Ciclo da Letícia, siga a seção Bem-estar antes de usar esses cartões.
 4. Faça o deploy na Vercel e atualize a página/app instalado.
-5. Para habilitar **Algum dia**, crie o banco e a variável descritos na seção **Algum dia — configuração** abaixo. Para Acompanhamento, siga a seção correspondente ao final deste guia. Os bancos existentes continuam com os mesmos campos; as áreas de Projetos passam a usar o catálogo de Algum dia.
+5. Para habilitar **Algum dia**, crie o banco e a variável descritos na seção **Algum dia — configuração** abaixo. Para Acompanhamento, siga a seção correspondente ao final deste guia. As áreas existentes continuam usando suas configurações atuais.
 6. Remova do repositório os antigos arquivos INSTRUCOES-*.md: o envio pelo navegador não remove arquivos que deixaram de existir no ZIP. Todas as instruções atuais estão aqui.
 
 Para enviar mais de 100 arquivos pelo navegador do GitHub, crie uma branch, envie em lotes e faça merge apenas quando todos os arquivos estiverem presentes. Isso evita publicar uma versão parcial em produção. Git/GitHub Desktop também permitem enviar o projeto completo.
@@ -34,8 +22,6 @@ Para enviar mais de 100 arquivos pelo navegador do GitHub, crie uma branch, envi
 Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de ambiente locais. O arquivo .env.example é apenas um modelo sem segredos.
 
 ### Mudanças desta revisão
-
-- **Editor amplo e áreas integradas**: Nova ideia e edição de ideias ocupam a largura de conteúdo, como o editor de Projetos, com espaço maior para as anotações. Projetos e Algum dia usam o mesmo catálogo de áreas, acessível em **Gerenciar áreas** nas duas telas. Os botões de sugestões/importação foram removidos. **Não exige alterações adicionais no Notion, variáveis ou APK** se Algum dia já estiver configurado.
 
 - **Algum dia**: nova aba privada de ideias, áreas de interesse, favoritos, cartões ilustrados, cores e editor rico com imagens e prévias de links. Exige apenas um novo banco e `NOTION_SOMEDAY_DATABASE_ID`. As novas ilustrações e o editor são um piloto exclusivo desta aba; o Inbox não recebe opção de conversão nem integração nova. O APK Captura permanece na versão atual.
 
@@ -482,14 +468,12 @@ Registros privados criados diretamente no Notion sem LifeOS Usuário pertencem �
 4. Copie o ID deste banco e adicione **`NOTION_SOMEDAY_DATABASE_ID`** às variáveis da Vercel nos ambientes usados. Use o ID do banco, não o parâmetro `v=` da visualização. Somente se o banco tiver múltiplas fontes, configure também `NOTION_SOMEDAY_DATA_SOURCE_ID` com o ID da fonte correta.
 5. Envie o conteúdo atualizado de `lifeos/` à raiz do repositório e faça novo deploy. Preserve todas as variáveis existentes, especialmente o segredo de sessão. Atualize o app instalado. **Não é necessário atualizar o APK Captura, o OAuth Google ou criar outra chave de API.**
 
-O app acrescenta **LifeOS ID** e **LifeOS Usuário** automaticamente. Ideias e o catálogo de áreas de cada conta ficam privados; o mesmo catálogo é usado para seus projetos e ideias. Não edite manualmente o JSON de Dados nem os identificadores técnicos. Sem a variável, a aba apresenta orientação de configuração e não grava ideias.
+O app acrescenta **LifeOS ID** e **LifeOS Usuário** automaticamente. Ideias e áreas de cada conta ficam privadas. Não edite manualmente o JSON de Dados nem os identificadores técnicos. Sem a variável, a aba apresenta orientação de configuração e não grava ideias.
 
 ### Usar a nova aba
 
-- **Nova ideia** abre um editor amplo, usando toda a largura disponível na área de conteúdo, como o editor de novo projeto; uma ideia fechada sem nenhuma ação não é registrada. Título, anotações e demais edições são salvos pelo fluxo automático existente. Aguarde **Salvo no Notion** antes de fechar o app se houver alterações pendentes.
-- **Áreas / Gerenciar áreas** abre o mesmo cadastro em Algum dia e no editor de Projetos. Criar uma área disponibiliza o assunto nas duas telas. Renomear mantém o identificador das ideias e atualiza o campo Área dos projetos correspondentes, nos dois contextos e em todos os status. Campos, textos, anexos e tarefas desses projetos são preservados. Ocultar impede novas seleções nas duas telas, mas mantém os vínculos existentes; reativar recupera a mesma área.
-- O campo **Área** de Projetos é um seletor. As áreas já preenchidas nos projetos são cadastradas automaticamente ao carregar o app, sem reescrever os projetos nem precisar de botão de importação. Nomes equivalentes por acentuação, maiúsculas e espaços nas pontas reutilizam o mesmo assunto. O catálogo admite até 100 áreas; valores antigos excedentes permanecem nos projetos e no seletor. Os projetos compartilhados continuam seguindo suas regras existentes: a alteração do nome da área aparece para quem tem acesso ao projeto, mas não compartilha as ideias ou o catálogo privado.
-- **Configuração desta revisão:** nenhuma alteração adicional no Notion. O catálogo usa os registros `area` do banco Algum dia e os projetos mantêm o campo existente **Área (Selecionar)**. Não converta esse campo em relação nem crie outro banco. Basta manter a conexão autorizada e `NOTION_SOMEDAY_DATABASE_ID` já configurado. Sem essa configuração, as áreas antigas continuam selecionáveis nos projetos; o gerenciamento fica desabilitado.
+- **Nova ideia** abre o painel; uma ideia fechada sem nenhuma ação não é registrada. Título, anotações e demais edições são salvos pelo fluxo automático existente. Aguarde **Salvo no Notion** antes de fechar o app se houver alterações pendentes.
+- **Áreas** cria ou renomeia assuntos, com ilustração e cor. Há opções para criar sugestões ou copiar os nomes das áreas já usados nos projetos. Essa cópia não cria relações nem altera os projetos. Ocultar uma área impede novas seleções, preservando suas ideias; reativar recupera a mesma área.
 - Os cartões permitem busca por título/texto/área, filtro por área e favoritos. Os contextos Pessoal/Trabalho seguem o seletor geral. O catálogo de áreas é do usuário e pode organizar ideias dos dois contextos.
 - O editor oferece parágrafos, títulos, negrito, itálico e listas. **Enter** cria um parágrafo e **Shift + Enter** uma quebra de linha. Limite de 30.000 caracteres por ideia, sujeito também ao limite de estrutura do documento.
 - Cole uma imagem, arraste um arquivo ou use **Imagem**. JPEG, PNG e WebP são reduzidos para até 1.600 px e enviados ao Notion; GIF mantém a animação. Originais de até 20 MB são aceitos para processamento; o resultado enviado precisa ter até 4 MB (GIF até 4 MB). As imagens aparecem dentro das anotações e também na lista de anexos. Retirar a imagem do texto não exclui o arquivo; **Excluir** na lista de anexos pede confirmação e retira ambos.
@@ -499,7 +483,7 @@ O app acrescenta **LifeOS ID** e **LifeOS Usuário** automaticamente. Ideias e o
 
 ### Recursos gráficos, tráfego e backup
 
-As dez ilustrações Microsoft Fluent Emoji são arquivos locais com licença MIT em `public/emoji/fluent-ideas/`. O editor usa pacotes gratuitos e abertos do Tiptap, fixados no package-lock; não exige conta, assinatura ou chave Tiptap. Este piloto não muda os ícones nem os editores de texto das outras abas. O campo Área de Projetos usa o catálogo integrado descrito acima.
+As dez ilustrações Microsoft Fluent Emoji são arquivos locais com licença MIT em `public/emoji/fluent-ideas/`. O editor usa pacotes gratuitos e abertos do Tiptap, fixados no package-lock; não exige conta, assinatura ou chave Tiptap. Este piloto não muda os ícones nem os campos de texto das outras abas.
 
 As prévias consultam páginas públicas pelo servidor do LifeOS, sem cookies ou credenciais. Endereços internos/privados e redirecionamentos inseguros são bloqueados. Metadados ficam em cache no Upstash por sete dias, separados por usuário; há limite de 60 novas consultas por usuário/hora. A leitura de HTML usa até 256 KB e as miniaturas até 1 MB, com cache privado do navegador. Sites podem bloquear prévias. As miniaturas de páginas continuam sendo referências externas; **não são copiadas para o Notion**. Imagens que você cola ou envia ao editor são copiadas.
 

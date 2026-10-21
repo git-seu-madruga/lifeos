@@ -7,7 +7,6 @@ React.useState=value=>{const i=index++;if(!(i in slots))slots[i]=typeof value===
 const walk=(node,result=[])=>{if(Array.isArray(node)){node.forEach(n=>walk(n,result));return result;}if(node?.props){result.push(node);walk(node.props.children,result);}return result;};
 try{
  const View=require(path.join(folder,'components/TasksView')).default;
- const Someday=require(path.join(folder,'components/SomedayView')).default;
  let tasks=[],projectOpened=null,sub='status';const user={email:'leticiacost3@gmail.com'},projects=[{id:'p',name:'Projeto',context:'personal',shared:true,responsible:'periclesbernardes@gmail.com',milestones:[]}];
  const props=()=>({tasks,projects,setTasks:fn=>{tasks=fn(tasks);},user,context:'all',sub,onOpenProject:id=>{projectOpened=id;}});
  const tree=()=>{index=0;return walk(View(props()));};
@@ -38,20 +37,6 @@ try{
  projectTree().find(e=>e.props['aria-label']==='Responsável pela nova tarefa').props.onChange({target:{value:'periclesbernardes@gmail.com'}});projectTree().find(e=>e.type==='button'&&e.props.children==='+ Tarefa').props.onClick();assert.equal(tasks.at(-1).responsible,'periclesbernardes@gmail.com');assert.equal(tasks.at(-1).shared,true);assert.equal(projectTree().find(e=>e.props['aria-label']==='Responsável pela nova tarefa').props.value,'','Próxima tarefa exige nova escolha');
  projectList=projectList.map(p=>({...p,shared:false}));assert.ok(!projectTree().some(e=>e.props['aria-label']==='Responsável pela nova tarefa'),'Projeto privado dispensa responsável');
  const Badge=require(path.join(folder,'components/SharedBadge')).default;assert.ok(renderToStaticMarkup(React.createElement(Badge,{responsible:user.email})).includes('Compartilhada')&&renderToStaticMarkup(React.createElement(Badge,{responsible:user.email})).includes('Letícia'));
- const areaDomain=require(path.join(folder,'lib/someday')),catalogArea=areaDomain.makeArea('Criação'),hiddenArea=areaDomain.makeArea('Antiga');hiddenArea.data.archived=true;
- const renderProjectAreas=()=>{index=0;return walk(ProjectView({...{user,tasks,setTasks:fn=>tasks=fn(tasks),projects:projectList,setProjects:fn=>projectList=fn(projectList),context:'all',sub:'ativos',selected:'p',onSelect(){}},areas:[catalogArea,hiddenArea],areasConfigured:true,onManageAreas:()=>{projectOpened='areas';}}));};
- let areaNodes=renderProjectAreas(),selector=areaNodes.find(e=>e.props['aria-label']==='Área do projeto');
- assert.equal(selector.type,'select');assert.ok(walk(selector).some(e=>e.type==='option'&&e.props.value==='Criação'));assert.ok(!walk(selector).some(e=>e.type==='option'&&e.props.value==='Antiga'),'Área oculta não é nova escolha');
- selector.props.onChange({target:{value:'Criação'}});assert.equal(projectList[0].area,'Criação');
- renderProjectAreas().find(e=>e.type==='button'&&e.props.children==='Gerenciar áreas').props.onClick();assert.equal(projectOpened,'areas');
- projectList=projectList.map(p=>({...p,area:'Antiga'}));areaNodes=renderProjectAreas();assert.ok(walk(areaNodes.find(e=>e.props['aria-label']==='Área do projeto')).some(e=>e.type==='option'&&e.props.value==='Antiga'),'Área oculta existente é preservada');
- slots=[];let somedayRecords=[],manageOpened=false;
- const somedayTree=()=>{index=0;return walk(Someday({records:somedayRecords,setRecords:update=>somedayRecords=update(somedayRecords),configured:true,context:'personal',onManageAreas:()=>manageOpened=true,onPromote(){}}));};
- somedayTree().find(e=>e.type==='button'&&e.props.children==='+ Nova ideia').props.onClick();
- assert.ok(somedayTree().some(e=>e.props.className==='sd-editor-workspace'),'Nova ideia usa toda a área de conteúdo');assert.ok(!somedayTree().some(e=>e.props.className==='sd-collection'),'Coleção não limita a largura do editor');
- let ideaDetail=somedayTree().find(e=>e.type?.name==='IdeaDetail');ideaDetail.props.onClose();assert.equal(somedayRecords.length,0,'Fechar ideia intocada não grava');
- somedayTree().find(e=>e.type==='button'&&e.props.children==='+ Áreas').props.onClick();assert.equal(manageOpened,true);
- slots=[]; // Restore ProjectsView hook slots for the remaining project checks.
  const beforeOrder=tasks;tasks=orderedTasks;
  const projectOrder=['doing','hold-old','hold-new','earlier-date','old','new','closed-new','closed-old'];
  assert.deepEqual(projectTree().filter(e=>e.type==='li'&&e.props.className?.startsWith('row')).map(e=>e.key),projectOrder,'Dentro do projeto preserva precedência atual dos status e desempata por data/inclusão');
