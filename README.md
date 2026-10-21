@@ -4,15 +4,23 @@ Documento único da versão atual. Este README substitui os arquivos INSTRUCOES 
 
 ## Catálogo ampliado de ilustrações
 
-255 novas ilustrações Microsoft Fluent Emoji 3D, organizadas por viagens e lugares, videogames e lazer, esportes, frutas e vegetais, refeições, doces e bebidas, natureza e animais, casa, estudos e criação. A seleção oferece busca em português (sem exigir acentos), filtro por tema e identificação da escolha atual.
+359 ilustrações Microsoft Fluent Emoji 3D, organizadas por viagens e lugares, videogames e lazer, esportes e academia, água e clima, frutas e vegetais, refeições, doces e bebidas, natureza e animais, trabalho e organização, informática e tecnologia, saúde, casa, estudos e criação. A seleção oferece busca em português (sem exigir acentos), filtro por tema e identificação da escolha atual.
 
-- **Algum dia e cadastro de áreas de Projetos/Algum dia:** 265 opções, incluindo as 10 anteriores.
+- **Algum dia e cadastro de áreas de Projetos/Algum dia:** 369 opções, incluindo as 10 anteriores.
 - **Acompanhamento/alimentação:** 122 opções para alimentos e receitas, incluindo as 21 anteriores e 101 novas.
-- **Hábitos/Bem-estar:** 271 opções. Os 16 ícones anteriores continuam disponíveis em Clássicos, e as novas ilustrações podem ser usadas em hábitos.
+- **Hábitos/Bem-estar:** 359 opções de emojis. Os 16 códigos de ícones antigos continuam válidos nos dados e passam a mostrar o emoji correspondente, sem regravar hábitos. O seletor oferece somente o pacote ilustrativo.
 
 As opções já salvas e o histórico permanecem. As ilustrações novas são arquivos WebP locais, com transparência, até 128 × 128 px e carregamento sob demanda do navegador; o catálogo não consulta serviços externos nem ocupa o banco do Notion. Licença e origem dos arquivos estão em public/emoji/fluent-expanded/. Nenhuma assinatura ou integração adicional.
 
 Para atualizar, envie o pacote completo e faça o deploy, incluindo os novos arquivos de public/emoji/. Não há alteração de bancos/campos do Notion, variáveis, APK ou necessidade de reimportar dados. O editor amplo e o catálogo integrado de áreas da entrega anterior estão incluídos. Inbox permanece com o comportamento existente.
+
+## Alimentação no celular em paisagem e Bem-estar
+
+Em celulares na horizontal (paisagem, tela de toque até 1400 px), os cartões de refeições ficam em duas colunas, seguindo a ordem Café da manhã, Almoço, Lanche e Jantar. Ceia/Outros continuam aparecendo quando houver registros e seguem para as próximas linhas. No celular em retrato permanece uma coluna; desktop conserva sua linha de cartões.
+
+Hábitos, pétalas e seus detalhes passam a usar emojis locais do pacote no lugar dos ícones lineares. Ícones antigos são traduzidos visualmente para o emoji mais próximo, sem regravar dados ou perder marcações. O emoji fica sempre à esquerda do nome do hábito nos cartões, na prévia e no resumo; a confirmação diária permanece à direita nos cartões de Bem-estar. As pétalas preservam seus rótulos, cores e ações.
+
+Esta revisão acrescenta 104 ilustrações ao pacote anterior: água, chuva, nuvens, esportistas, musculação, meditação, informática, trabalho, natureza e saúde. As figuras de tênis, badminton, tênis de mesa e lacrosse incluem busca por raquetes e bolas; os esportes de bola e a academia têm termos adicionais de busca.
 
 ## Conclusão de projetos
 

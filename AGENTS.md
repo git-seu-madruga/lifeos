@@ -80,7 +80,7 @@ Estas orientações valem para a raiz e suas subpastas. Representam o comportame
 ## Acompanhamento: comportamento atual
 
 - Coleção privada nutrition, um banco NOTION_NUTRITION_DATABASE_ID com Nome/Data/Tipo/Dados. Tipos settings, day, entry e food. JSON usa data.uid estável; base nutricional/receita é copiada no lançamento. Editar ou retirar alimento não reescreve histórico.
-- Resumo alimentar mostra Café da manhã, Almoço, Lanche e Jantar por padrão; Ceia/Outros aparecem com lançamentos, na ordem de MEALS. Desktop usa uma única linha de cartões adaptáveis; mobile mantém uma coluna.
+- Resumo alimentar mostra Café da manhã, Almoço, Lanche e Jantar por padrão; Ceia/Outros aparecem com lançamentos, na ordem de MEALS. Desktop usa uma única linha de cartões adaptáveis; mobile em retrato mantém uma coluna e em paisagem (pointer:coarse, até 1400px) usa duas colunas com fluxo por linhas.
 - Água, litros, sono, aeróbico e musculação independentes de Bem-estar e Hábitos. Sono/litros não mudam pesos. Qualidade = (água 10% + aeróbico OU musculação 20% + total dentro da meta 70%) × (kcal dentro / kcal totais). Sem calorias, sem nota; acima de 70% é boa adesão. Médias incluem apenas dias com calorias.
 - Ao adicionar/salvar um lançamento alimentar ou limpar a busca, os detalhes e a edição da seleção são fechados e o painel volta ao estado inicial. Limpar não altera lançamentos já salvos.
 - Busca geral de alimentos e ingredientes começa vazia e recolhe ao limpar. Favoritos/Minhas receitas mostram todos os itens ativos ao abrir, com filtro ao digitar e ordem alfabética; trocar guia limpa a busca anterior. Não consultar OFF para listar itens salvos; OFF mantém busca explícita. Backup de manutenção em Importacao/TACO inclui JSON idêntico ao catálogo e CSV com a mesma lista.
@@ -162,7 +162,13 @@ Widget Captura Android 1.0.3 ocupa uma linha horizontal de duas colunas, redimen
 
 ## Catálogo ampliado de ilustrações
 
-- lib/illustrations.js é o catálogo único das 255 novas Fluent Emoji 3D, com IDs estáveis art-*, rótulos, temas, termos de busca e caminhos locais. Arquivos WebP com transparência em public/emoji/fluent-expanded/; preservar LICENSE.txt e sources.json com revisão upstream. Não substituir valores legados nem remover arquivos anteriores.
-- IllustrationPicker atende IdeaPalette (ideias e áreas compartilhadas com Projetos), NutritionView (somente alimentos/bebidas) e HabitsView (catálogo completo + SVGs anteriores). Busca local sem acentos, tema, escolha atual visível mesmo filtrada e grade com altura limitada. Não criar requisição externa para escolher ícones.
-- IDEA_ICONS, FOOD_ICONS e HABIT_ICONS incluem o catálogo relevante para que validação no cliente/servidor, reidratação e backup aceitem os mesmos IDs. IdeaArt/FoodImage/HabitIcon resolvem o novo catálogo e preservam o fallback antigo, inclusive fotos de produtos. Sem migração em massa ou mudança de schema.
+- lib/illustrations.js é o catálogo único das 359 Fluent Emoji 3D, com IDs estáveis art-*, rótulos, temas, termos de busca e caminhos locais. Arquivos WebP com transparência em public/emoji/fluent-expanded/; preservar LICENSE.txt e sources.json com revisão upstream. Não substituir valores legados nem remover arquivos anteriores.
+- IllustrationPicker atende IdeaPalette (ideias e áreas compartilhadas com Projetos), NutritionView (somente alimentos/bebidas) e HabitsView (somente catálogo de emojis; códigos legados aceitos nos dados). Busca local sem acentos, tema, escolha atual visível mesmo filtrada e grade com altura limitada. Não criar requisição externa para escolher ícones.
+- IDEA_ICONS, FOOD_ICONS e HABIT_ICONS incluem o catálogo relevante para que validação no cliente/servidor, reidratação e backup aceitem os mesmos IDs. IdeaArt/FoodImage preservam os fallbacks anteriores, inclusive fotos de produtos; HabitIcon resolve também os códigos antigos para emojis via HABIT_ILLUSTRATION_ALIASES, sem SVG. Sem migração em massa ou mudança de schema.
 - A ampliação dos seletores é autorizada; não redesenhar outras telas nem criar seleção onde não existia. Veículos mantém modelos/cores específicos; Recados mantém emojis de texto independentes.
+
+## Emojis de Bem-estar e alimentação em paisagem
+
+- HabitIcon e WellnessIcon renderizam imagens locais, inclusive para IDs legados, sem ícones SVG. HABIT_ILLUSTRATION_ALIASES mantém códigos antigos válidos em lib/habits e na persistência; o seletor de hábitos oferece somente IDs art-*. Não migrar em massa os dados para mudar o desenho. WellnessIcon traduz também humor, mente, intestino, peso, pressão, energia, estresse e dores; preservar os SVGs estruturais das pétalas e dos gráficos.
+- A regra de row-reverse dos hábitos foi removida. Dentro de well-habits, arte tem order:0, nome order:1 e check order:2; não depender do tipo de elemento (svg/img) para posicionamento. Tamanhos responsivos das pétalas usam .habit-art.
+- Em paisagem com pointer:coarse e até 1400px, nutrition-meals define repeat(2,minmax(0,1fr)), grid-auto-flow:row e grid-auto-columns:auto. Essa regra prevalece sobre o fluxo em coluna do desktop e mantém a ordem das refeições. Não alterar a disposição de retrato ou desktop.
