@@ -221,6 +221,8 @@ Cadastre nome, dia e mês; ano de nascimento é opcional. Com ano conhecido, o r
 
 ### Compras
 
+A busca encontra listas pelo nome ou pelo conteúdo de qualquer item restante, sem diferenciar maiúsculas e acentos. Mantém o contexto escolhido e a ordem manual das listas. Itens comprados já removidos não entram na pesquisa.
+
 A tela principal mostra blocos de listas. Clique para abrir e volte para a tela dos blocos. Arraste listas para ordenar e itens dentro da lista para reorganizar. Marcar um item remove-o sem histórico no LifeOS; há edição, sem botão adicional de excluir item. Listas podem ser finalizadas/excluídas rapidamente, sem arquivo de listas passadas no app.
 
 ### Hábitos
