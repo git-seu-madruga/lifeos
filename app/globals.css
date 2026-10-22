@@ -777,3 +777,7 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
  .nutrition-meal-heading{padding:14px 12px;gap:10px}
  .nutrition-meal-heading>span:nth-child(2){min-width:0}
 }
+
+/* Area management and context share one compact row at every viewport width. */
+.sd-edit-controls{display:grid;grid-template-columns:auto minmax(0,1fr);align-items:center;gap:10px;width:100%;max-width:540px;margin:0 0 19px}.sd-edit-controls>button{white-space:nowrap;justify-self:start}.sd-edit-controls .sd-context-label{margin:0;min-width:0;max-width:none;justify-content:flex-end;gap:8px}.sd-edit-controls .sd-context-label select{min-width:0;max-width:100%}
+@media(max-width:420px){.sd-edit-controls{gap:8px}.sd-edit-controls>button{padding:7px 8px}.sd-edit-controls .sd-context-label{flex-direction:column;align-items:flex-end;gap:4px}.sd-edit-controls{align-items:end}}
