@@ -2,6 +2,12 @@
 
 Documento único da versão atual. Este README substitui os arquivos INSTRUCOES das entregas anteriores e deve ser atualizado nas próximas revisões, sem acumular orientações de versões antigas.
 
+## Correção e integração do Inbox com Algum dia
+
+Corrigido o erro de aplicativo ao abrir uma entrada do Inbox em abas sem destino de conversão definido. Todas as consultas ao destino são protegidas, inclusive para abas futuras.
+
+Na aba Algum dia, a entrada do Inbox pode ser transformada em ideia: primeira linha como título, demais linhas como conteúdo. A ideia abre para você completar os detalhes. Não exige banco/campo novo, variável adicional ou atualização do APK se Algum dia já estiver configurado. Publique este pacote completo e recarregue o app. As melhorias anteriores de alimentação, emojis e Bem-estar estão incluídas.
+
 ## Catálogo ampliado de ilustrações
 
 359 ilustrações Microsoft Fluent Emoji 3D, organizadas por viagens e lugares, videogames e lazer, esportes e academia, água e clima, frutas e vegetais, refeições, doces e bebidas, natureza e animais, trabalho e organização, informática e tecnologia, saúde, casa, estudos e criação. A seleção oferece busca em português (sem exigir acentos), filtro por tema e identificação da escolha atual.
@@ -12,7 +18,7 @@ Documento único da versão atual. Este README substitui os arquivos INSTRUCOES 
 
 As opções já salvas e o histórico permanecem. As ilustrações novas são arquivos WebP locais, com transparência, até 128 × 128 px e carregamento sob demanda do navegador; o catálogo não consulta serviços externos nem ocupa o banco do Notion. Licença e origem dos arquivos estão em public/emoji/fluent-expanded/. Nenhuma assinatura ou integração adicional.
 
-Para atualizar, envie o pacote completo e faça o deploy, incluindo os novos arquivos de public/emoji/. Não há alteração de bancos/campos do Notion, variáveis, APK ou necessidade de reimportar dados. O editor amplo e o catálogo integrado de áreas da entrega anterior estão incluídos. Inbox permanece com o comportamento existente.
+Para atualizar, envie o pacote completo e faça o deploy, incluindo os novos arquivos de public/emoji/. Não há alteração de bancos/campos do Notion, variáveis, APK ou necessidade de reimportar dados. O editor amplo e o catálogo integrado de áreas da entrega anterior estão incluídos. O Inbox também permite transformar uma entrada em ideia na aba Algum dia.
 
 ## Alimentação no celular em paisagem e Bem-estar
 
@@ -45,7 +51,7 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 - **Editor amplo e áreas integradas**: Nova ideia e edição de ideias ocupam a largura de conteúdo, como o editor de Projetos, com espaço maior para as anotações. Projetos e Algum dia usam o mesmo catálogo de áreas, acessível em **Gerenciar áreas** nas duas telas. Os botões de sugestões/importação foram removidos. **Não exige alterações adicionais no Notion, variáveis ou APK** se Algum dia já estiver configurado.
 
-- **Algum dia**: nova aba privada de ideias, áreas de interesse, favoritos, cartões ilustrados, cores e editor rico com imagens e prévias de links. Exige apenas um novo banco e `NOTION_SOMEDAY_DATABASE_ID`. As novas ilustrações e o editor são um piloto exclusivo desta aba; o Inbox não recebe opção de conversão nem integração nova. O APK Captura permanece na versão atual.
+- **Algum dia**: nova aba privada de ideias, áreas de interesse, favoritos, cartões ilustrados, cores e editor rico com imagens e prévias de links. Exige apenas um novo banco e `NOTION_SOMEDAY_DATABASE_ID`. As novas ilustrações e o editor são um piloto exclusivo desta aba; o Inbox permite transformar uma entrada em ideia dentro desta aba. O APK Captura permanece na versão atual.
 
 - Favoritos e Minhas receitas mostram todos os itens salvos ao abrir, em ordem alfabética. Digitar filtra; limpar mostra todos novamente. Trocar de guia limpa a busca anterior. A busca geral e ingredientes continuam vazios antes da digitação. Sem consulta externa para listar favoritos/receitas.
 
@@ -503,7 +509,7 @@ O app acrescenta **LifeOS ID** e **LifeOS Usuário** automaticamente. Ideias e o
 - Cole uma imagem, arraste um arquivo ou use **Imagem**. JPEG, PNG e WebP são reduzidos para até 1.600 px e enviados ao Notion; GIF mantém a animação. Originais de até 20 MB são aceitos para processamento; o resultado enviado precisa ter até 4 MB (GIF até 4 MB). As imagens aparecem dentro das anotações e também na lista de anexos. Retirar a imagem do texto não exclui o arquivo; **Excluir** na lista de anexos pede confirmação e retira ambos.
 - Colar um endereço **HTTPS** sozinho ou usar **Link** cria um cartão com título, descrição e miniatura quando a página permite. Se a fonte bloquear a consulta, o endereço continua clicável. O botão **Manter apenas o link** substitui o cartão por um link de texto.
 - **Transformar em projeto/tarefa** pede confirmação e copia título, texto simples e anexos. A ideia original permanece com sua formatação e recebe a indicação de transformação. As outras telas mantêm os editores atuais. O app aguarda o salvamento dos arquivos e usa um identificador estável para retomar falhas sem duplicar o destino.
-- **O Inbox mantém as funções existentes. Não há integração com Algum dia nesta revisão**, nem nova opção no menu de transformação.
+- **Inbox → Algum dia:** ao abrir uma entrada com a aba Algum dia selecionada, use Transformar em ideia em Algum dia. A primeira linha vira o título; as demais entram no editor como conteúdo, preservando parágrafos e linhas em branco. A ideia abre imediatamente para completar área, contexto e outros detalhes. Começa sem área e no contexto Pessoal, que pode ser alterado manualmente no editor. A conversão não interpreta as linhas como metadados. Se o banco não estiver configurado ou o título/texto for inválido, a entrada fica no Inbox. O salvamento cria a ideia antes de remover a origem e permite retomar uma falha sem criar outra cópia.
 
 ### Recursos gráficos, tráfego e backup
 

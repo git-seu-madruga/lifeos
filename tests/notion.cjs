@@ -42,7 +42,7 @@ const specs={
 };
 const sources={};for(const [kind,spec] of Object.entries(specs))sources[kind]={id:sourceIds[kind],properties:Object.fromEntries(Object.entries(spec).map(([name,type])=>[name,{id:randomUUID(),name,type,...(type==='relation'?{relation:{data_source_id:sourceIds[name==='Seção'?'mediaSections':name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects'],database_id:databases[name==='Seção'?'mediaSections':name==='Hábito'?'habits':name==='Categoria'?'categories':name==='Marco'?'milestones':'projects']}}:{})}]))};
 process.env.UPSTASH_REDIS_REST_URL='https://redis.test';process.env.UPSTASH_REDIS_REST_TOKEN='redis-test-token';
-const rows=new Map(),calls=[],redisRows=new Map();let creates=0,paginate=false,failShoppingWrite=false,failCompletionTaskWrite=false,failCompletionProjectWrite=false,normalizeCompletionDates=false,failSomedayMarker=false;
+const rows=new Map(),calls=[],redisRows=new Map();let creates=0,paginate=false,failShoppingWrite=false,failCompletionTaskWrite=false,failCompletionProjectWrite=false,normalizeCompletionDates=false,failSomedayMarker=false,failInboxArchive=false;
 const kindBySource=id=>Object.keys(sourceIds).find(kind=>sourceIds[kind]===id);
 function normalizeProperties(kind,properties) {
  return Object.fromEntries(Object.entries(properties).map(([name,value])=>{
@@ -70,6 +70,7 @@ global.fetch=async(url,options={})=>{
  if(failCompletionTaskWrite&&method==='PATCH'&&body?.properties?.Status&&kindBySource(rows.get(route.split('/')[2])?.parent.data_source_id)==='tasks'){failCompletionTaskWrite=false;return Response.json({message:'Falha simulada ao concluir tarefa'},{status:400});}
  if(failCompletionProjectWrite&&method==='PATCH'&&['Concluído','Cancelado'].includes(body?.properties?.Status?.select?.name)&&kindBySource(rows.get(route.split('/')[2])?.parent.data_source_id)==='projects'){failCompletionProjectWrite=false;return Response.json({message:'Falha simulada após concluir filhos'},{status:400});}
  if(failSomedayMarker&&method==='PATCH'&&kindBySource(rows.get(route.split('/')[2])?.parent.data_source_id)==='someday'&&body?.properties?.Dados&&JSON.parse(notionLib.plain(body.properties.Dados.rich_text)).promoted){failSomedayMarker=false;return Response.json({message:'Falha simulada na conversão da ideia'},{status:400});}
+ if(failInboxArchive&&method==='PATCH'&&body?.in_trash&&kindBySource(rows.get(route.split('/')[2])?.parent.data_source_id)==='inbox'){failInboxArchive=false;return Response.json({message:'Falha simulada ao arquivar Inbox'},{status:400});}
  const reply=value=>Response.json(value);
  if(route.startsWith('/databases/')){const kind=Object.keys(databases).find(kind=>databases[kind]===route.split('/')[2]);assert.ok(kind);return reply({id:databases[kind],data_sources:[{id:sourceIds[kind]}]});}
  if(route.startsWith('/data_sources/')){
@@ -538,6 +539,16 @@ global.fetch=async(url,options={})=>{
   const otherIdea=makeIdea(state.someday.find(r=>r.type==='area'));otherIdea.name='Nova';await assert.rejects(()=>save(state,{...state,someday:[...state.someday,otherIdea]}),/Reative a área/);
   const favorite={...state,someday:state.someday.map(r=>r.type==='idea'?{...r,data:{...r.data,favorite:true}}:r)};await save(state,favorite);
   await assert.rejects(()=>save(state,{...state,someday:state.someday.filter(r=>r.type!=='area')}),/área desta ideia/);
+  // If archiving Inbox fails after saving the idea, retry keeps one destination and the full content.
+  const {moveInboxToSomeday,ideaText}=require(path.join(temp,'lib/someday'));
+  let inboxState=(await notionLib.readSnapshot(false,A)).state;
+  const inboxIdea={id:'inbox-someday-retry',text:'Ideia do Inbox\nPrimeiro parágrafo\n\nSegundo parágrafo',createdAt:Date.now()};
+  await save(inboxState,{...inboxState,inbox:[...inboxState.inbox,inboxIdea]});inboxState=(await notionLib.readSnapshot(false,A)).state;
+  const inboxSource=inboxState.inbox.find(i=>i.text===inboxIdea.text),movedInbox=moveInboxToSomeday(inboxState,inboxSource.id);failInboxArchive=true;
+  await assert.rejects(()=>save(inboxState,movedInbox.state),/Falha simulada ao arquivar Inbox/);
+  const partiallyMoved=(await notionLib.readSnapshot(false,A)).state;assert.ok(partiallyMoved.inbox.some(i=>i.id===inboxSource.id));assert.equal(partiallyMoved.someday.filter(i=>i.data.uid===movedInbox.state.someday.at(-1).data.uid).length,1);
+  await save(inboxState,movedInbox.state);await save(inboxState,movedInbox.state);
+  const fullyMoved=(await notionLib.readSnapshot(false,A)).state;assert.equal(fullyMoved.inbox.some(i=>i.id===inboxSource.id),false);const savedIdeas=fullyMoved.someday.filter(i=>i.data.uid===movedInbox.state.someday.at(-1).data.uid);assert.equal(savedIdeas.length,1);assert.equal(ideaText(savedIdeas[0].data.doc),'Primeiro parágrafo\n\nSegundo parágrafo');assert.equal((await notionLib.readSnapshot(false,B)).state.someday.some(i=>i.data.uid===savedIdeas[0].data.uid),false);
   delete process.env.NOTION_SOMEDAY_DATABASE_ID;
  }
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão de projeto com tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');

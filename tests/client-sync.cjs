@@ -132,6 +132,19 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  hook.setProjects(previous=>[...previous,{id:'legacy-area-project',name:'Projeto antigo',status:'active',context:'personal',area:'Casa antiga',description:'',due:null,milestones:[],attachments:[]}]);await tick();
  assert.equal(hook.someday.filter(r=>r.type==='area'&&r.name==='Casa antiga').length,1);await hook.flush();await tick();
  await hook.load();await tick();assert.equal(hook.someday.filter(r=>r.type==='area'&&r.name==='Casa antiga').length,1,'Recarregar não duplica a área importada');
+ // Moving Inbox to Algum dia persists both sides of the conversion in one recoverable draft.
+ const somedayInbox={id:'inbox-to-idea',text:'Possibilidade do Inbox\nUma descrição\n\nOutra linha',createdAt:Date.now()};
+ hook.setInbox(previous=>[...previous,somedayInbox]);await hook.flush();await tick();failure=true;
+ const movedIdeaId=hook.convertInboxToSomeday(somedayInbox.id);await tick();
+ assert.equal(hook.inbox.some(i=>i.id===somedayInbox.id),false);assert.ok(hook.someday.some(i=>i.id===movedIdeaId));
+ await assert.rejects(()=>hook.flush(),/Falha simulada/);await tick();
+ const conversionDraft=await readPrivateDraft('notion-draft:'+testUser.id,testUser.draftKey);assert.ok(conversionDraft.base.inbox.some(i=>i.id===somedayInbox.id));assert.ok(!conversionDraft.next.inbox.some(i=>i.id===somedayInbox.id));assert.ok(conversionDraft.next.someday.some(i=>i.id===movedIdeaId));
+ await hook.flush();await tick();assert.equal(hook.pending,false);assert.equal(remote.inbox.some(i=>i.id===somedayInbox.id),false);assert.equal(remote.someday.filter(i=>i.id===movedIdeaId).length,1);
+ // Conversion can happen while the original Inbox save is already in flight.
+ const inflightInbox={id:'inbox-flight-to-idea',text:'Ideia durante envio\nTexto preservado',createdAt:Date.now()};let releaseInbox;
+ gate=new Promise(resolve=>releaseInbox=resolve);hook.setInbox(previous=>[...previous,inflightInbox]);const savingInbox=hook.flush();await tick();
+ const inflightIdeaId=hook.convertInboxToSomeday(inflightInbox.id);releaseInbox();gate=null;await savingInbox;await tick();await hook.flush();await tick();
+ assert.equal(remote.inbox.some(i=>i.id===inflightInbox.id),false);assert.equal(remote.someday.filter(i=>i.id===inflightIdeaId).length,1);assert.equal(hook.pending,false);
  const testVehicle={id:'sync-car',name:'Meu carro',type:'vehicle',date:null,data:{uid:'stable-car-uid',kind:'car',model:'hatch',color:'#58a6ff',context:'personal',plate:'',km:1000,warningKm:500}};hook.setVehicles([testVehicle]);await hook.flush();await tick();assert.equal(remote.vehicles[0].data.uid,'stable-car-uid');assert.equal(hook.vehicles[0]._notionId,'remote-sync-car');assert.equal(hook.pending,false);
  const importRows=Array.from({length:12},(_,i)=>({id:'batch-'+i,type:'entry',name:'Abastecimento',date:'2026-10-01',data:{uid:'batch-'+i,vehicle:testVehicle.data.uid,category:'fuel',fuel:true,full:true,km:1000+i,liters:10,amount:5000,importSourceId:'source-'+i}}));
  const importProgress=[],importBefore=syncCount;await hook.importVehicles(importRows,p=>importProgress.push(p));await tick();assert.equal(syncCount-importBefore,3,'Fuel importer uses three incremental writes for twelve entries');assert.equal(hook.pending,false);assert.equal(remote.vehicles.filter(r=>r.type==='entry').length,12);assert.ok(hook.vehicles.filter(r=>r.type==='entry').every(r=>r._notionId));assert.equal(importProgress.at(-1).done,12);

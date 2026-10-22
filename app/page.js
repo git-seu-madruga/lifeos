@@ -125,7 +125,12 @@ export default function Home() {
 
   // Cria o item na seção atual e tira a entrada do inbox.
   const [recadoInbox,setRecadoInbox]=useState(null);
+  const [somedayOpen,setSomedayOpen]=useState(null);
   function convertInbox(item, kind) {
+    if(kind==="someday"){
+      try{const id=remote.convertInboxToSomeday(item.id);setSomedayOpen({id,token:uid("open-idea")});setContext('personal');setTabId('algumdia');return true;}
+      catch(error){window.alert(error.message);return false;}
+    }
     if(kind==="recado"){
       const [title,...lines]=item.text.split("\n");
       if(!title.trim()||!lines.join("\n").trim()){window.alert("Use a primeira linha para o título e as seguintes para a mensagem. O texto continua no Inbox.");return false;}
@@ -302,7 +307,7 @@ export default function Home() {
             <p className="empty">Carregando…</p>
           )
         ) : tabId === "algumdia" ? (
-          <SomedayView records={remote.someday||[]} setRecords={remote.setSomeday} configured={remote.somedayConfigured} context={context} onManageAreas={()=>setAreasOpen(true)} onPromote={remote.promoteSomeday}/>
+          <SomedayView records={remote.someday||[]} setRecords={remote.setSomeday} configured={remote.somedayConfigured} context={context} onManageAreas={()=>setAreasOpen(true)} onPromote={remote.promoteSomeday} openRequest={somedayOpen} onOpenHandled={()=>setSomedayOpen(null)}/>
         ) : tabId === "diario" ? (
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
         ) : tabId === "entretenimento" ? (
