@@ -175,8 +175,15 @@ Widget Captura Android 1.0.3 ocupa uma linha horizontal de duas colunas, redimen
 
 ## Inbox para Algum dia
 
-- moveInboxToSomeday recebe o snapshot e ID da entrada, valida configuração/título/conteúdo antes de remover a origem e devolve estado + ID. Primeira linha vira título de até 200 caracteres; demais linhas viram parágrafos de texto simples (incluindo vazios), sem HTML remoto ou interpretação de área/contexto. Área vazia, contexto inicial Pessoal editável e estilo padrão.
+- moveInboxToSomeday recebe o snapshot e ID da entrada, valida configuração/título/conteúdo antes de remover a origem e devolve estado + ID. Primeira linha vira título de até 200 caracteres; demais linhas viram parágrafos de texto simples (incluindo vazios), sem HTML remoto ou interpretação de área/contexto. Área ativa obrigatória, escolhida antes da conversão; contexto inicial Pessoal editável e estilo da área.
 - convertInboxToSomeday do hook altera someday e inbox em um único snapshot local, pelo fluxo normal de rascunhos e sincronização. ID/UID de destino determinísticos por conta e origem, inboxSourceHash identifica alteração posterior do texto. Retentativa preserva edições da ideia existente e recusa apagar origem alterada. Servidor grava upserts antes de exclusões; testar falha ao arquivar origem após criar destino e reenvio sem duplicação.
 - Página abre o editor amplo por openRequest consumido via onOpenHandled. Não reabrir uma ideia antiga ao voltar à aba. Nenhum novo banco/campo/variável/APK. Não alterar outras conversões do Inbox.
 
 - SomedayView mantém Gerenciar áreas e o contexto juntos em .sd-edit-controls (uma linha, desktop/mobile). Em telas estreitas o rótulo Contexto pode ficar acima do seletor dentro da própria coluna; os controles permanecem lado a lado. Não mostrar Sem prazo no rodapé dos cartões, nem deixar rodapé vazio ou separador inicial quando houver apenas Transformada.
+
+## Gavetas e área obrigatória em Algum dia
+
+- Página inicial de SomedayView mostra somente gavetas por área e Todos. Não criar gaveta especial para ideias sem área. Cards de ideias aparecem na segunda página. selectSomedayIdeas e somedayDrawers são funções puras; a pesquisa ignora área/contexto/favoritas para buscar no acervo privado carregado. Sem novas consultas de rede. Voltar fecha editor antes de retornar às gavetas.
+- Criação parte de uma área ativa: usar a gaveta atual ou escolher em ModalLayer antes de abrir o rascunho. Não inserir rascunho intocado no estado remoto. Seletor de área não oferece valor vazio salvável. Ideias legadas sem área são lidas, mas precisam receber uma área antes de qualquer edição/favorito/promoção. Nenhuma atribuição ou migração em massa.
+- Validação estrutural validateSomeday continua aceitando leitura/backup de legados; servidor exige área em cada upsert de ideia, mantendo legados inalterados fora do diff. Conservar validação de vínculo e áreas ocultas. Exclusões continuam permitidas.
+- Inbox solicita área em diálogo sem remover a origem até confirmar. moveInboxToSomeday e convertInboxToSomeday recebem areaUid e validam área ativa; retentativa preserva a área/edições do destino já salvo. Destino antigo sem área recebe a escolha válida na retomada. Cancelar ou faltar área mantém Inbox.

@@ -2,6 +2,18 @@
 
 Documento único da versão atual. Este README substitui os arquivos INSTRUCOES das entregas anteriores e deve ser atualizado nas próximas revisões, sem acumular orientações de versões antigas.
 
+## Algum dia em gavetas por área
+
+A primeira página mostra blocos visuais das áreas, com ilustrações, cores e contagens. Abra uma área para ver os cartões de ideias no formato já existente. Todos reúne as ideias; Gerenciar áreas continua usando o mesmo cadastro de Projetos. Áreas ocultas com ideias ainda podem ser consultadas, mas não recebem novas seleções.
+
+A pesquisa é geral: ao digitar, aparecem diretamente as ideias encontradas em todas as áreas, contextos e favoritas, sem depender da gaveta aberta. Ao limpar a pesquisa, retorna a navegação anterior. Não são feitas consultas adicionais para trocar gavetas ou buscar nos dados carregados.
+
+**Área obrigatória:** novas ideias precisam de uma área ativa. Em uma gaveta de área ativa, Nova ideia já a utiliza; na página inicial ou em Todos, você escolhe antes de abrir o editor. No Inbox, a área é escolhida antes de concluir a transformação, e cancelar mantém a entrada na origem. Título e demais linhas continuam indo para título/conteúdo. O servidor também rejeita salvamentos de ideias sem área.
+
+As gavetas são somente Todos e as áreas cadastradas. Não há gaveta de organização de ideias sem área. A área continua obrigatória para novos salvamentos; nenhum registro existente é excluído por esta alteração.
+
+Não exige novos bancos, campos, variáveis ou APK. Publique o pacote cumulativo completo e recarregue o app.
+
 ## Ajustes compactos de Algum dia
 
 No editor de ideias, Gerenciar áreas e a seleção de contexto ficam na mesma linha no desktop e no celular. Os cartões não mostram mais Sem prazo no rodapé; continuam mostrando anexos e Transformada quando aplicável. Não exige alterações no Notion, variáveis ou APK. O pacote inclui a integração anterior do Inbox.
@@ -10,7 +22,7 @@ No editor de ideias, Gerenciar áreas e a seleção de contexto ficam na mesma l
 
 Corrigido o erro de aplicativo ao abrir uma entrada do Inbox em abas sem destino de conversão definido. Todas as consultas ao destino são protegidas, inclusive para abas futuras.
 
-Na aba Algum dia, a entrada do Inbox pode ser transformada em ideia: primeira linha como título, demais linhas como conteúdo. A ideia abre para você completar os detalhes. Não exige banco/campo novo, variável adicional ou atualização do APK se Algum dia já estiver configurado. Publique este pacote completo e recarregue o app. As melhorias anteriores de alimentação, emojis e Bem-estar estão incluídas.
+Na aba Algum dia, a entrada do Inbox pode ser transformada em ideia: primeira linha como título, demais linhas como conteúdo. A área é escolhida antes de concluir; a ideia abre para completar os outros detalhes. Não exige banco/campo novo, variável adicional ou atualização do APK se Algum dia já estiver configurado. Publique este pacote completo e recarregue o app. As melhorias anteriores de alimentação, emojis e Bem-estar estão incluídas.
 
 ## Catálogo ampliado de ilustrações
 
@@ -513,7 +525,7 @@ O app acrescenta **LifeOS ID** e **LifeOS Usuário** automaticamente. Ideias e o
 - Cole uma imagem, arraste um arquivo ou use **Imagem**. JPEG, PNG e WebP são reduzidos para até 1.600 px e enviados ao Notion; GIF mantém a animação. Originais de até 20 MB são aceitos para processamento; o resultado enviado precisa ter até 4 MB (GIF até 4 MB). As imagens aparecem dentro das anotações e também na lista de anexos. Retirar a imagem do texto não exclui o arquivo; **Excluir** na lista de anexos pede confirmação e retira ambos.
 - Colar um endereço **HTTPS** sozinho ou usar **Link** cria um cartão com título, descrição e miniatura quando a página permite. Se a fonte bloquear a consulta, o endereço continua clicável. O botão **Manter apenas o link** substitui o cartão por um link de texto.
 - **Transformar em projeto/tarefa** pede confirmação e copia título, texto simples e anexos. A ideia original permanece com sua formatação e recebe a indicação de transformação. As outras telas mantêm os editores atuais. O app aguarda o salvamento dos arquivos e usa um identificador estável para retomar falhas sem duplicar o destino.
-- **Inbox → Algum dia:** ao abrir uma entrada com a aba Algum dia selecionada, use Transformar em ideia em Algum dia. A primeira linha vira o título; as demais entram no editor como conteúdo, preservando parágrafos e linhas em branco. A ideia abre imediatamente para completar área, contexto e outros detalhes. Começa sem área e no contexto Pessoal, que pode ser alterado manualmente no editor. A conversão não interpreta as linhas como metadados. Se o banco não estiver configurado ou o título/texto for inválido, a entrada fica no Inbox. O salvamento cria a ideia antes de remover a origem e permite retomar uma falha sem criar outra cópia.
+- **Inbox → Algum dia:** ao abrir uma entrada com a aba Algum dia selecionada, use Transformar em ideia em Algum dia. A primeira linha vira o título; as demais entram no editor como conteúdo, preservando parágrafos e linhas em branco. Escolha uma área antes de concluir a transformação. A ideia abre em seguida para completar contexto e outros detalhes. O contexto inicial é Pessoal e pode ser alterado manualmente no editor. A conversão não interpreta as linhas como metadados. Se o banco não estiver configurado ou o título/texto for inválido, a entrada fica no Inbox. O salvamento cria a ideia antes de remover a origem e permite retomar uma falha sem criar outra cópia.
 
 ### Recursos gráficos, tráfego e backup
 

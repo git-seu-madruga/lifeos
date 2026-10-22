@@ -45,12 +45,14 @@ try{
  selector.props.onChange({target:{value:'Criação'}});assert.equal(projectList[0].area,'Criação');
  renderProjectAreas().find(e=>e.type==='button'&&e.props.children==='Gerenciar áreas').props.onClick();assert.equal(projectOpened,'areas');
  projectList=projectList.map(p=>({...p,area:'Antiga'}));areaNodes=renderProjectAreas();assert.ok(walk(areaNodes.find(e=>e.props['aria-label']==='Área do projeto')).some(e=>e.type==='option'&&e.props.value==='Antiga'),'Área oculta existente é preservada');
- slots=[];let somedayRecords=[],manageOpened=false;
+ slots=[];let somedayRecords=[catalogArea],manageOpened=false;
  const somedayTree=()=>{index=0;return walk(Someday({records:somedayRecords,setRecords:update=>somedayRecords=update(somedayRecords),configured:true,context:'personal',onManageAreas:()=>manageOpened=true,onPromote(){}}));};
  somedayTree().find(e=>e.type==='button'&&e.props.children==='+ Nova ideia').props.onClick();
+ assert.ok(somedayTree().some(e=>e.props.role==='dialog'&&e.props['aria-label']==='Escolha a área da ideia'));
+ somedayTree().find(e=>e.type==='button'&&Array.isArray(e.props.children)&&e.props.children.includes('Criação')).props.onClick();
  assert.ok(somedayTree().some(e=>e.props.className==='sd-editor-workspace'),'Nova ideia usa toda a área de conteúdo');assert.ok(!somedayTree().some(e=>e.props.className==='sd-collection'),'Coleção não limita a largura do editor');
- let ideaDetail=somedayTree().find(e=>e.type?.name==='IdeaDetail');ideaDetail.props.onClose();assert.equal(somedayRecords.length,0,'Fechar ideia intocada não grava');
- somedayTree().find(e=>e.type==='button'&&e.props.children==='+ Áreas').props.onClick();assert.equal(manageOpened,true);
+ let ideaDetail=somedayTree().find(e=>e.type?.name==='IdeaDetail');ideaDetail.props.onClose();assert.equal(somedayRecords.length,1,'Fechar ideia intocada não grava');
+ somedayTree().find(e=>e.type==='button'&&e.props.children==='Gerenciar áreas').props.onClick();assert.equal(manageOpened,true);
  slots=[]; // Restore ProjectsView hook slots for the remaining project checks.
  const beforeOrder=tasks;tasks=orderedTasks;
  const projectOrder=['doing','hold-old','hold-new','earlier-date','old','new','closed-new','closed-old'];
