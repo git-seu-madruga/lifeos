@@ -539,12 +539,16 @@ global.fetch=async(url,options={})=>{
   const otherIdea=makeIdea(state.someday.find(r=>r.type==='area'));otherIdea.name='Nova';await assert.rejects(()=>save(state,{...state,someday:[...state.someday,otherIdea]}),/Reative a área/);
   const favorite={...state,someday:state.someday.map(r=>r.type==='idea'?{...r,data:{...r.data,favorite:true}}:r)};await save(state,favorite);
   await assert.rejects(()=>save(state,{...state,someday:state.someday.filter(r=>r.type!=='area')}),/área desta ideia/);
+  const areaMissing=makeIdea();areaMissing.name='Sem área não pode salvar';
+  const beforeMissing=(await notionLib.readSnapshot(false,A)).state;
+  await assert.rejects(()=>save(beforeMissing,{...beforeMissing,someday:[...beforeMissing.someday,areaMissing]}),/Escolha uma área/);
   // If archiving Inbox fails after saving the idea, retry keeps one destination and the full content.
   const {moveInboxToSomeday,ideaText}=require(path.join(temp,'lib/someday'));
   let inboxState=(await notionLib.readSnapshot(false,A)).state;
+  const inboxArea=makeArea('Ideias do Inbox');
   const inboxIdea={id:'inbox-someday-retry',text:'Ideia do Inbox\nPrimeiro parágrafo\n\nSegundo parágrafo',createdAt:Date.now()};
-  await save(inboxState,{...inboxState,inbox:[...inboxState.inbox,inboxIdea]});inboxState=(await notionLib.readSnapshot(false,A)).state;
-  const inboxSource=inboxState.inbox.find(i=>i.text===inboxIdea.text),movedInbox=moveInboxToSomeday(inboxState,inboxSource.id);failInboxArchive=true;
+  await save(inboxState,{...inboxState,someday:[...inboxState.someday,inboxArea],inbox:[...inboxState.inbox,inboxIdea]});inboxState=(await notionLib.readSnapshot(false,A)).state;
+  const inboxSource=inboxState.inbox.find(i=>i.text===inboxIdea.text),movedInbox=moveInboxToSomeday(inboxState,inboxSource.id,inboxArea.data.uid);failInboxArchive=true;
   await assert.rejects(()=>save(inboxState,movedInbox.state),/Falha simulada ao arquivar Inbox/);
   const partiallyMoved=(await notionLib.readSnapshot(false,A)).state;assert.ok(partiallyMoved.inbox.some(i=>i.id===inboxSource.id));assert.equal(partiallyMoved.someday.filter(i=>i.data.uid===movedInbox.state.someday.at(-1).data.uid).length,1);
   await save(inboxState,movedInbox.state);await save(inboxState,movedInbox.state);
