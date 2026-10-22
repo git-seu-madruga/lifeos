@@ -4,13 +4,13 @@ Documento único da versão atual. Este README substitui os arquivos INSTRUCOES 
 
 ## Algum dia em gavetas por área
 
-A primeira página mostra blocos visuais das áreas, com ilustrações, cores e contagens. Abra uma área para ver os cartões de ideias no formato já existente. Todos reúne as ideias; Gerenciar áreas continua usando o mesmo cadastro de Projetos. Áreas ocultas com ideias ainda podem ser consultadas, mas não recebem novas seleções.
+A primeira página mostra blocos visuais das áreas, com ilustrações, cores e contagens. Abra uma área para ver os cartões de ideias no formato já existente. O botão Mostrar todos, ao lado de Gerenciar áreas, reúne as ideias. A grade contém somente áreas cadastradas, sem card Todos nem inscrição Abrir gaveta. Gerenciar áreas continua usando o mesmo cadastro de Projetos. Áreas ocultas com ideias ainda podem ser consultadas, mas não recebem novas seleções.
 
 A pesquisa é geral: ao digitar, aparecem diretamente as ideias encontradas em todas as áreas, contextos e favoritas, sem depender da gaveta aberta. Ao limpar a pesquisa, retorna a navegação anterior. Não são feitas consultas adicionais para trocar gavetas ou buscar nos dados carregados.
 
 **Área obrigatória:** novas ideias precisam de uma área ativa. Em uma gaveta de área ativa, Nova ideia já a utiliza; na página inicial ou em Todos, você escolhe antes de abrir o editor. No Inbox, a área é escolhida antes de concluir a transformação, e cancelar mantém a entrada na origem. Título e demais linhas continuam indo para título/conteúdo. O servidor também rejeita salvamentos de ideias sem área.
 
-As gavetas são somente Todos e as áreas cadastradas. Não há gaveta de organização de ideias sem área. A área continua obrigatória para novos salvamentos; nenhum registro existente é excluído por esta alteração.
+As gavetas são somente as áreas cadastradas; Mostrar todos é um botão no cabeçalho. Não há gaveta de organização de ideias sem área. A área continua obrigatória para novos salvamentos; nenhum registro existente é excluído por esta alteração.
 
 Não exige novos bancos, campos, variáveis ou APK. Publique o pacote cumulativo completo e recarregue o app.
 
