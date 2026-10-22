@@ -2,6 +2,10 @@
 
 Documento único da versão atual. Este README substitui os arquivos INSTRUCOES das entregas anteriores e deve ser atualizado nas próximas revisões, sem acumular orientações de versões antigas.
 
+## Ajustes compactos de Algum dia
+
+No editor de ideias, Gerenciar áreas e a seleção de contexto ficam na mesma linha no desktop e no celular. Os cartões não mostram mais Sem prazo no rodapé; continuam mostrando anexos e Transformada quando aplicável. Não exige alterações no Notion, variáveis ou APK. O pacote inclui a integração anterior do Inbox.
+
 ## Correção e integração do Inbox com Algum dia
 
 Corrigido o erro de aplicativo ao abrir uma entrada do Inbox em abas sem destino de conversão definido. Todas as consultas ao destino são protegidas, inclusive para abas futuras.
