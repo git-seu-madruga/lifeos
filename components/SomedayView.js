@@ -45,8 +45,13 @@ function IdeaDetail({record,areas,onPatch,onClose,onPromote,onDelete,onBusy,onMa
  </section>;
 }
 
-export default function SomedayView({records,setRecords,configured,context,onManageAreas,onPromote}){
+export default function SomedayView({records,setRecords,configured,context,onManageAreas,onPromote,openRequest,onOpenHandled}){
  const [query,setQuery]=useState(''),[area,setArea]=useState('all'),[favorites,setFavorites]=useState(false),[selected,setSelected]=useState(null),[draft,setDraft]=useState(null),[busy,setBusy]=useState(false);
+ const openedRequest=useRef(null);
+ useEffect(()=>{
+  if(!openRequest||openedRequest.current===openRequest.token||busy||!records.some(r=>r.id===openRequest.id&&r.type==='idea'))return;
+  openedRequest.current=openRequest.token;setDraft(null);setSelected(openRequest.id);onOpenHandled?.();
+ },[openRequest,records,busy,onOpenHandled]);
  const areas=records.filter(r=>r.type==='area'),ideas=records.filter(r=>r.type==='idea');
  const current=records.find(r=>r.id===selected)||draft;
  useEffect(()=>{if(current)return holdEditor();},[!!current]);

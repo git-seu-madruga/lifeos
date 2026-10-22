@@ -6,6 +6,18 @@ const state={someday:[],projects:[],tasks:[],inbox:[],diary:[]};
 const transport=(replies,calls)=>((url,options,callback)=>{calls.push({url:url.href,options});const req=new EventEmitter();req.end=()=>queueMicrotask(()=>{const reply=replies.shift();assert.ok(reply,'Resposta simulada ausente');const res=Readable.from([Buffer.from(reply.body||'')]);res.statusCode=reply.status||200;res.headers={'content-type':'text/html',...reply.headers};callback(res);});return req;});
 const publicDns=async()=>[{address:'93.184.216.34',family:4}];
 (async()=>{try{
+ { // Inbox conversion preserves lines, remains private and repeats without overwriting an edited idea.
+ const source={id:'inbox-someday',text:'Título da ideia\r\nLinha 1\r\n\r\n  Linha 2 com espaços\r\n<script>texto simples</script>',createdAt:1};
+ const originalInbox={...state,somedayConfigured:true,user:{id:'account-a'},inbox:[source]},moved=domain.moveInboxToSomeday(originalInbox,source.id);
+ assert.equal(originalInbox.inbox.length,1);assert.equal(moved.state.inbox.length,0);assert.equal(moved.state.someday[0].name,'Título da ideia');assert.equal(moved.state.someday[0].data.area,'');assert.equal(moved.state.someday[0].context,'personal');assert.equal(domain.validateSomeday(moved.state.someday[0]),'');assert.equal(domain.ideaText(moved.state.someday[0].data.doc),'Linha 1\n\n  Linha 2 com espaços\n<script>texto simples</script>');
+ const edited=moved.state.someday.map(i=>({...i,name:'Título alterado manualmente'})),retried=domain.moveInboxToSomeday({...originalInbox,someday:edited},source.id);assert.equal(retried.id,moved.id);assert.equal(retried.state.someday.length,1);assert.equal(retried.state.someday[0].name,'Título alterado manualmente');
+ assert.throws(()=>domain.moveInboxToSomeday({...originalInbox,someday:edited,inbox:[{...source,text:'Texto novo'}]},source.id),/continua no Inbox/);
+ assert.throws(()=>domain.moveInboxToSomeday({...originalInbox,somedayConfigured:false},source.id),/continua no Inbox/);
+ assert.throws(()=>domain.moveInboxToSomeday({...originalInbox,inbox:[{...source,text:'   \nSem título'}]},source.id),/primeira linha/);
+ assert.throws(()=>domain.moveInboxToSomeday({...originalInbox,inbox:[{...source,text:'a'.repeat(201)}]},source.id),/200 caracteres/);
+ assert.throws(()=>domain.moveInboxToSomeday({...originalInbox,inbox:[{...source,text:'Título\n'+'x'.repeat(30001)}]},source.id),/continua no Inbox/);
+ const titleOnly=domain.moveInboxToSomeday({...originalInbox,inbox:[{...source,text:'Só título'}]},source.id);assert.equal(domain.ideaText(titleOnly.state.someday[0].data.doc),'');assert.equal(domain.validateSomeday(titleOnly.state.someday[0]),'');
+ }
  const a=domain.makeArea('Criação','palette',domain.IDEA_COLORS[1]),idea=domain.makeIdea(a,'personal');idea.name='Um jogo';idea.data.doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Uma inspiração',marks:[{type:'bold'}]}]},{type:'ideaImage',attrs:{attachmentId:'stable-image.png',alt:'Esboço'}},{type:'ideaBookmark',attrs:{id:'link-1',url:'https://example.com/',title:'Referência',description:'Uma página',image:''}}]};idea.attachments=[{id:'temporary-id',name:'stable-image.png',notion:{type:'external',external:{url:'https://example.com/image.png'}}}];
  assert.equal(domain.validateSomeday(a),'');assert.equal(domain.validateSomeday(idea),'');
  assert.equal(domain.validateSomeday({...idea,attachments:[{...idea.attachments[0],id:'restored-page-new-id'}]}),'','Texto usa nome estável e sobrevive à restauração de IDs');

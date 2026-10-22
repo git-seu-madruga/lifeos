@@ -10,5 +10,15 @@ try{
  walk(tree,node=>node.type==='button'&&node.props.children==='Adicionar').props.onClick();assert.deepEqual(added,['Mercado\nArroz\nCafé']);tree=render();assert.equal(input(tree).props.value,'');assert.equal(walk(tree,node=>node.type==='button'&&node.props.children==='Adicionar').props.disabled,true);
  input(tree).props.onChange({target:{value:'Rascunho\ncontinuação'}});tree=render();walk(tree,node=>node.type==='button'&&node.props['aria-expanded']===false).props.onClick();tree=render();walk(tree,node=>node.type==='button'&&node.props['aria-expanded']===true).props.onClick();tree=render();assert.equal(input(tree).props.value,'Rascunho\ncontinuação');
  mobile=false;input(tree).props.onKeyDown({key:'Enter',shiftKey:true,nativeEvent:{isComposing:false},preventDefault:()=>{throw Error('Shift+Enter deve inserir linha');}});assert.equal(added.length,1);input(tree).props.onKeyDown({key:'Enter',nativeEvent:{isComposing:false},preventDefault:()=>prevented=true});assert.equal(added.length,2);assert.equal(added[1],'Rascunho\ncontinuação');
+ // Regression: opening an Inbox item must work even for tabs without a conversion target.
+ const {NAV}=require(path.join(folder,'lib/nav'));let converted=[];const entry={id:'entry',text:'Minha ideia\nConteúdo com detalhes'};
+ for(const tab of [...NAV.map(t=>t.id),'aba-sem-destino']){
+  slots.length=0;
+  const show=()=>{index=0;return Inbox({items:[entry],tabId:tab,onConvert:(item,kind)=>{converted.push(kind);return true;},onUpdate(){},onDelete(){},onAdd(){}});};
+  let view=show();walk(view,n=>n.props?.className==='inbox-item').props.onClick();assert.doesNotThrow(()=>{view=show();},'Abrir Inbox em '+tab);
+  const convert=walk(view,n=>n.type==='button'&&n.props.className==='primary'&&Array.isArray(n.props.children)&&n.props.children[0]==='Transformar em ');
+  if(tab==='algumdia'){assert.ok(convert);convert.props.onClick();assert.equal(converted.at(-1),'someday');}
+  if(tab==='aba-sem-destino')assert.equal(convert,null);
+ }
  console.log('PASSOU: Inbox mobile aceita quebras de linha e botão Adicionar; desktop mantém atalhos; recolher preserva o texto.');
 }finally{Object.assign(React,saved);if(oldWindow===undefined)delete global.window;else global.window=oldWindow;fs.rmSync(folder,{recursive:true,force:true});}
