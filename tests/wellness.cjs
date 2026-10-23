@@ -95,9 +95,18 @@ try{
  try{let nodes=walk(render());let chart=nodes.find(n=>n.type===Chart&&n.props.type==='pressure');assert.equal(chart.props.records.length,1);chart.props.onHistoryChange(true);
  nodes=walk(render());assert.ok(nodes.some(n=>n.props.className==='well-measurements well-measurements-expanded'));chart=nodes.find(n=>n.type===Chart&&n.props.type==='pressure');assert.equal(chart.props.records.length,1);assert.equal(chart.props.records[0].count,2);assert.equal(chart.props.records[0].data.systolic,125);chart.props.onSelect(chart.props.records[0]);
  nodes=walk(render());nodes.find(n=>n.props.id==='well-pressure').props.children.at(-1).props.onClick();assert.equal(slots[2],null);assert.equal(slots[4],'pressure');assert.equal(slots[8],day,'Média selecionada permite consultar as medidas do dia sem expandir o gráfico');
- nodes.find(n=>n.type===Chart&&n.props.type==='body').props.onHistoryChange(true);chart.props.onHistoryChange(false);assert.ok(walk(render()).some(n=>n.props.className==='well-measurements well-measurements-expanded'));
- walk(render()).find(n=>n.type===Chart&&n.props.type==='body').props.onHistoryChange(false);assert.ok(walk(render()).some(n=>n.props.className==='well-measurements'));
+ for(const type of ['pressure','body']){
+  walk(render()).find(n=>n.type===Chart&&n.props.type===type).props.onHistoryChange(true);
+  nodes=walk(render());assert.ok(nodes.filter(n=>n.type===Chart).every(n=>n.props.fullHistory===true));assert.ok(nodes.some(n=>n.props.className==='well-measurements well-measurements-expanded'));
+  nodes.find(n=>n.type===Chart&&n.props.type===type).props.onHistoryChange(false);
+  nodes=walk(render());assert.ok(nodes.filter(n=>n.type===Chart).every(n=>n.props.fullHistory===false));assert.ok(nodes.some(n=>n.props.className==='well-measurements'));assert.deepEqual(slots[7],{},'Retorno limpa a seleção dos dois gráficos');
+ }
  }finally{React.useState=old;React.useRef=ref;React.useEffect=effect;}}
+ // The same labels stay 11 physical pixels through expansion, return and resizing.
+ {const {observeMeasurementChartSize}=require(path.join(root,'lib/measurementChart'));const original=global.ResizeObserver;let resize,disconnected=0,screenWidth=840,font;
+ global.ResizeObserver=class{constructor(callback){resize=callback;}observe(node){assert.ok(node);}disconnect(){disconnected++;}};
+ const node={getBoundingClientRect:()=>({width:screenWidth}),style:{setProperty(name,value){assert.equal(name,'--well-chart-font');font=parseFloat(value);}}};
+ try{for(const viewWidth of [900,420,900,420]){const cleanup=observeMeasurementChartSize(node,viewWidth);assert.equal(font*screenWidth/viewWidth,11);screenWidth=360;resize();assert.equal(font*screenWidth/viewWidth,11);screenWidth=1200;resize();assert.equal(font*screenWidth/viewWidth,11);cleanup();}assert.equal(disconnected,4);}finally{global.ResizeObserver=original;}}
  const nav=require(path.join(root,'lib/nav')).NAV;assert.ok(nav.some(p=>p.id==='bemestar'));assert.ok(!nav.some(p=>p.id==='habitos'));
  console.log('PASSOU: validação de medidas e ciclo, datas, campos opcionais, histórico, painel e preservação do resumo de hábitos.');
 }finally{fs.rmSync(root,{recursive:true});}
