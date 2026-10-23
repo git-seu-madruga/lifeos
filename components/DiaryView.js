@@ -1,4 +1,6 @@
 "use client";
+import {habitToday} from '../lib/habits';
+import {useDateRollover} from '../lib/useDateRollover';
 import LinkText, {TextLinks} from "./LinkText";
 import { useEffect, useRef, useState } from 'react';
 import { calendarDays, dateKey, hasDiaryText, updateDiaryEntry } from '../lib/diary';
@@ -58,11 +60,12 @@ export function DiaryEntry({date,entry,onChange,onClose,initialEditing=false}) {
   </section>;
 }
 export default function DiaryView({entries=[],setEntries,configured,openRequest,onOpenHandled}) {
-  const today=dateKey(new Date());
-  const [view,setView]=useState(today);
+  const today=habitToday();
+  const [view,updateView]=useState(today);
   const [selected,setSelected]=useState(null);
   useBackLayer(!!selected,()=>{setSelected(null);setEditingRequest(null);},10);
   const [editingRequest,setEditingRequest]=useState(null);
+  const [setView]=useDateRollover(view,updateView,{blocked:()=>!!selected});
   useEffect(()=>{
     if(!openRequest)return;
     setView(openRequest.date);setSelected(openRequest.date);setEditingRequest(openRequest);

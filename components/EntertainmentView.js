@@ -50,7 +50,7 @@ export default function EntertainmentView({sections,items,setEntertainment,confi
  function patch(id,values){setEntertainment(prev=>({...prev,media:prev.media.map(p=>p.id===id?{...p,...values}:p)}));}
  function shiftSummaryMonth(delta){const [year,month]=summaryMonth.split('-').map(Number);const date=new Date(year,month-1+delta,1,12);if(date.getFullYear()>=1000&&date.getFullYear()<=9999)setSummaryMonth(`${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}`);}
  function shiftSummaryYear(delta){const value=Number(summaryYear)+delta;if(value>=1000&&value<=9999)setSummaryYear(String(value));}
- function requestFinish(item){setFinish(item);setFinishDate(today);setFinishValid(true);setFinishError('');}
+ function requestFinish(item){setFinish(item);setFinishDate(habitToday());setFinishValid(true);setFinishError('');}
  function confirmFinish(e){e.preventDefault();if(!finishValid||!validCompletionDate(finishDate)){setFinishError('Informe uma data de conclusão válida.');return;}patch(finish.id,{status:'done',completedOn:finishDate});setFinish(null);}
  function start(sectionId=sections[0]?.id){if(!sectionId)return;setContentEdit({name:'',section:sectionId,author:'',status:'planned',rating:0,comment:'',coverUrl:'',sourceUrl:'',provider:'',attachments:[]});}
  function saveContent(draft){setEntertainment(prev=>({...prev,media:draft.id?prev.media.map(p=>p.id===draft.id?draft:p):[...prev.media,{...draft,id:uid(),_createdAt:Date.now()}]}));setContentEdit(null);}

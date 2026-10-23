@@ -1,4 +1,5 @@
 "use client";
+import {useDateRollover} from '../lib/useDateRollover';
 import {useEffect,useMemo,useRef,useState} from 'react';
 import taco from '../lib/data/taco.json';
 import {api} from '../lib/api';
@@ -44,10 +45,11 @@ function FoodEditor({record,food:existingFood,recipe,onSave,onClose,foods}){
 }
 
 export default function NutritionView({records,setRecords,configured}){
- const today=habitToday(),[date,setDate]=useState(today),[month,setMonth]=useState(today.slice(0,7)),[year,setYear]=useState(today.slice(0,4));
+ const today=habitToday(),[date,updateDate]=useState(today),[month,setMonth]=useState(today.slice(0,7)),[year,setYear]=useState(today.slice(0,4));
  const settings=records.find(r=>r.type==='settings'),target=settings?.data.target??DEFAULT_TARGET;
  const stats=nutritionDay(records,date,target),summary=nutritionSummary(records,month,target),annual=nutritionSummary(records,year,target);
  const [query,setQuery]=useState(''),[source,setSource]=useState('all'),[tab,setTab]=useState('all'),[online,setOnline]=useState([]),[selected,setSelected]=useState(null),[quantity,setQuantity]=useState('100'),[measure,setMeasure]=useState('g'),[meal,setMeal]=useState('Almoço'),[inside,setInside]=useState(true),[editing,setEditing]=useState(null),[form,setForm]=useState(null),[error,setError]=useState(''),[busy,setBusy]=useState(false),[openMeals,setOpenMeals]=useState({});
+ const [setDate,currentDate]=useDateRollover(date,updateDate,{blocked:()=>!!(selected||editing||form||busy)});
  const [goalText,setGoalText]=useState(String(target)),[dayGoal,setDayGoal]=useState(String(stats.target));
  const searchVersion=useRef(0);
  useEffect(()=>setGoalText(String(target)),[target]);useEffect(()=>setDayGoal(String(stats.target)),[stats.target,date]);
@@ -60,8 +62,9 @@ export default function NutritionView({records,setRecords,configured}){
  const results=tab==='favorites'?searchFoods(active.filter(r=>r.data.favorite).map(r=>r.data.food),query,Infinity,true):tab==='recipes'?searchFoods(active.filter(r=>r.data.ingredients).map(r=>r.data.food),query,Infinity,true):!query.trim()?[]:source==='off'?online:source==='mine'?searchFoods(active.map(r=>r.data.food),query):searchFoods(catalog,query);
  const selectedRecord=saved.find(r=>r.data.food.id===selected?.id),favorite=!!selectedRecord?.data.favorite;
  const persist=item=>{const message=validateNutrition(item);if(message){setError(message);return false;}setRecords(prev=>prev.some(r=>r.id===item.id)?prev.map(r=>r.id===item.id?item:r):[...prev,item]);setError('');return true;};
- function updateDay(patch){setRecords(prev=>{const current=prev.find(r=>r.type==='day'&&r.date===date);const next=current?{...current,data:{...current.data,...patch}}:{id:nutritionUid(),name:'Rotina '+date,type:'day',date,data:{uid:'day:'+date,target,...patch}};const message=validateNutrition(next);if(message){setError(message);return prev;}setError('');return current?prev.map(r=>r.id===current.id?next:r):[...prev,next];});}
+ function updateDay(patch){const date=currentDate();updateDate(date);setRecords(prev=>{const current=prev.find(r=>r.type==='day'&&r.date===date);const next=current?{...current,data:{...current.data,...patch}}:{id:nutritionUid(),name:'Rotina '+date,type:'day',date,data:{uid:'day:'+date,target,...patch}};const message=validateNutrition(next);if(message){setError(message);return prev;}setError('');return current?prev.map(r=>r.id===current.id?next:r):[...prev,next];});}
  function choose(food,preferSavedPortion=true){
+  updateDate(currentDate());
   const personal=preferSavedPortion?active.find(r=>r.data.food.id===food.id)?.data.food:null;
   const next=normalizeFood(personal?{...food,portionQuantity:personal.portionQuantity}:food);
   setSelected(next);setQuantity(next.portionQuantity?'1':'100');setMeasure(next.portionQuantity?'portion':next.unit);setEditing(null);setError('');

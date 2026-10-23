@@ -2,6 +2,38 @@
 
 Documento único da versão atual. Este README substitui os arquivos INSTRUCOES das entregas anteriores e deve ser atualizado nas próximas revisões, sem acumular orientações de versões antigas.
 
+## Datas padrão após a virada do dia
+
+As datas padrão de novas entradas acompanham o dia de Brasília sem precisar encerrar o PWA. A verificação ocorre ao clicar em Atualizar, retornar ao app, recuperar uma página suspensa e a cada 30 segundos enquanto a tela está visível. É uma verificação local de relógio, sem consultas extras ao Notion. O botão Atualizar confere as datas mesmo se a atualização remota falhar.
+
+Bem-estar (incluindo pressão e peso), alimentação, novos lançamentos de Finanças, calendário do Diário e seleção padrão de Recados acompanham o dia quando continuam no modo automático. Novos hábitos e a conclusão de conteúdos consultam o dia atual na própria ação. Formulários de veículos já consultam a data ao abrir uma nova entrada.
+
+Datas históricas escolhidas manualmente e registros/formulários em edição são preservados. Voltar a selecionar Hoje reativa o acompanhamento automático. Ao terminar ou limpar um preenchimento, o próximo lançamento sem data manual volta ao dia atual. Pressão e peso também conferem a data ao começar a digitar, cobrindo a virada antes do próximo timer. Nada é regravado no histórico para corrigir datas antigas.
+
+Pacote cumulativo. Não exige alterações no Notion, variáveis ou APK; publique e recarregue o app uma vez para carregar esta correção.
+
+## Algum dia em gavetas por área
+
+A primeira página mostra blocos visuais das áreas, com ilustrações, cores e contagens. Abra uma área para ver os cartões de ideias no formato já existente. O botão Mostrar todos, ao lado de Gerenciar áreas, reúne as ideias. A grade contém somente áreas cadastradas, sem card Todos nem inscrição Abrir gaveta. Gerenciar áreas continua usando o mesmo cadastro de Projetos. Áreas ocultas com ideias ainda podem ser consultadas, mas não recebem novas seleções.
+
+A pesquisa é geral: ao digitar, aparecem diretamente as ideias encontradas em todas as áreas, contextos e favoritas, sem depender da gaveta aberta. Ao limpar a pesquisa, retorna a navegação anterior. Não são feitas consultas adicionais para trocar gavetas ou buscar nos dados carregados.
+
+**Área obrigatória:** novas ideias precisam de uma área ativa. Em uma gaveta de área ativa, Nova ideia já a utiliza; na página inicial ou em Todos, você escolhe antes de abrir o editor. No Inbox, a área é escolhida antes de concluir a transformação, e cancelar mantém a entrada na origem. Título e demais linhas continuam indo para título/conteúdo. O servidor também rejeita salvamentos de ideias sem área.
+
+As gavetas são somente as áreas cadastradas; Mostrar todos é um botão no cabeçalho. Não há gaveta de organização de ideias sem área. A área continua obrigatória para novos salvamentos; nenhum registro existente é excluído por esta alteração.
+
+Não exige novos bancos, campos, variáveis ou APK. Publique o pacote cumulativo completo e recarregue o app.
+
+## Ajustes compactos de Algum dia
+
+No editor de ideias, Gerenciar áreas e a seleção de contexto ficam na mesma linha no desktop e no celular. Os cartões não mostram mais Sem prazo no rodapé; continuam mostrando anexos e Transformada quando aplicável. Não exige alterações no Notion, variáveis ou APK. O pacote inclui a integração anterior do Inbox.
+
+## Correção e integração do Inbox com Algum dia
+
+Corrigido o erro de aplicativo ao abrir uma entrada do Inbox em abas sem destino de conversão definido. Todas as consultas ao destino são protegidas, inclusive para abas futuras.
+
+Na aba Algum dia, a entrada do Inbox pode ser transformada em ideia: primeira linha como título, demais linhas como conteúdo. A área é escolhida antes de concluir; a ideia abre para completar os outros detalhes. Não exige banco/campo novo, variável adicional ou atualização do APK se Algum dia já estiver configurado. Publique este pacote completo e recarregue o app. As melhorias anteriores de alimentação, emojis e Bem-estar estão incluídas.
+
 ## Catálogo ampliado de ilustrações
 
 359 ilustrações Microsoft Fluent Emoji 3D, organizadas por viagens e lugares, videogames e lazer, esportes e academia, água e clima, frutas e vegetais, refeições, doces e bebidas, natureza e animais, trabalho e organização, informática e tecnologia, saúde, casa, estudos e criação. A seleção oferece busca em português (sem exigir acentos), filtro por tema e identificação da escolha atual.
@@ -12,7 +44,7 @@ Documento único da versão atual. Este README substitui os arquivos INSTRUCOES 
 
 As opções já salvas e o histórico permanecem. As ilustrações novas são arquivos WebP locais, com transparência, até 128 × 128 px e carregamento sob demanda do navegador; o catálogo não consulta serviços externos nem ocupa o banco do Notion. Licença e origem dos arquivos estão em public/emoji/fluent-expanded/. Nenhuma assinatura ou integração adicional.
 
-Para atualizar, envie o pacote completo e faça o deploy, incluindo os novos arquivos de public/emoji/. Não há alteração de bancos/campos do Notion, variáveis, APK ou necessidade de reimportar dados. O editor amplo e o catálogo integrado de áreas da entrega anterior estão incluídos. Inbox permanece com o comportamento existente.
+Para atualizar, envie o pacote completo e faça o deploy, incluindo os novos arquivos de public/emoji/. Não há alteração de bancos/campos do Notion, variáveis, APK ou necessidade de reimportar dados. O editor amplo e o catálogo integrado de áreas da entrega anterior estão incluídos. O Inbox também permite transformar uma entrada em ideia na aba Algum dia.
 
 ## Alimentação no celular em paisagem e Bem-estar
 
@@ -45,7 +77,7 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 - **Editor amplo e áreas integradas**: Nova ideia e edição de ideias ocupam a largura de conteúdo, como o editor de Projetos, com espaço maior para as anotações. Projetos e Algum dia usam o mesmo catálogo de áreas, acessível em **Gerenciar áreas** nas duas telas. Os botões de sugestões/importação foram removidos. **Não exige alterações adicionais no Notion, variáveis ou APK** se Algum dia já estiver configurado.
 
-- **Algum dia**: nova aba privada de ideias, áreas de interesse, favoritos, cartões ilustrados, cores e editor rico com imagens e prévias de links. Exige apenas um novo banco e `NOTION_SOMEDAY_DATABASE_ID`. As novas ilustrações e o editor são um piloto exclusivo desta aba; o Inbox não recebe opção de conversão nem integração nova. O APK Captura permanece na versão atual.
+- **Algum dia**: nova aba privada de ideias, áreas de interesse, favoritos, cartões ilustrados, cores e editor rico com imagens e prévias de links. Exige apenas um novo banco e `NOTION_SOMEDAY_DATABASE_ID`. As novas ilustrações e o editor são um piloto exclusivo desta aba; o Inbox permite transformar uma entrada em ideia dentro desta aba. O APK Captura permanece na versão atual.
 
 - Favoritos e Minhas receitas mostram todos os itens salvos ao abrir, em ordem alfabética. Digitar filtra; limpar mostra todos novamente. Trocar de guia limpa a busca anterior. A busca geral e ingredientes continuam vazios antes da digitação. Sem consulta externa para listar favoritos/receitas.
 
@@ -104,7 +136,8 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 - Sessão por QR: até 1 hora, com bloqueio após 10 minutos sem interação e desbloqueio pelo código original apenas no navegador autorizado. Cinco erros seguidos encerram a sessão. O limite de 1 hora nunca é renovado.
 
 - Peso/% gordura aceita apenas um registro por data, por usuário. Para corrigir, edite pelo gráfico ou histórico. Pressão mantém várias medições por dia e suas médias.
-- Cada gráfico tem um toggle discreto BPM/% gordura: oculta ou mostra a série e escala da direita, ajustando os limites e a largura aos dados visíveis. Não altera nem exclui dados. O toggle não exige novos campos, bancos ou variáveis.
+- O botão Histórico, ao lado de BPM/% gordura, alterna entre o gráfico padrão e todo o histórico (médias diárias de pressão e registros de peso). Enquanto algum histórico estiver ativo, pressão e peso ocupam uma linha completa cada. Ao desligar os dois, volta a disposição padrão (lado a lado quando houver espaço). Em telas estreitas, o gráfico histórico permite rolagem horizontal. Pontos de entradas com comentários ficam dourados, mantendo as cores das linhas; na média diária de pressão, o destaque indica que alguma medição daquele dia possui comentário. Tocar em um ponto histórico mostra seus valores. No peso, mostra também o comentário; na pressão, o dourado indica comentário em pelo menos uma das medições que compõem a média daquele dia.
+- Cada gráfico tem um toggle discreto BPM/% gordura, que também funciona no histórico: oculta ou mostra a série e escala da direita, ajustando os limites e a largura aos dados visíveis. Não altera nem exclui dados. O toggle não exige novos campos, bancos ou variáveis.
 
 - Links externos solicitam nova aba. No PWA instalado em Android, links HTTP/HTTPS sem fragmento tentam abrir o Chrome por um Android Intent, com endereço original como fallback. Links que chegam ao PWA usam launch_handler navigate-new onde suportado, preservando uma janela já aberta para edição. A decisão de capturar links continua sendo do navegador/sistema.
 
@@ -198,6 +231,8 @@ Filtre pelo mês, ano ou intervalo DD/MM/AAAA. Hoje volta ao mês atual. Saldo r
 Cadastre nome, dia e mês; ano de nascimento é opcional. Com ano conhecido, o resumo informa a idade que a pessoa fará; sem ano, mostra apenas o aniversário. Há busca e destaques da semana/mês. O cadastro inclui Observações, com múltiplas linhas (até 5.000 caracteres), exibidas discretamente abaixo do nome na lista de contatos, com links clicáveis. A informação é compartilhada entre as duas contas e pode ser editada ou apagada. A coluna Observações (Texto) é adicionada automaticamente ao banco existente na primeira conexão após o deploy; não precisa criar outro banco ou variável. Não complete um ano desconhecido com o ano atual.
 
 ### Compras
+
+A busca encontra listas pelo nome ou pelo conteúdo de qualquer item restante, sem diferenciar maiúsculas e acentos. Mantém o contexto escolhido e a ordem manual das listas. Itens comprados já removidos não entram na pesquisa.
 
 A tela principal mostra blocos de listas. Clique para abrir e volte para a tela dos blocos. Arraste listas para ordenar e itens dentro da lista para reorganizar. Marcar um item remove-o sem histórico no LifeOS; há edição, sem botão adicional de excluir item. Listas podem ser finalizadas/excluídas rapidamente, sem arquivo de listas passadas no app.
 
@@ -503,7 +538,7 @@ O app acrescenta **LifeOS ID** e **LifeOS Usuário** automaticamente. Ideias e o
 - Cole uma imagem, arraste um arquivo ou use **Imagem**. JPEG, PNG e WebP são reduzidos para até 1.600 px e enviados ao Notion; GIF mantém a animação. Originais de até 20 MB são aceitos para processamento; o resultado enviado precisa ter até 4 MB (GIF até 4 MB). As imagens aparecem dentro das anotações e também na lista de anexos. Retirar a imagem do texto não exclui o arquivo; **Excluir** na lista de anexos pede confirmação e retira ambos.
 - Colar um endereço **HTTPS** sozinho ou usar **Link** cria um cartão com título, descrição e miniatura quando a página permite. Se a fonte bloquear a consulta, o endereço continua clicável. O botão **Manter apenas o link** substitui o cartão por um link de texto.
 - **Transformar em projeto/tarefa** pede confirmação e copia título, texto simples e anexos. A ideia original permanece com sua formatação e recebe a indicação de transformação. As outras telas mantêm os editores atuais. O app aguarda o salvamento dos arquivos e usa um identificador estável para retomar falhas sem duplicar o destino.
-- **O Inbox mantém as funções existentes. Não há integração com Algum dia nesta revisão**, nem nova opção no menu de transformação.
+- **Inbox → Algum dia:** ao abrir uma entrada com a aba Algum dia selecionada, use Transformar em ideia em Algum dia. A primeira linha vira o título; as demais entram no editor como conteúdo, preservando parágrafos e linhas em branco. Escolha uma área antes de concluir a transformação. A ideia abre em seguida para completar contexto e outros detalhes. O contexto inicial é Pessoal e pode ser alterado manualmente no editor. A conversão não interpreta as linhas como metadados. Se o banco não estiver configurado ou o título/texto for inválido, a entrada fica no Inbox. O salvamento cria a ideia antes de remover a origem e permite retomar uma falha sem criar outra cópia.
 
 ### Recursos gráficos, tráfego e backup
 
@@ -643,7 +678,7 @@ Na Vercel, adicione **NOTION_WELLNESS_DATABASE_ID** com o ID do banco Bem-estar 
 
 - Meu dia: escolha a data pelo campo DD/MM/AAAA/calendário, setas ou Hoje. Selecione uma pétala no círculo para abrir seu cartão central de escolhas. A escolha é salva automaticamente e ilumina o contorno da pétala. Limpar escolha remove a seleção daquele aspecto; os demais dados do dia são preservados. Clique fora do cartão ou em × para voltar ao círculo. Sono permite selecionar duração aproximada e qualidade separadamente. Dores permite intensidade e vários locais; Nenhuma limpa os locais. Uma duração de sono ou intensidade de dor já deixa a pétala marcada como preenchida. Limpar escolha limpa o aspecto inteiro (incluindo duração/intensidade), sem mexer nas outras pétalas. Os registros de dias passados podem ser editados; datas futuras são bloqueadas. Campos não preenchidos permanecem sem registro. Energia e estresse têm pétalas próprias, com marcações de 1 a 5. Água tem sua própria pétala com quantidade em litros. A área Mais registros do dia foi removida. Todos os preenchimentos são livres. O botão discreto Excluir registros do dia pede confirmação e remove somente o registro das pétalas da data selecionada; não altera hábitos, ciclo, pressão ou medidas corporais. Os campos antigos retirados da tela não são usados em novos preenchimentos. O salvamento usa o fluxo incremental existente, com rascunho local protegido e indicação Salvo no Notion.
 - Hábitos: confirme que as marcações e os resumos anteriores permanecem, incluindo hábitos encerrados e confirmações. Os atalhos de seção rolam até cada painel.
-- Pressão e BPM: preencha diretamente no cartão data, pressão em um único campo com máscara (124/76) e BPM, e clique Salvar medição. O horário não é necessário. Podem existir várias medições no dia: o cartão mostra a média aritmética da sistólica, da diastólica e do BPM no dia mais recente com registros. Os gráficos também mostram médias diárias. A média é calculada e arredondada ao inteiro mais próximo para exibição, sem substituir as medições salvas. Ver histórico permite editar ou excluir com confirmação. Os registros antigos com horário são preservados, mas o horário deixa de aparecer nos formulários e no cartão. As três séries ficam em um gráfico único: sistólica e diastólica usam a escala mmHg à esquerda; BPM usa sua própria escala à direita. Os limites são ajustados aos dados visíveis, sem diagnóstico ou classificação automática.
+- Pressão e BPM: preencha diretamente no cartão data, pressão em um único campo com máscara (124/76) e BPM, e clique Salvar medição. O horário não é necessário. Podem existir várias medições no dia: o cartão mostra a média aritmética da sistólica, da diastólica e do BPM no dia mais recente com registros. O gráfico padrão mostra as últimas doze médias diárias; o botão Histórico ao lado de BPM mostra todas as médias diárias, da primeira à última. A média é calculada e arredondada ao inteiro mais próximo para exibição, sem substituir as medições salvas. Ver histórico permite editar ou excluir com confirmação. Os registros antigos com horário são preservados, mas o horário deixa de aparecer nos formulários e no cartão. As três séries ficam em um gráfico único: sistólica e diastólica usam a escala mmHg à esquerda; BPM usa sua própria escala à direita. Os limites são ajustados aos dados visíveis, sem diagnóstico ou classificação automática.
 - Peso e gordura: preencha diretamente no cartão e clique Salvar medidas quando houver uma nova medição; peso obrigatório, percentual de gordura opcional. É permitido apenas um registro por dia; não há exigência de preencher diariamente. Inclusões repetidas e mudanças para uma data já ocupada são bloqueadas. Registros antigos duplicados são preservados e podem ser corrigidos pelo histórico. O gráfico único mostra peso (kg à esquerda) e gordura (% à direita), com limites independentes e ajustados aos registros. Valores de gordura não preenchidos são omitidos, sem convertê-los em zero. Toque em um ponto para ver seus valores. Histórico permite editar/excluir. Os formulários de inclusão só criam o registro ao clicar Salvar; Limpar descarta o preenchimento. Edições no histórico continuam no formulário de edição.
 - Ciclo da Letícia: selecione menstruação, fluxo e cólicas nos botões do próprio cartão, na data selecionada. As escolhas são salvas automaticamente; Editar detalhes permite incluir observações ou excluir o registro com confirmação. Entre na outra conta, atualize e confirme que aparece o mesmo registro. Dia/medidas/hábitos de uma conta não aparecem para a outra.
 - Deixe Salvo no Notion aparecer antes de fechar. Alterações feitas em outra instância são carregadas pelo fluxo de retorno ao foco existente; formulários abertos impedem sobrescrita automática. Edições concorrentes conflitantes mostram erro e preservam o rascunho para revisão.

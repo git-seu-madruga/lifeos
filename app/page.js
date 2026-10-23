@@ -125,7 +125,13 @@ export default function Home() {
 
   // Cria o item na seção atual e tira a entrada do inbox.
   const [recadoInbox,setRecadoInbox]=useState(null);
+  const [somedayOpen,setSomedayOpen]=useState(null);
+  const [somedayInbox,setSomedayInbox]=useState(null),[somedayInboxArea,setSomedayInboxArea]=useState('');
   function convertInbox(item, kind) {
+    if(kind==="someday"){
+      if(!remote.somedayConfigured){window.alert('Configure o banco Algum dia no Notion. O texto continua no Inbox.');return false;}
+      setSomedayInbox(item);setSomedayInboxArea('');return true;
+    }
     if(kind==="recado"){
       const [title,...lines]=item.text.split("\n");
       if(!title.trim()||!lines.join("\n").trim()){window.alert("Use a primeira linha para o título e as seguintes para a mensagem. O texto continua no Inbox.");return false;}
@@ -179,12 +185,17 @@ export default function Home() {
     deleteInbox(item.id);
   }
 
+  function confirmSomedayInbox(){
+    try{const id=remote.convertInboxToSomeday(somedayInbox.id,somedayInboxArea);setSomedayOpen({id,token:uid('open-idea')});setContext('personal');setTabId('algumdia');setSomedayInbox(null);}
+    catch(error){window.alert(error.message);}
+  }
   function moveShoppingInbox(item,ctx){
     try{const result=shoppingFromInbox(remote.shopping || [],item.text,ctx);remote.setShopping(result.lists);deleteInbox(item.id);setShoppingSelected(result.id);setShoppingInbox(null);setShoppingCreating(false);setTabId('compras');return true;}
     catch(error){window.alert(error.message);return false;}
   }
 
   async function refresh() {
+    window.dispatchEvent(new Event("lifeos-refresh-date"));
     try { await remote.refresh();window.dispatchEvent(new Event("lifeos-refresh")); }
     catch {
       if (window.confirm("Não foi possível salvar antes de atualizar. Descartar as alterações locais pendentes e carregar a versão atual do Notion?")) {
@@ -302,7 +313,7 @@ export default function Home() {
             <p className="empty">Carregando…</p>
           )
         ) : tabId === "algumdia" ? (
-          <SomedayView records={remote.someday||[]} setRecords={remote.setSomeday} configured={remote.somedayConfigured} context={context} onManageAreas={()=>setAreasOpen(true)} onPromote={remote.promoteSomeday}/>
+          <SomedayView records={remote.someday||[]} setRecords={remote.setSomeday} configured={remote.somedayConfigured} context={context} onManageAreas={()=>setAreasOpen(true)} onPromote={remote.promoteSomeday} openRequest={somedayOpen} onOpenHandled={()=>setSomedayOpen(null)}/>
         ) : tabId === "diario" ? (
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
         ) : tabId === "entretenimento" ? (
@@ -328,6 +339,7 @@ export default function Home() {
     </div>
     <BackNotice/>
     <ModalLayer open={areasOpen} onClose={()=>setAreasOpen(false)}>{areasOpen&&<div className="overlay sd-area-layer" onClick={()=>setAreasOpen(false)}><div onClick={e=>e.stopPropagation()}><AreaManager areas={(remote.someday||[]).filter(r=>r.type==='area')} onSave={remote.saveArea} onClose={()=>setAreasOpen(false)}/></div></div>}</ModalLayer>
+    <ModalLayer open={!!somedayInbox} onClose={()=>setSomedayInbox(null)}>{somedayInbox&&<div className="overlay"><section className="panel finance-modal sd-pick-area" role="dialog" aria-modal="true" aria-label="Área da ideia do Inbox"><h2>Em qual área guardar a ideia?</h2><p className="muted">A primeira linha será o título e as demais serão o conteúdo. Escolha a área para concluir a transformação.</p><label>Área<select className="search" required value={somedayInboxArea} onChange={e=>setSomedayInboxArea(e.target.value)}><option value="" disabled>Selecione uma área</option>{(remote.someday||[]).filter(r=>r.type==='area'&&!r.data.archived).map(a=><option key={a.id} value={a.data.uid}>{a.name}</option>)}</select></label><div className="finance-period"><button type="button" className="primary" disabled={!somedayInboxArea} onClick={confirmSomedayInbox}>Transformar em ideia</button><button type="button" className="ghost" onClick={()=>setAreasOpen(true)}>Gerenciar áreas</button><button type="button" className="ghost" onClick={()=>setSomedayInbox(null)}>Cancelar</button></div></section></div>}</ModalLayer>
     <ModalLayer open={!!shoppingInbox} onClose={()=>setShoppingInbox(null)}>{shoppingInbox&&<div className="overlay overlay-context"><div className="panel finance-modal" role="dialog" aria-modal="true" aria-label="Contexto da lista de compras"><h2>Contexto da lista</h2><p className="muted">Escolha onde criar a lista ou acrescentar os itens à lista de mesmo nome.</p><label>Contexto<select className="search" value={shoppingContext} onChange={e=>setShoppingContext(e.target.value)}><option value="personal">Pessoal</option><option value="work">Trabalho</option></select></label><div className="finance-period"><button className="primary" onClick={()=>moveShoppingInbox(shoppingInbox,shoppingContext)}>Mover para lista</button><button className="ghost" onClick={()=>setShoppingInbox(null)}>Cancelar</button></div></div></div>}</ModalLayer>
     <ModalLayer open={!!newTask&&!!projects} onClose={()=>setNewTaskId(null)}>{newTask && projects && <TaskDetail user={remote.user} key={newTask.id} task={newTask} projects={projects} update={updateNewTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setNewTaskId(null)} />}</ModalLayer>
     </div></>

@@ -19,7 +19,7 @@ try{
  assert.ok(!html.includes('<h1>Bem-estar</h1>'));assert.ok(!html.includes('Seu dia, seus hábitos e sua evolução.'));assert.ok(!html.includes('well-petal-overlay'),'Cartão fechado ao iniciar');assert.ok(html.includes('Média de 1 medição'));assert.ok(!html.includes('Preencher / editar'));
  assert.ok(html.includes('well-petal'));assert.ok(html.includes('habit-matrix'));
  // Inline choices write only the selected aspect and never open a modal.
- const oldState=React.useState,oldRef=React.useRef,oldEffect=React.useEffect;
+ const oldState=React.useState,oldRef=React.useRef,oldEffect=React.useEffect;React.useRef=value=>({current:value});React.useEffect=()=>{};
  let index=0;const slots=[];React.useState=initial=>{const i=index++;if(!slots[i])slots[i]={value:typeof initial==='function'?initial():initial};return [slots[i].value,value=>slots[i].value=typeof value==='function'?value(slots[i].value):value];};
  let state={wellness:[],cycle:[]};const props={remote:{user:{id:'A'},...state,setWellness:fn=>{state=fn(state);},habitsConfigured:true,wellnessConfigured:true,cycleConfigured:true}};
  const render=()=>{index=0;return View({remote:{...props.remote,...state}});};
@@ -28,19 +28,22 @@ try{
  tree=render();const traverse=(n,out=[])=>{if(Array.isArray(n))n.forEach(v=>traverse(v,out));else if(n?.props){out.push(n);traverse(n.props.children,out);}return out;};const overlay=traverse(tree).find(n=>n.props.className==='overlay well-petal-overlay');assert.ok(overlay);const snapshot=JSON.stringify(state);let stopped=false;traverse(tree).find(n=>n.props.className==='well-aspect').props.onClick({stopPropagation(){stopped=true;}});assert.equal(stopped,true);assert.equal(slots[9].value,true,'Escolhas internas mantêm o cartão aberto');overlay.props.onClick();assert.equal(slots[9].value,false);assert.equal(JSON.stringify(state),snapshot,'Fechar não altera os registros');tree=render();assert.ok(!traverse(tree).some(n=>n.props.className==='overlay well-petal-overlay'));buttons(tree).find(n=>n.props.className?.includes('well-petal')&&n.props.children[1]?.props.children?.[1]?.props.children==='Dores').props.onClick();tree=render();buttons(tree).find(n=>n.props.children==='Cabeça').props.onClick();tree=render();buttons(tree).find(n=>n.props.children==='Costas').props.onClick();assert.deepEqual(state.wellness[0].data.painLocations,['Cabeça','Costas']);assert.equal(slots[9].value,true);buttons(render()).find(n=>n.props['aria-label']==='Voltar ao círculo').props.onClick();assert.equal(slots[9].value,false);
  }finally{React.useState=oldState;React.useRef=oldRef;React.useEffect=oldEffect;}
  // A selected graph point opens its exact source, or only the day's measurements for averages.
- {const old=React.useState;let cursor=0;const slots=[];React.useState=initial=>{const i=cursor++;if(!slots[i])slots[i]={value:typeof initial==='function'?initial():initial};return [slots[i].value,v=>slots[i].value=typeof v==='function'?v(slots[i].value):v];};
+ {const old=React.useState,oldEffect=React.useEffect,oldRef=React.useRef;React.useEffect=()=>{};React.useRef=value=>({current:value});let cursor=0;const slots=[];React.useState=initial=>{const i=cursor++;if(!slots[i])slots[i]={value:typeof initial==='function'?initial():initial};return [slots[i].value,v=>slots[i].value=typeof v==='function'?v(slots[i].value):v];};
  const source=[pressure,body];const render=()=>{cursor=0;return View({remote:{...props.remote,wellness:source,cycle:[]}});};const nodes=(n,out=[])=>{if(Array.isArray(n))n.forEach(v=>nodes(v,out));else if(n?.props){out.push(n);nodes(n.props.children,out);}return out;};try{
  let tree=render();nodes(tree).find(n=>n.type===Chart&&n.props.type==='body').props.onSelect(body);tree=render();buttons(tree).find(n=>n.props.children==='Editar registro').props.onClick();assert.equal(slots[2].value.id,body.id);
  slots[2].value=null;tree=render();nodes(tree).find(n=>n.type===Chart&&n.props.type==='pressure').props.onSelect(dailyPressure(source)[0]);tree=render();buttons(tree).filter(n=>n.props.children==='Editar registro')[0].props.onClick();assert.equal(slots[2].value.id,pressure.id);
  source.push(another);slots[2].value=null;tree=render();nodes(tree).find(n=>n.type===Chart&&n.props.type==='pressure').props.onSelect(dailyPressure(source)[0]);tree=render();buttons(tree).filter(n=>n.props.children==='Editar registro')[0].props.onClick();assert.equal(slots[2].value,null);assert.equal(slots[4].value,'pressure');assert.equal(slots[8].value,day);
- }finally{React.useState=old;}}
+ }finally{React.useState=old;React.useEffect=oldEffect;React.useRef=oldRef;}}
  // Both measurement forms save in place; blank/invalid forms never create records.
  const Inline=require(path.join(root,'components/InlineMeasurement')).default;
  {const savedState=React.useState,savedEffect=React.useEffect;let slot=0;const stateSlots=[];React.useState=initial=>{const i=slot++;if(!stateSlots[i])stateSlots[i]={value:initial};return [stateSlots[i].value,v=>stateSlots[i].value=typeof v==='function'?v(stateSlots[i].value):v];};React.useEffect=()=>{};
- let saved={wellness:[],cycle:[]};let type='pressure';const renderForm=()=>{slot=0;return Inline({type,date:day,configured:true,records:saved.wellness,setWellness:fn=>saved=fn(saved)});};
+ let saved={wellness:[],cycle:[]};let type='pressure',defaultDate;const renderForm=()=>{slot=0;return Inline({type,date:day,defaultDate,configured:true,records:saved.wellness,setWellness:fn=>saved=fn(saved)});};
  const inputs=(node,result=[])=>{if(Array.isArray(node))node.forEach(n=>inputs(n,result));else if(node?.props){if(node.type==='input')result.push(node);inputs(node.props.children,result);}return result;};
  try{let form=renderForm();form.props.onSubmit({preventDefault(){}});assert.equal(saved.wellness.length,0);inputs(form).find(n=>n.props['aria-label']==='Pressão na tela').props.onChange({target:{value:'12476'}});inputs(form).find(n=>n.props['aria-label']==='BPM na tela').props.onChange({target:{value:'62'}});form=renderForm();form.props.onSubmit({preventDefault(){}});assert.equal(saved.wellness.length,1);assert.equal(saved.wellness[0].data.systolic,124);assert.equal(saved.wellness[0].data.time,undefined);assert.equal(stateSlots[1].value,'');
  type='body';stateSlots.length=0;form=renderForm();inputs(form).find(n=>n.props['aria-label']==='Peso na tela').props.onChange({target:{value:'136,2'}});form=renderForm();form.props.onSubmit({preventDefault(){}});assert.equal(saved.wellness[1].data.weight,136.2);assert.equal(saved.wellness[1].data.fat,null);form=renderForm();inputs(form).find(n=>n.props['aria-label']==='Peso na tela').props.onChange({target:{value:'140'}});renderForm().props.onSubmit({preventDefault(){}});assert.equal(saved.wellness.length,2);assert.equal(stateSlots[1].value,'140');assert.ok(stateSlots[5].value.includes('Já existe')); assert.ok(!renderToStaticMarkup(React.createElement(Inline,{type,date:day,configured:true,setWellness(){}})).includes('role="dialog"'));
+ // A stale pristine form resolves the date when typing starts, but preserves an already started entry.
+ type='pressure';stateSlots.length=0;saved={wellness:[],cycle:[]};defaultDate=()=> '2026-10-01';form=renderForm();inputs(form).find(n=>n.props['aria-label']==='Pressão na tela').props.onChange({target:{value:'12476'}});form=renderForm();defaultDate=()=>day;inputs(form).find(n=>n.props['aria-label']==='BPM na tela').props.onChange({target:{value:'62'}});renderForm().props.onSubmit({preventDefault(){}});assert.equal(saved.wellness[0].date,'2026-10-01','Preenchimento já iniciado mantém a data');
+ type='body';stateSlots.length=0;saved={wellness:[],cycle:[]};defaultDate=()=> '2026-10-01';form=renderForm();inputs(form).find(n=>n.props['aria-label']==='Peso na tela').props.onChange({target:{value:'136,2'}});renderForm().props.onSubmit({preventDefault(){}});assert.equal(saved.wellness[0].date,'2026-10-01','Primeira digitação usa o padrão resolvido, sem depender do timer');
  }finally{React.useState=savedState;React.useEffect=savedEffect;}}
  const {ASPECTS,painLocations,togglePainLocation,deletePetalDay}=require(path.join(root,'lib/wellness'));
  assert.equal(ASPECTS.length,9);for(const key of ['energy','stress'])assert.deepEqual(ASPECTS.find(a=>a[0]===key)[4],[1,2,3,4,5]);
@@ -57,6 +60,44 @@ try{
  assert.equal(bodyDateConflict([body],{...body,id:'another'}),true);assert.equal(bodyDateConflict([body],body),false);assert.equal(bodyDateConflict([body],pressure),false);
  assert.equal(measurementScales([pressure],'pressure',false).right,null);assert.equal(measurementScales([body],'body',false).right,null);
  {const old=React.useState;let slot=0;const slots=[null,true];React.useState=()=>{const i=slot++;return [slots[i],v=>slots[i]=typeof v==='function'?v(slots[i]):v];};const walk=(n,out=[])=>{if(Array.isArray(n))n.forEach(v=>walk(v,out));else if(n?.props){out.push(n);walk(n.props.children,out);}return out;};try{for(const type of ['pressure','body']){slots[1]=true;const render=()=>{slot=0;return Chart({type,records:[type==='pressure'?pressure:{...body,data:{...body.data,fat:20}}]});};let tree=render();const count=walk(tree).filter(n=>n.type==='circle').length;walk(tree).find(n=>n.type==='button').props.onClick({stopPropagation(){}});tree=render();assert.equal(slots[1],false);assert.equal(walk(tree).filter(n=>n.type==='circle').length,count-1);assert.ok(!walk(tree).some(n=>n.type==='text'&&n.props.fill==='#f69cbc'));walk(tree).find(n=>n.type==='button').props.onClick({stopPropagation(){}});assert.equal(walk(render()).filter(n=>n.type==='circle').length,count);}}finally{React.useState=old;}}
+ // Full history keeps every available day and the secondary-axis toggle is independent.
+ {const old=React.useState;let slot=0;const slots=[null,true];React.useState=initial=>{const i=slot++;if(slots[i]===undefined)slots[i]=initial;return [slots[i],v=>slots[i]=typeof v==='function'?v(slots[i]):v];};
+ const walk=(n,out=[])=>{if(Array.isArray(n))n.forEach(v=>walk(v,out));else if(n?.props){out.push(n);walk(n.props.children,out);}return out;};
+ try{for(const type of ['pressure','body']){
+  slots[0]=null;slots[1]=true;let full=false;const sample=type==='pressure'?pressure:{...body,data:{weight:136,fat:22}};
+  const all=Array.from({length:15},(_,i)=>({...sample,id:'history-'+i,date:`2026-01-${String(15-i).padStart(2,'0')}`,data:{...sample.data,notes:i===14?'Comentário importante':i===13?'   ':''}}));
+  const original=JSON.stringify(all),render=()=>{slot=0;return Chart({type,records:all,fullHistory:full,onHistoryChange:v=>full=v});};
+  let tree=render(),nodes=walk(tree),seriesCount=type==='pressure'?3:2;
+  assert.equal(nodes.filter(n=>n.type==='circle').length,12*seriesCount);
+  nodes.find(n=>n.props.className?.includes('well-history-toggle')).props.onClick({stopPropagation(){}});
+  assert.equal(full,true);tree=render();nodes=walk(tree);
+  assert.equal(nodes.filter(n=>n.type==='circle').length,15*seriesCount);
+  assert.equal(nodes.filter(n=>n.type==='circle'&&n.props.fill==='#e8bd5a').length,seriesCount,'Apenas entrada comentada é dourada');
+  assert.ok(nodes.filter(n=>n.type==='polyline').every(n=>n.props.stroke!=='#e8bd5a'),'Linhas conservam as cores');
+  const circles=nodes.filter(n=>n.type==='circle');assert.ok(circles[0].props.cx<circles[14].props.cx,'Primeira medição à esquerda');
+  assert.ok(nodes.some(n=>n.type==='text'&&n.props.children==='01/01/2026'));
+  nodes.find(n=>n.type==='button'&&!n.props.className.includes('well-history-toggle')).props.onClick({stopPropagation(){}});
+  tree=render();assert.equal(walk(tree).filter(n=>n.type==='circle').length,15*(seriesCount-1));
+  walk(tree).find(n=>n.type==='circle'&&n.props.fill==='#e8bd5a').props.onClick({stopPropagation(){}});
+  assert.ok(walk(render()).some(n=>n.props.className==='well-chart-comment small'&&n.props.children==='Comentário importante'));
+  walk(render()).find(n=>n.props.className?.includes('well-history-toggle')).props.onClick({stopPropagation(){}});
+  assert.equal(full,false);assert.equal(slots[1],false,'Ocultar escala permanece ao voltar ao padrão');assert.equal(JSON.stringify(all),original);
+ }
+ const averaged=dailyPressure([pressure,{...another,data:{...another.data,notes:'Observação'}}]);
+ assert.equal(averaged[0].hasNotes,true);assert.equal(dailyPressure([pressure,{...another,data:{...another.data,notes:'   '}}])[0].hasNotes,false);slot=0;slots[1]=true;
+ assert.equal(walk(Chart({type:'pressure',records:averaged,fullHistory:true})).filter(n=>n.type==='circle'&&n.props.fill==='#e8bd5a').length,3);
+ }finally{React.useState=old;}}
+ // Parent supplies daily pressure averages in both modes and expands both cards.
+ {const old=React.useState,ref=React.useRef,effect=React.useEffect;let cursor=0;const slots=[];
+ React.useState=initial=>{const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return [slots[i],v=>slots[i]=typeof v==='function'?v(slots[i]):v];};React.useRef=v=>({current:v});React.useEffect=()=>{};
+ const walk=(n,out=[])=>{if(Array.isArray(n))n.forEach(v=>walk(v,out));else if(n?.props){out.push(n);walk(n.props.children,out);}return out;};
+ const render=()=>{cursor=0;return View({remote:{user:{id:'test'},wellness:[pressure,another,body],cycle:[]}});};
+ try{let nodes=walk(render());let chart=nodes.find(n=>n.type===Chart&&n.props.type==='pressure');assert.equal(chart.props.records.length,1);chart.props.onHistoryChange(true);
+ nodes=walk(render());assert.ok(nodes.some(n=>n.props.className==='well-measurements well-measurements-expanded'));chart=nodes.find(n=>n.type===Chart&&n.props.type==='pressure');assert.equal(chart.props.records.length,1);assert.equal(chart.props.records[0].count,2);assert.equal(chart.props.records[0].data.systolic,125);chart.props.onSelect(chart.props.records[0]);
+ nodes=walk(render());nodes.find(n=>n.props.id==='well-pressure').props.children.at(-1).props.onClick();assert.equal(slots[2],null);assert.equal(slots[4],'pressure');assert.equal(slots[8],day,'Média selecionada permite consultar as medidas do dia sem expandir o gráfico');
+ nodes.find(n=>n.type===Chart&&n.props.type==='body').props.onHistoryChange(true);chart.props.onHistoryChange(false);assert.ok(walk(render()).some(n=>n.props.className==='well-measurements well-measurements-expanded'));
+ walk(render()).find(n=>n.type===Chart&&n.props.type==='body').props.onHistoryChange(false);assert.ok(walk(render()).some(n=>n.props.className==='well-measurements'));
+ }finally{React.useState=old;React.useRef=ref;React.useEffect=effect;}}
  const nav=require(path.join(root,'lib/nav')).NAV;assert.ok(nav.some(p=>p.id==='bemestar'));assert.ok(!nav.some(p=>p.id==='habitos'));
  console.log('PASSOU: validação de medidas e ciclo, datas, campos opcionais, histórico, painel e preservação do resumo de hábitos.');
 }finally{fs.rmSync(root,{recursive:true});}
