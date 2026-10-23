@@ -22,9 +22,10 @@ const {diffState,hasChanges}=require(path.join(temp,'lib/notionDiff'));
 process.env.NOTION_DIARY_DATABASE_ID='diary-test-db';
 process.env.NOTION_INBOX_DATABASE_ID='inbox-test-db';
 process.env.NOTION_FINANCE_CATEGORIES_DATABASE_ID='finance-categories-test';process.env.NOTION_FINANCE_TRANSACTIONS_DATABASE_ID='finance-transactions-test';
-const databases={someday:'someday-test',nutrition:"nutrition-test",vehicles:"vehicles-test",wellness:"wellness-test",cycle:"cycle-test",mediaSections:"media-sections-test",media:"media-test",habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
+const databases={reference:'reference-test',someday:'someday-test',nutrition:"nutrition-test",vehicles:"vehicles-test",wellness:"wellness-test",cycle:"cycle-test",mediaSections:"media-sections-test",media:"media-test",habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
 const sourceIds=Object.fromEntries(Object.keys(databases).map(k=>[k,randomUUID()]));
 const specs={
+ reference:{Nome:"title",Tipo:"rich_text",Dados:"rich_text",Anexos:"files"},
  someday:{Nome:"title",Tipo:"rich_text",Contexto:"select",Dados:"rich_text",Anexos:"files"},
  nutrition:{Nome:"title",Data:"date",Tipo:"rich_text",Dados:"rich_text"},
  vehicles:{Nome:"title",Data:"date",Tipo:"rich_text",Dados:"rich_text"},
@@ -107,7 +108,7 @@ global.fetch=async(url,options={})=>{
  const cookie=auth.sessionCookie({id:'google:test-pericles',email:'periclesbernardes@gmail.com',name:'Péricles'}).split(';')[0];
  const logged=new Request('https://lifeos.test/api/notion',{headers:{cookie}});auth.authorize(logged);
  assert.equal(auth.authenticated(new Request('https://lifeos.test/api',{headers:{cookie:cookie+'bad'}})),false);
- let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{someday:[],somedayConfigured:false,nutrition:[],nutritionConfigured:false,vehicles:[],vehiclesConfigured:false,wellness:[],cycle:[],wellnessConfigured:false,cycleConfigured:false,mediaSections:[],media:[],mediaConfigured:false,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false,habits:[],habitLogs:[],habitsConfigured:false});
+ let {state}=await notionLib.readSnapshot();assert.deepEqual(state,{reference:[],referenceConfigured:false,someday:[],somedayConfigured:false,nutrition:[],nutritionConfigured:false,vehicles:[],vehiclesConfigured:false,wellness:[],cycle:[],wellnessConfigured:false,cycleConfigured:false,mediaSections:[],media:[],mediaConfigured:false,projects:[],tasks:[],inbox:[],diary:[],diaryConfigured:true,categories:[],transactions:[],financeConfigured:true,contacts:[],contactsConfigured:false,shopping:[],shoppingConfigured:false,habits:[],habitLogs:[],habitsConfigured:false});
  const base=state;
  const file=new File(['arquivo de teste'],'ref.txt',{type:'text/plain'});
  const uploaded=await notionLib.uploadFile(file);
@@ -554,6 +555,31 @@ global.fetch=async(url,options={})=>{
   await save(inboxState,movedInbox.state);await save(inboxState,movedInbox.state);
   const fullyMoved=(await notionLib.readSnapshot(false,A)).state;assert.equal(fullyMoved.inbox.some(i=>i.id===inboxSource.id),false);const savedIdeas=fullyMoved.someday.filter(i=>i.data.uid===movedInbox.state.someday.at(-1).data.uid);assert.equal(savedIdeas.length,1);assert.equal(ideaText(savedIdeas[0].data.doc),'Primeiro parágrafo\n\nSegundo parágrafo');assert.equal((await notionLib.readSnapshot(false,B)).state.someday.some(i=>i.data.uid===savedIdeas[0].data.uid),false);
   delete process.env.NOTION_SOMEDAY_DATABASE_ID;
+ }
+ {
+  process.env.NOTION_REFERENCE_DATABASE_ID=databases.reference;
+  const {makeReferenceCategory,makeReferenceMaterial,validateReference}=require(path.join(temp,'lib/reference'));
+  const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
+  const A={id:'google:reference-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:reference-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+  const save=async(base,next,user=A)=>{const d=compactSyncState(base,next);return synchronize(d.base,d.next,user,async()=>{},true);};
+  let state=(await notionLib.readSnapshot(false,A)).state;
+  const category=makeReferenceCategory('Documentos'),material=makeReferenceMaterial(category);material.name='Manual de consulta';material.data.doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Texto importante',marks:[{type:'bold'}]}]},{type:'ideaImage',attrs:{attachmentId:'manual.png',alt:'Figura do manual'}},{type:'ideaBookmark',attrs:{id:'url',url:'https://example.com/manual',title:'Documentação',description:'Fonte',image:''}}]};
+  material.attachments=[{id:'ref-attach',name:'manual.png',uploadId:'upload-ref',uploadProof:auth.seal({user:A.id,uploadId:'upload-ref',exp:Date.now()+100000})}];
+  const desired={...state,reference:[category,material]},beforeCalls=calls.length;await save(state,desired);await save(state,desired);
+  assert.ok(calls.slice(beforeCalls).filter(c=>c.route.includes('/query')).every(c=>c.route.includes(sourceIds.reference)),'Alterar biblioteca não consulta outras coleções');
+  state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.referenceConfigured,true);assert.equal(state.reference.length,2);assert.ok(state.reference.every(r=>!validateReference(r)));
+  const loaded=state.reference.find(r=>r.type==='material'),cat=state.reference.find(r=>r.type==='category');assert.deepEqual(loaded.data.doc,material.data.doc);assert.equal(loaded.attachments[0].kind,'reference');assert.equal(loaded.data.category,cat.data.uid);assert.equal((await notionLib.readSnapshot(false,B)).state.reference.length,0);
+  const other=(await notionLib.readSnapshot(false,B)).state;await assert.rejects(()=>save({...other,reference:[cat,loaded]},{...other,reference:[cat,{...loaded,name:'Tentativa'}]},B),e=>e.status===403);
+  // Access is exercised by synchronize/ownedPage; the route also accepts the new kind.
+  await assert.rejects(()=>notionLib.ownedPage('reference',loaded.id,B),e=>e.status===403);
+  await assert.rejects(()=>save(state,{...state,reference:[...state.reference,makeReferenceCategory('documentos')]}),/Já existe uma categoria/);
+  await assert.rejects(()=>save(state,{...state,reference:[loaded]}),/categoria.*não existe/);
+  await assert.rejects(()=>save(state,{...state,reference:state.reference.map(r=>r.id===loaded.id?{...r,data:{...r.data,category:'missing'}}:r)}),/categoria.*não existe/);
+  const renamed={...state,reference:state.reference.map(r=>r.id===cat.id?{...r,name:'Casa'}:r)};await save(state,renamed);state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.reference.find(r=>r.type==='material').data.category,cat.data.uid);
+  const stale=state,updated={...state,reference:state.reference.map(r=>r.type==='material'?{...r,name:'Atualizado no outro navegador'}:r)};await save(state,updated);
+  await assert.rejects(()=>save(stale,{...stale,reference:stale.reference.map(r=>r.type==='material'?{...r,name:'Edição antiga'}:r)}),e=>e.status===409);
+  state=(await notionLib.readSnapshot(false,A)).state;await save(state,{...state,reference:state.reference.filter(r=>r.type!=='material')});assert.equal((await notionLib.readSnapshot(false,A)).state.reference.length,1);
+  delete process.env.NOTION_REFERENCE_DATABASE_ID;
  }
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão de projeto com tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');
  fs.rmSync(temp,{recursive:true});

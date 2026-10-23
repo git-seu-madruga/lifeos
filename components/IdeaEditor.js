@@ -11,7 +11,7 @@ import {prepareIdeaImage} from '../lib/ideaImages';
 const AttachmentContext=createContext([]);
 export const ideaFileUrl=file=>file?.pageId?'/api/notion/attachment?kind='+encodeURIComponent(file.kind||'someday')+'&id='+encodeURIComponent(file.pageId)+'&index='+file.index+'&name='+encodeURIComponent(file.name):file?.notion?.[file.notion.type]?.url||'';
 
-export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onError}){
+export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onError,label="Anotações da ideia"}){
  const latest=useRef({attachments,onChange,onImage,onBusy,onError});latest.current={attachments,onChange,onImage,onBusy,onError};
  const editorRef=useRef(null),alive=useRef(true),input=useRef(null),jobs=useRef(0),[revision,setRevision]=useState(0);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
@@ -56,7 +56,7 @@ export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onEr
    FileHandler.configure({allowedMimeTypes:['image/jpeg','image/png','image/webp','image/gif'],onPaste:(editor,files)=>applyFiles(editor,files),onDrop:(editor,files,pos)=>applyFiles(editor,files,pos)}),
   ],
   content:doc||emptyIdeaDoc(),
-  editorProps:{attributes:{class:'sd-prose',role:'textbox','aria-label':'Anotações da ideia','aria-multiline':'true'},handlePaste:(view,event)=>{
+  editorProps:{attributes:{class:'sd-prose',role:'textbox','aria-label':label,'aria-multiline':'true'},handlePaste:(view,event)=>{
    if(event.clipboardData?.files.length)return false;
    const text=event.clipboardData?.getData('text/plain').trim();if(text&&safeIdeaUrl(text)){event.preventDefault();if(!editorRef.current)return false;preview(editorRef.current,text);return true;}return false;
   }},

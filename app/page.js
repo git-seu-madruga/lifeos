@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from 'next/dynamic';
+const ReferenceView=dynamic(()=>import('../components/ReferenceView'));
 const SomedayView=dynamic(()=>import('../components/SomedayView'));
 const AreaManager=dynamic(()=>import('../components/AreaManager'));
 
@@ -101,7 +102,7 @@ export default function Home() {
   const [newTaskId, setNewTaskId] = useState(null);
 
 
-  const personalOnly = ["financas", "diario", "aniversarios", "bemestar", "entretenimento", "recados", "veiculos", "acompanhamento"].includes(tabId);
+  const personalOnly = ["referencia", "financas", "diario", "aniversarios", "bemestar", "entretenimento", "recados", "veiculos", "acompanhamento"].includes(tabId);
   const effectiveContext = personalOnly ? "personal" : context;
   const tab = NAV.find((t) => t.id === tabId);
   const subId = subs[tabId] || tab.subs[0].id;
@@ -312,6 +313,8 @@ export default function Home() {
           ) : (
             <p className="empty">Carregando…</p>
           )
+        ) : tabId === "referencia" ? (
+          <ReferenceView records={remote.reference||[]} setRecords={remote.setReference} configured={remote.referenceConfigured} onFlush={remote.flush}/>
         ) : tabId === "algumdia" ? (
           <SomedayView records={remote.someday||[]} setRecords={remote.setSomeday} configured={remote.somedayConfigured} context={context} onManageAreas={()=>setAreasOpen(true)} onPromote={remote.promoteSomeday} openRequest={somedayOpen} onOpenHandled={()=>setSomedayOpen(null)}/>
         ) : tabId === "diario" ? (

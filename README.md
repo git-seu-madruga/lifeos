@@ -1,5 +1,44 @@
 # LifeOS — Guia de configuração e uso
 
+## Busca por conteúdo no Diário
+
+O campo de busca pesquisa o texto das entradas de todas as datas conforme você digita, sem diferenciar acentos ou maiúsculas. Enquanto há uma consulta, o calendário e sua navegação dão lugar a cards compactos, com a data e um trecho ao redor da primeira ocorrência; as palavras encontradas ficam destacadas. Várias palavras exigem que todas estejam na entrada. Os resultados aparecem do mais recente ao mais antigo.
+
+Toque em um card para abrir a entrada em leitura bloqueada, como no calendário. Fechar a entrada ou usar Resultados da busca retorna aos cards com a consulta preservada. Limpar a busca restaura o calendário; abrir um resultado acompanha a data dele. A pesquisa usa os textos já carregados, sem consulta extra ao Notion e sem alterar entradas. Nomes/conteúdos de anexos não entram nesta busca de texto.
+
+Esta melhoria está no mesmo pacote cumulativo da Referência Geral; faça somente o deploy deste ZIP mais recente. A busca do Diário não exige banco ou variável adicional. A nova biblioteca continua exigindo a configuração NOTION_REFERENCE_DATABASE_ID descrita abaixo.
+
+
+## Referência Geral — biblioteca de consulta
+
+Nova aba com o visual aprovado: gavetas ilustradas para categorias próprias, materiais de consulta, favoritos à mão e editor amplo. A página não repete título ou subtítulo além do nome da aba selecionada. Categorias desta biblioteca são independentes das áreas de Projetos e Algum dia; renomear ou ocultar não altera essas outras abas.
+
+**Configuração desta versão:**
+
+1. Crie um banco de dados em tabela no Notion chamado **Referência Geral** e conecte a mesma integração do LifeOS.
+2. Configure estas propriedades (sem relações com outros bancos):
+
+| Propriedade | Tipo no Notion |
+| --- | --- |
+| Nome | Título |
+| Tipo | Texto |
+| Dados | Texto |
+| Anexos | Arquivos e mídia |
+
+3. Na Vercel, adicione **NOTION_REFERENCE_DATABASE_ID** com o ID desse banco. Somente se houver várias fontes de dados no banco, preencha também **NOTION_REFERENCE_DATA_SOURCE_ID**. Os campos técnicos LifeOS ID e LifeOS Usuário são criados pelo app para sincronização e privacidade; não os preencha manualmente.
+4. Publique o pacote cumulativo e recarregue o app. Em Referência Geral, use **Gerenciar categorias** para criar as gavetas, escolher ilustração/cor e, se desejar, acrescentar uma descrição. Os exemplos do mockup não são inseridos como dados reais.
+
+Cada conta tem sua própria biblioteca privada, no contexto Pessoal. Não há status de tarefa, prazos ou transformação em projeto/ideia. Para adicionar um material, escolha uma categoria ativa e dê um título. A categoria é obrigatória; um rascunho apenas aberto e fechado não cria registro. Ocultar uma categoria impede novas seleções e preserva os materiais já guardados; ela continua visível se contiver materiais. Renomear mantém os vínculos por identificador estável.
+
+A pesquisa procura títulos, texto, URLs dos links e nomes dos anexos em todas as categorias, sem diferenciar acentos ou maiúsculas. **Favoritos** restringe aos materiais marcados. **Mostrar todos** reúne a biblioteca; ao limpar a pesquisa, volta a gaveta previamente escolhida.
+
+O editor usa os mesmos recursos ricos de Algum dia: parágrafos, títulos, negrito/itálico, listas, imagens coladas/enviadas e prévias de URLs HTTPS. Use **Adicionar anexo** para PDFs, documentos e outros arquivos de consulta; limite de envio pelo app de 4 MB por arquivo e 100 anexos por material. Imagens inseridas no texto também ficam nos anexos. Excluir uma imagem/anexo remove sua referência do texto na mesma alteração. Links e miniaturas de sites permanecem referências externas; o backup não é uma cópia desses sites.
+
+As alterações significativas são salvas pelo fluxo automático existente. **Salvar material** aguarda o envio pendente ao Notion antes de voltar à biblioteca; falhas preservam a edição para retentativa. Rascunhos pendentes, hidratação de anexos/IDs, retorno ao foco e proteção de sessões QR seguem as regras existentes. O backup inclui o novo banco configurado, documentos ricos, categorias, proprietários e cópias dos anexos. Backups antigos sem esse banco não podem substituir automaticamente o conjunto atual de bancos, conforme a proteção já existente.
+
+Este pacote mantém todas as melhorias anteriores, incluindo datas padrão atualizadas, gráficos de pressão por médias diárias, pontos comentados dourados e correção do retorno/proporções. Não exige atualizar o APK de captura nem reimportar dados anteriores.
+
+
 Documento único da versão atual. Este README substitui os arquivos INSTRUCOES das entregas anteriores e deve ser atualizado nas próximas revisões, sem acumular orientações de versões antigas.
 
 ## Datas padrão após a virada do dia
@@ -151,7 +190,7 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 | Área | Acesso |
 | --- | --- |
-| Inbox, Diário, Hábitos e registros, Bem-estar (dia e medidas), Entretenimento | Privado de cada conta |
+| Inbox, Diário, Hábitos e registros, Bem-estar (dia e medidas), Entretenimento, Referência Geral | Privado de cada conta |
 | Projetos, Marcos e Tarefas | Privado por padrão; compartilhamento opcional entre as duas contas |
 | Acompanhamento (alimentação, rotina, metas, favoritos e receitas) | Privado por usuário |
 | Algum dia (ideias, referências e áreas de interesse) | Privado por usuário; contextos Pessoal e Trabalho |
@@ -162,7 +201,7 @@ Não envie node_modules, .next, arquivos com credenciais reais ou variáveis de 
 
 Contas autorizadas: **periclesbernardes@gmail.com** e **leticiacost3@gmail.com**. Os dados privados antigos sem proprietário pertencem à primeira conta.
 
-Pessoal/Trabalho é uma classificação, não separação de usuário. Projetos, Tarefas e Compras têm ambos os contextos. Diário, Finanças, Aniversários, Bem-estar (incluindo Hábitos), Entretenimento, Recados e Veículos usam Pessoal fixo, com Todos e Trabalho bloqueados.
+Pessoal/Trabalho é uma classificação, não separação de usuário. Projetos, Tarefas e Compras têm ambos os contextos. Diário, Finanças, Aniversários, Bem-estar (incluindo Hábitos), Entretenimento, Recados, Veículos e Referência Geral usam Pessoal fixo, com Todos e Trabalho bloqueados.
 
 A separação é aplicada pelo servidor do LifeOS. Quem tiver acesso direto aos bancos completos no Notion terá o acesso concedido pelo próprio Notion. Compras, Finanças e Aniversários mostram nome e horário da última edição feita pelo app; edições diretas no Notion não identificam a conta Google.
 

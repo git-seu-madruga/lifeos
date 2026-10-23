@@ -3,7 +3,7 @@ import {habitToday} from '../lib/habits';
 import {useDateRollover} from '../lib/useDateRollover';
 import LinkText, {TextLinks} from "./LinkText";
 import { useEffect, useRef, useState } from 'react';
-import { calendarDays, dateKey, hasDiaryText, updateDiaryEntry } from '../lib/diary';
+import { calendarDays, dateKey, hasDiaryText, updateDiaryEntry, searchDiaryEntries } from '../lib/diary';
 import { formatDateInput } from '../lib/dateInput';
 import {useBackLayer} from '../lib/useBackNavigation';
 import DateInput from './DateInput';
@@ -65,6 +65,10 @@ export default function DiaryView({entries=[],setEntries,configured,openRequest,
   const [selected,setSelected]=useState(null);
   useBackLayer(!!selected,()=>{setSelected(null);setEditingRequest(null);},10);
   const [editingRequest,setEditingRequest]=useState(null);
+  const [query,setQuery]=useState('');
+  const searching=!!query.trim();
+  const clearSearch=()=>{setQuery('');setSelected(null);setEditingRequest(null);};
+  useBackLayer(searching&&!selected,clearSearch,9);
   const [setView]=useDateRollover(view,updateView,{blocked:()=>!!selected});
   useEffect(()=>{
     if(!openRequest)return;
@@ -73,12 +77,15 @@ export default function DiaryView({entries=[],setEntries,configured,openRequest,
   },[openRequest]);
   const year=Number(view.slice(0,4)),month=Number(view.slice(5,7))-1;
   const days=calendarDays(year,month);
+  const results=searching?searchDiaryEntries(entries,query):[];
   const entryByDate=new Map(entries.map(entry=>[entry.date,entry]));
   function navigate(value,openEntry=false){if(!value)return;setView(value);setSelected(openEntry?value:null);setEditingRequest(null);}
   function shift(months){const date=new Date(year,month+months,1,12);if(date.getFullYear()<1000||date.getFullYear()>9999)return;navigate(dateKey(date));}
   function update(entry){setEntries(previous=>updateDiaryEntry(previous,entry));}
   if(!configured)return <section className="diary-setup"><h2>Configure o Diário no Notion</h2><p>Crie o banco Diário com Nome (Título), Data (Data), Conteúdo (Texto) e Anexos (Arquivos e mídia).</p><p>Na Vercel, adicione <code>NOTION_DIARY_DATABASE_ID</code> com o ID desse banco e faça um novo deploy.</p></section>;
   return <div className="diary-view">
+    <div className="diary-search"><input type="search" className="search" aria-label="Buscar no conteúdo do Diário" placeholder="Buscar no conteúdo de todas as datas…" value={query} maxLength={200} onChange={e=>{setQuery(e.target.value);setSelected(null);setEditingRequest(null);}}/>{searching&&<button type="button" className="ghost" onClick={clearSearch}>Limpar busca</button>}</div>
+    {searching?<>{selected?<button type="button" className="ghost diary-search-back" onClick={()=>{setSelected(null);setEditingRequest(null);}}>← Resultados da busca</button>:<><p className="diary-search-count muted small" role="status">{results.length} {results.length===1?'entrada encontrada':'entradas encontradas'} em todas as datas</p><div className="diary-search-results">{results.map(({entry,parts})=><button type="button" className="diary-search-card" key={entry.id} aria-label={'Abrir Diário de '+formatDateInput(entry.date)} onClick={()=>navigate(entry.date,true)}><time dateTime={entry.date}>{formatDateInput(entry.date)}</time><p>{parts.map((part,index)=>part.match?<mark key={index}>{part.text}</mark>:<span key={index}>{part.text}</span>)}</p></button>)}</div>{!results.length&&<p className="diary-search-empty muted">Nenhuma entrada contém o texto pesquisado.</p>}</>}</>:<>
     <div className="diary-controls">
       <div className="diary-nav-buttons"><button className="ghost" onClick={()=>shift(-12)} aria-label="Ano anterior">« Ano</button><button className="ghost" onClick={()=>shift(-1)} aria-label="Mês anterior">‹ Mês</button></div>
       <h2 aria-live="polite">{new Date(year,month,1,12).toLocaleDateString('pt-BR',{month:'long',year:'numeric'})}</h2>
@@ -89,6 +96,7 @@ export default function DiaryView({entries=[],setEntries,configured,openRequest,
       {['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'].map(day=><div key={day} className="diary-weekday">{day}</div>)}
       {days.map(day=><button key={day.date} className={`diary-day${day.outside?' outside':''}${day.date===today?' today':''}${day.date===selected?' selected':''}`} aria-current={day.date===today?'date':undefined} aria-pressed={day.date===selected} aria-label={`${formatDateInput(day.date)}${day.date===today?', hoje':''}${hasDiaryText(entryByDate.get(day.date))?', com entrada':''}`} onClick={()=>{setEditingRequest(null);setSelected(day.date);if(day.outside)setView(day.date);}}><span>{day.day}</span>{hasDiaryText(entryByDate.get(day.date))&&<span className="diary-dot" aria-hidden="true">●</span>}</button>)}
     </div>
+    </>}
     {selected&&<DiaryEntry key={`${selected}:${editingRequest?.token || "read"}`} initialEditing={editingRequest?.date===selected} date={selected} entry={entryByDate.get(selected)} onChange={update} onClose={()=>{setSelected(null);setEditingRequest(null);}}/>}
   </div>;
 }
