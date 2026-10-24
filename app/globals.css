@@ -815,3 +815,18 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 
 /* Bancos pendentes não renderizam formulários vazios durante a abertura. */
 .tab-loading{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:230px;padding:30px;text-align:center;color:var(--muted)}.tab-loading p{margin:0;color:var(--text);font-size:15px}.tab-loading small{font-size:12px}.tab-loading-indicator{font-size:32px;color:var(--blue)}.inbox-loading{padding:25px 18px;color:var(--muted);font-size:13px}.inbox-loading strong{font-size:16px;color:var(--text)}.inbox-loading p{line-height:1.6}.tabs-row [aria-busy=true]{opacity:.6}.tabs-row [aria-busy=true][aria-current=page]{opacity:1}
+
+/* O cadeado permanece ativo fora dos campos desabilitados da tarefa. */
+.task-panel-actions{display:flex;align-items:center;gap:7px;flex:none}.task-panel-actions .task-edit-lock{color:var(--blue);display:grid;place-items:center;padding:7px;min-width:36px;min-height:36px;border-color:transparent}.task-edit-lock[aria-pressed=true]{background:var(--blue-bg);border-color:var(--blue)}.task-edit-lock:focus-visible{outline:2px solid var(--blue);outline-offset:2px}.task-edit-fields{border:0;padding:0;margin:0;min-width:0}.task-edit-fields:disabled input,.task-edit-fields:disabled select,.task-edit-fields:disabled textarea{opacity:.75;cursor:default}.task-lock-notice{font-size:12px;color:var(--blue);margin:10px 0 18px}.panel-title[readonly]{cursor:text}
+
+@media(pointer:coarse){.task-panel-actions .task-edit-lock{min-width:44px;min-height:44px}}
+
+/* Inbox: no controls until an image has been pasted. */
+.inbox-images{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+.inbox-image{position:relative;max-width:100%}
+.inbox-image-thumb{display:block;padding:0;overflow:hidden;border-radius:8px}
+.inbox-image-thumb img{display:block;width:108px;height:80px;object-fit:cover}
+.inbox-image-remove{position:absolute;right:0;top:0;min-width:28px;min-height:28px;padding:2px;background:var(--panel,#152032);border-radius:50%}
+.inbox-image-full{width:min(1100px,96vw);max-width:96vw}
+.inbox-image-full .panel-head{justify-content:flex-end}
+.inbox-image-full>img{display:block;max-width:100%;max-height:80dvh;object-fit:contain;margin:auto}

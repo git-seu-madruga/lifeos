@@ -123,8 +123,8 @@ export default function Home() {
   const newTask = tasks && tasks.find((t) => t.id === newTaskId);
   const updateNewTask = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch) : t)));
 
-  const addInbox = (text) => setInbox((prev) => [{ id: uid("i"), text, createdAt:Date.now() }, ...prev]);
-  const updateInbox = (id, text) => setInbox((prev) => prev.map((i) => (i.id === id ? { ...i, text } : i)));
+  const addInbox = (text, attachments = []) => setInbox((prev) => [{ id: uid("i"), text, attachments, createdAt:Date.now() }, ...prev]);
+  const updateInbox = (id, text, attachments) => setInbox((prev) => prev.map((i) => (i.id === id ? { ...i, text, ...(attachments ? {attachments} : {}) } : i)));
   const deleteInbox = (id) => setInbox((prev) => prev.filter((i) => i.id !== id));
 
   // Cria o item na seção atual e tira a entrada do inbox.
@@ -133,6 +133,7 @@ export default function Home() {
   const [somedayInbox,setSomedayInbox]=useState(null),[somedayInboxArea,setSomedayInboxArea]=useState('');
   useEffect(()=>{setSelected(null);setAreasOpen(false);setShoppingSelected(null);setShoppingCreating(false);setShoppingInbox(null);setContactOpen(null);setDiaryOpen(null);setNewTaskId(null);setRecadoInbox(null);setSomedayOpen(null);setSomedayInbox(null);setSomedayInboxArea('');},[remote.user?.id,remote.user?.sessionId]);
   function convertInbox(item, kind) {
+    if((inbox.find(entry=>entry.id===item.id)||item).attachments?.length)return false;
     if(remote.isTabReady&&!remote.isTabReady(tabId)){remote.prioritizeTab(tabId);window.alert('Esta aba ainda está carregando. Aguarde para transformar a entrada. O texto continua no Inbox.');return false;}
     if(kind==="someday"){
       if(!remote.somedayConfigured){window.alert('Configure o banco Algum dia no Notion. O texto continua no Inbox.');return false;}
@@ -309,13 +310,13 @@ export default function Home() {
 
         {!tabLoaded ? <section className="tab-loading" role="status" aria-label={'Carregamento de '+tab.label}><span className="tab-loading-indicator" aria-hidden="true">◌</span><p>{remote.startupErrors?.[startupGroupForTab(tabId)]||'Carregando '+tab.label+'…'}</p><small className="muted">{remote.inboxReady?'O Inbox já está disponível.':'O Inbox será liberado primeiro.'}</small>{remote.startupErrors?.[startupGroupForTab(tabId)]&&<button type="button" className="ghost" onClick={()=>remote.startupBlocked?refresh():remote.retryStartup(startupGroupForTab(tabId))}>{remote.startupBlocked?'Atualizar dados':'Tentar novamente'}</button>}</section> : tabId === "tarefas" ? (
           tasks && projects ? (
-            <TasksView user={remote.user} tasks={tasks} setTasks={setTasks} projects={projects} context={context} sub={subId} onOpenProject={openProject} />
+            <TasksView onLockState={remote.receiveTaskLock} user={remote.user} tasks={tasks} setTasks={setTasks} projects={projects} context={context} sub={subId} onOpenProject={openProject} />
           ) : (
             <p className="empty">Carregando…</p>
           )
         ) : tabId === "projetos" ? (
           tasks && projects ? (
-            <ProjectsView user={remote.user} tasks={tasks} setTasks={setTasks} projects={projects} setProjects={setProjects} areas={(remote.someday||[]).filter(r=>r.type==='area')} areasConfigured={remote.somedayConfigured} onManageAreas={()=>setAreasOpen(true)} context={context} sub={subId} selected={selected} onSelect={setSelected} />
+            <ProjectsView onLockState={remote.receiveTaskLock} user={remote.user} tasks={tasks} setTasks={setTasks} projects={projects} setProjects={setProjects} areas={(remote.someday||[]).filter(r=>r.type==='area')} areasConfigured={remote.somedayConfigured} onManageAreas={()=>setAreasOpen(true)} context={context} sub={subId} selected={selected} onSelect={setSelected} />
           ) : (
             <p className="empty">Carregando…</p>
           )
@@ -350,7 +351,7 @@ export default function Home() {
     <ModalLayer open={areasOpen} onClose={()=>setAreasOpen(false)}>{areasOpen&&<div className="overlay sd-area-layer" onClick={()=>setAreasOpen(false)}><div onClick={e=>e.stopPropagation()}><AreaManager areas={(remote.someday||[]).filter(r=>r.type==='area')} onSave={remote.saveArea} onClose={()=>setAreasOpen(false)}/></div></div>}</ModalLayer>
     <ModalLayer open={!!somedayInbox} onClose={()=>setSomedayInbox(null)}>{somedayInbox&&<div className="overlay"><section className="panel finance-modal sd-pick-area" role="dialog" aria-modal="true" aria-label="Área da ideia do Inbox"><h2>Em qual área guardar a ideia?</h2><p className="muted">A primeira linha será o título e as demais serão o conteúdo. Escolha a área para concluir a transformação.</p><label>Área<select className="search" required value={somedayInboxArea} onChange={e=>setSomedayInboxArea(e.target.value)}><option value="" disabled>Selecione uma área</option>{(remote.someday||[]).filter(r=>r.type==='area'&&!r.data.archived).map(a=><option key={a.id} value={a.data.uid}>{a.name}</option>)}</select></label><div className="finance-period"><button type="button" className="primary" disabled={!somedayInboxArea} onClick={confirmSomedayInbox}>Transformar em ideia</button><button type="button" className="ghost" onClick={()=>setAreasOpen(true)}>Gerenciar áreas</button><button type="button" className="ghost" onClick={()=>setSomedayInbox(null)}>Cancelar</button></div></section></div>}</ModalLayer>
     <ModalLayer open={!!shoppingInbox} onClose={()=>setShoppingInbox(null)}>{shoppingInbox&&<div className="overlay overlay-context"><div className="panel finance-modal" role="dialog" aria-modal="true" aria-label="Contexto da lista de compras"><h2>Contexto da lista</h2><p className="muted">Escolha onde criar a lista ou acrescentar os itens à lista de mesmo nome.</p><label>Contexto<select className="search" value={shoppingContext} onChange={e=>setShoppingContext(e.target.value)}><option value="personal">Pessoal</option><option value="work">Trabalho</option></select></label><div className="finance-period"><button className="primary" onClick={()=>moveShoppingInbox(shoppingInbox,shoppingContext)}>Mover para lista</button><button className="ghost" onClick={()=>setShoppingInbox(null)}>Cancelar</button></div></div></div>}</ModalLayer>
-    <ModalLayer open={!!newTask&&!!projects} onClose={()=>setNewTaskId(null)}>{newTask && projects && <TaskDetail user={remote.user} key={newTask.id} task={newTask} projects={projects} update={updateNewTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setNewTaskId(null)} />}</ModalLayer>
+    <ModalLayer open={!!newTask&&!!projects} onClose={()=>setNewTaskId(null)}>{newTask && projects && <TaskDetail onLockState={remote.receiveTaskLock} user={remote.user} key={newTask.id} task={newTask} projects={projects} update={updateNewTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setNewTaskId(null)} />}</ModalLayer>
     </div></>
   );
 }

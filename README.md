@@ -1,5 +1,16 @@
 # LifeOS — Guia de configuração e uso
 
+## Cadeado de edição das tarefas
+
+Uma tarefa aberta mostra um **cadeado azul ao lado de Fechar**, aberto por padrão. Toque para fechá-lo e bloquear título, status, datas, prioridade, contexto, projeto/marco, compartilhamento/responsável, anotações e alterações dos anexos. Fechar o painel, ler o conteúdo, abrir links e consultar/baixar os anexos continuam disponíveis. Para editar ou excluir a tarefa, abra o cadeado novamente.
+
+O estado é persistido na própria tarefa. **Qualquer um dos dois usuários pode bloquear ou desbloquear uma tarefa compartilhada, independente de quem é o responsável.** A alteração passa pelo salvamento normal e vale para os dois. No outro navegador, a tarefa aberta verifica somente seu cadeado ao abrir, retornar ao foco e a cada 10 segundos enquanto visível; não consulta todos os bancos nem faz consultas novas enquanto oculto. As listas também recebem o estado nas atualizações normais. O servidor verifica o cadeado antes de gravar, protegendo inclusive contra alterações vindas de uma sessão ainda desatualizada.
+
+O bloqueio se aplica também à conclusão rápida nas listas e à movimentação no quadro do projeto. Se concluir/cancelar, excluir, mudar o compartilhamento/contexto de um projeto ou excluir um marco afetaria tarefas bloqueadas, desbloqueie as tarefas envolvidas antes; para excluir, aguarde o salvamento do desbloqueio. A operação é interrompida antes de alterações parciais. O cadeado não muda a privacidade ou o responsável da tarefa e não impede outra pessoa autorizada de desbloqueá-la.
+
+**Notion:** o app cria automaticamente a propriedade **Edição bloqueada** (Checkbox) no banco Tarefas existente. Tarefas anteriores continuam abertas por padrão, sem regravação em massa. Não é preciso novo banco, variável ou APK para o cadeado. O backup/restauração inclui essa propriedade. Publique o pacote cumulativo e recarregue as instâncias do app; mantenha as configurações anteriores, incluindo Referência Geral se ainda estiver pendente.
+
+
 ## Abertura gradual — Inbox primeiro
 
 Após validar o login, o app abre a interface e lê o **Inbox primeiro**. As outras abas são liberadas em seguida, respeitando a ordem salva naquele navegador. Clicar em uma aba pendente dá prioridade a ela depois da leitura em andamento; o Inbox continua sendo o primeiro. Reorganizar abas também muda a sequência das próximas leituras.
@@ -256,6 +267,10 @@ As datas usam **DD/MM/AAAA**, com barras automáticas e calendário alternativo.
 
 ### Inbox
 
+O mesmo campo aceita colar imagens binárias (Ctrl+V/copiar e colar), na nova entrada ou em uma já aberta, junto de texto simples. Não há editor rico, botão de arquivo ou aviso fixo. PNG/JPG/WebP/GIF, até 4 MB por imagem. A miniatura abre a imagem completa; × remove a imagem. Pode adicionar uma entrada só com imagem. Enquanto houver imagens, Transformar fica desabilitado para todos os destinos; remover todas libera novamente. Imagens permanecem no Notion até remover/excluir a entrada, sujeito à lixeira e retenção do serviço, sem promessa de apagamento físico imediato.
+
+O campo **Anexos** (Arquivos e mídia) do banco Inbox será criado automaticamente. **Nome** e **Conteúdo** continuam iguais, sem texto especial ou alteração de formato. Não exige variável, novo banco ou APK. O APK de captura continua recebendo somente texto. Rascunhos pendentes das imagens adicionadas são cifrados nas sessões permanentes e retomáveis após falha; sessões QR não persistem rascunhos privados.
+
 No desktop, fica à esquerda; no celular, pode ser aberto/recolhido. O campo cresce com o texto. No celular, Enter cria uma nova linha e o botão Adicionar confirma. No desktop, use Shift+Enter para quebra de linha.
 
 | Destino | Texto da entrada |
@@ -413,6 +428,7 @@ Use o ID do banco de dados antes de ?v=; o valor v é a visualização. Textos d
 | --- | --- | --- |
 | Nome | Título |  |
 | Conteúdo | Texto |  |
+| Anexos | Arquivos e mídia | Criado automaticamente para imagens coladas |
 
 ### Diário
 
