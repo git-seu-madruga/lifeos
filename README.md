@@ -1,5 +1,28 @@
 # LifeOS — Guia de configuração e uso
 
+## Abertura gradual — Inbox primeiro
+
+Após validar o login, o app abre a interface e lê o **Inbox primeiro**. As outras abas são liberadas em seguida, respeitando a ordem salva naquele navegador. Clicar em uma aba pendente dá prioridade a ela depois da leitura em andamento; o Inbox continua sendo o primeiro. Reorganizar abas também muda a sequência das próximas leituras.
+
+Cada área mostra Carregando até terminar a primeira leitura e só então libera seus formulários e conversões do Inbox. Os bancos relacionados são carregados juntos para evitar vínculos incompletos:
+
+| Área | Bancos carregados juntos |
+| --- | --- |
+| Projetos, Tarefas e Algum dia | Projetos, Marcos, Tarefas e Algum dia (inclui o catálogo de áreas) |
+| Finanças | Categorias financeiras e lançamentos |
+| Bem-estar | Medições, Ciclo da Letícia, Hábitos e Registros de hábitos |
+| Entretenimento | Seções e conteúdos |
+| Demais áreas | O banco específico da aba |
+
+Recados mantém sua leitura própria ao abrir e o aviso de novas mensagens é habilitado quando chega sua vez na sequência. Áreas já carregadas podem ser usadas e salvas enquanto as outras estão sendo lidas. Carregar uma nova área não substitui as edições nem a base de sincronização das que já estão disponíveis. Dados pendentes não são interpretados como bancos vazios para gravação/exclusão; os setters e o envio também verificam se a área foi lida.
+
+Se um grupo falhar, ele exibe Tentar novamente, enquanto as demais áreas continuam carregando. A fila pausa quando o app fica oculto, a sessão QR bloqueia ou há manutenção; retoma ao retornar/desbloquear ou terminar a manutenção. Respostas de sessões encerradas são ignoradas. Se uma restauração trocar os bancos durante a abertura, o app bloqueia a mistura de versões e preserva edições para o fluxo existente de Atualizar.
+
+**Rascunhos pendentes anteriores:** quando há alterações não enviadas de uma sessão anterior, essa abertura usa a leitura completa e a recuperação já existente, antes de liberar as áreas. É uma exceção intencional para preservar o texto e a verificação de conflitos. Sessões temporárias continuam sem persistência de dados privados no dispositivo.
+
+O botão Atualizar mantém a atualização completa com proteção das edições. O ganho desta mudança é disponibilizar o Inbox e as primeiras áreas mais cedo; o tempo total depende do volume de dados e do Notion. Não adiciona banco, variável ou atualização de APK. Este pacote cumulativo inclui Referência Geral, busca no Diário e todas as melhorias anteriores; mantenha a configuração do banco de Referência Geral indicada abaixo se ainda não a fez.
+
+
 ## Busca por conteúdo no Diário
 
 O campo de busca pesquisa o texto das entradas de todas as datas conforme você digita, sem diferenciar acentos ou maiúsculas. Enquanto há uma consulta, o calendário e sua navegação dão lugar a cards compactos, com a data e um trecho ao redor da primeira ocorrência; as palavras encontradas ficam destacadas. Várias palavras exigem que todas estejam na entrada. Os resultados aparecem do mais recente ao mais antigo.

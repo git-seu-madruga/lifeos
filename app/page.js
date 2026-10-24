@@ -5,6 +5,7 @@ const ReferenceView=dynamic(()=>import('../components/ReferenceView'));
 const SomedayView=dynamic(()=>import('../components/SomedayView'));
 const AreaManager=dynamic(()=>import('../components/AreaManager'));
 
+import {startupGroupForTab} from '../lib/startup';
 import { patchTask } from "../lib/tasks";
 
 
@@ -85,9 +86,11 @@ export default function Home() {
   useBackLayer(backupOpen,()=>setBackupOpen(false),10);
   const [selected, setSelected] = useState(null);
   const [areasOpen,setAreasOpen]=useState(false);
-  const remote = useNotionState();
+  const remote = useNotionState({progressive:true,tabOrder});
+  const tabLoaded=remote.isTabReady?remote.isTabReady(tabId):true;
+  useEffect(()=>{remote.prioritizeTab?.(tabId);},[tabId,remote.prioritizeTab]);
   useAppBackNavigation(remote.authenticated === true,remote.ready);
-  const recadoNotice=useRecadoNotification(remote.user,remote.authenticated===true&&remote.ready);
+  const recadoNotice=useRecadoNotification(remote.user,remote.authenticated===true&&remote.ready&&(!remote.isTabReady||remote.isTabReady('recados')));
   const [recadoTodayRequest,setRecadoTodayRequest]=useState(0);
   const { tasks, projects, inbox, setInbox, setTasks, setProjects, ready, saving, refreshedAt } = remote;
   const birthdayToday=todayLocal();
@@ -128,7 +131,9 @@ export default function Home() {
   const [recadoInbox,setRecadoInbox]=useState(null);
   const [somedayOpen,setSomedayOpen]=useState(null);
   const [somedayInbox,setSomedayInbox]=useState(null),[somedayInboxArea,setSomedayInboxArea]=useState('');
+  useEffect(()=>{setSelected(null);setAreasOpen(false);setShoppingSelected(null);setShoppingCreating(false);setShoppingInbox(null);setContactOpen(null);setDiaryOpen(null);setNewTaskId(null);setRecadoInbox(null);setSomedayOpen(null);setSomedayInbox(null);setSomedayInboxArea('');},[remote.user?.id,remote.user?.sessionId]);
   function convertInbox(item, kind) {
+    if(remote.isTabReady&&!remote.isTabReady(tabId)){remote.prioritizeTab(tabId);window.alert('Esta aba ainda está carregando. Aguarde para transformar a entrada. O texto continua no Inbox.');return false;}
     if(kind==="someday"){
       if(!remote.somedayConfigured){window.alert('Configure o banco Algum dia no Notion. O texto continua no Inbox.');return false;}
       setSomedayInbox(item);setSomedayInboxArea('');return true;
@@ -218,7 +223,7 @@ export default function Home() {
   return (
     <>{remote.qrLocked&&<QrLock onUnlock={remote.unlockQr} onExit={remote.endQr}/>}<div className="shell app-viewport" data-app-viewport="">
       <div className="left-rail" inert={remote.maintenance}>
-      {ready && inbox && <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />}
+      {ready && remote.inboxReady===false?<div className="inbox-loading" role="status"><strong>Inbox</strong><p>{remote.startupErrors?.inbox||"Carregando suas entradas…"}</p>{remote.startupErrors?.inbox&&<button type="button" className="ghost" onClick={()=>remote.startupBlocked?refresh():remote.retryStartup('inbox')}>{remote.startupBlocked?'Atualizar dados':'Tentar novamente'}</button>}</div>:ready && inbox && <Inbox items={inbox} tabId={tabId} onAdd={addInbox} onUpdate={updateInbox} onDelete={deleteInbox} onConvert={convertInbox} />}
       </div>
     <div className="app">
       <header className="topbar">
@@ -271,6 +276,7 @@ export default function Home() {
               aria-pressed={touchReorder?reorderSource===t.id:undefined}
               aria-describedby={touchReorder?"tab-order-help":undefined}
               aria-current={t.id === tabId ? "page" : undefined}
+              aria-busy={remote.isTabReady?!remote.isTabReady(t.id):undefined}
               onClick={()=>pickTab(t.id)}
             >
               <TabIcon id={t.id} highlighted={t.id==='aniversarios'&&birthdayNotice}/><span className="tab-label" data-expanded={t.id===tabId||touchReorder} aria-hidden={!(t.id===tabId||touchReorder)}><span className="tab-label-content"><span className="tab-name">{t.label}</span>{['compras','financas','aniversarios','veiculos'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span></span>
@@ -284,7 +290,7 @@ export default function Home() {
       <main className="content" aria-label={tab.label} hidden={backupOpen||remote.maintenance}><PageActionsTarget.Provider value={pageActionsHost}>
         {remote.error && <p className="date-error" role="alert">{remote.error}</p>}
         {remote.error && <button className="ghost" onClick={() => remote.flush().catch(() => {})}>Tentar salvar novamente</button>}
-        <div className="page-status-row">{ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : "Salvo no Notion"}</p>}<div className="page-actions-host" ref={setPageActionsHost}/></div>
+        <div className="page-status-row">{ready && <p className="muted small" role="status">{saving ? "Salvando no Notion…" : remote.error || remote.pending ? "Alterações pendentes" : remote.initializing ? "Carregando demais áreas…" : Object.keys(remote.startupErrors||{}).length ? "Algumas áreas não carregaram" : "Salvo no Notion"}</p>}<div className="page-actions-host" ref={setPageActionsHost}/></div>
 
         {!saving&&['compras','aniversarios','financas','veiculos'].includes(tabId)&&(()=>{const keys=tabId==='veiculos'?['vehicles']:tabId==='compras'?['shopping']:tabId==='aniversarios'?['contacts']:['categories','transactions'];const latest=keys.map(key=>remote.sharedActivity?.[key]).filter(Boolean).sort((a,b)=>b.at.localeCompare(a.at))[0];return latest?<p className="muted small shared-editor">Última alteração no LifeOS por {latest.name} · {new Date(latest.at).toLocaleString('pt-BR',{timeZone:'America/Sao_Paulo'})}</p>:null;})()}
         {tab.subs.length > 1 && !["diario","financas","aniversarios","compras","bemestar","entretenimento","recados"].includes(tabId) && <div className="subtabs" role="tablist" aria-label={`Guias de ${tab.label}`}>
@@ -301,7 +307,7 @@ export default function Home() {
           ))}
         </div>}
 
-        {tabId === "tarefas" ? (
+        {!tabLoaded ? <section className="tab-loading" role="status" aria-label={'Carregamento de '+tab.label}><span className="tab-loading-indicator" aria-hidden="true">◌</span><p>{remote.startupErrors?.[startupGroupForTab(tabId)]||'Carregando '+tab.label+'…'}</p><small className="muted">{remote.inboxReady?'O Inbox já está disponível.':'O Inbox será liberado primeiro.'}</small>{remote.startupErrors?.[startupGroupForTab(tabId)]&&<button type="button" className="ghost" onClick={()=>remote.startupBlocked?refresh():remote.retryStartup(startupGroupForTab(tabId))}>{remote.startupBlocked?'Atualizar dados':'Tentar novamente'}</button>}</section> : tabId === "tarefas" ? (
           tasks && projects ? (
             <TasksView user={remote.user} tasks={tasks} setTasks={setTasks} projects={projects} context={context} sub={subId} onOpenProject={openProject} />
           ) : (

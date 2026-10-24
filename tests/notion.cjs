@@ -581,6 +581,13 @@ global.fetch=async(url,options={})=>{
   state=(await notionLib.readSnapshot(false,A)).state;await save(state,{...state,reference:state.reference.filter(r=>r.type!=='material')});assert.equal((await notionLib.readSnapshot(false,A)).state.reference.length,1);
   delete process.env.NOTION_REFERENCE_DATABASE_ID;
  }
+ {
+  const get=require(path.join(temp,'app/api/notion/route')).GET,start=calls.length;
+  const group=await get(new Request('https://lifeos.test/api/notion?group=inbox',{headers:{cookie}}));assert.equal(group.status,200);const value=await group.json();assert.equal(value._startupGroup,'inbox');assert.equal(value.projects.length,0);assert.ok(calls.slice(start).filter(c=>c.route.endsWith('/query')).every(c=>c.route.includes(sourceIds.inbox)),'Inbox inicial não consulta os bancos das abas');
+  assert.equal((await get(new Request('https://lifeos.test/api/notion?group=__proto__',{headers:{cookie}}))).status,400);
+  assert.equal((await get(new Request('https://lifeos.test/api/notion?group=desconhecido',{headers:{cookie}}))).status,400);
+  assert.equal((await get(new Request('https://lifeos.test/api/notion?group=inbox'))).status,401);
+ }
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão de projeto com tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');
  fs.rmSync(temp,{recursive:true});
 })().catch(error=>{console.error(error);process.exitCode=1;});

@@ -1,0 +1,10 @@
+const fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),swc=require('next/dist/build/swc');
+const dir=fs.mkdtempSync(path.join(process.cwd(),'.startup-test-'));
+try{const file=path.join(dir,'startup.js');fs.writeFileSync(file,swc.transformSync(fs.readFileSync('lib/startup.js','utf8'),{jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
+const {STARTUP_GROUPS,startupOrder,startupGroupForTab,emptyStartupState,mergeStartupGroup,advanceSyncBaseline}=require(file);
+assert.deepEqual(startupOrder(['referencia','diario','tarefas','algumdia','projetos']).slice(0,4),['inbox','reference','diary','planning']);assert.deepEqual(startupOrder(['referencia','diario'],'veiculos').slice(0,3),['inbox','vehicles','reference']);assert.equal(new Set(startupOrder()).size,Object.keys(STARTUP_GROUPS).length);assert.equal(startupGroupForTab('tarefas'),startupGroupForTab('projetos'));
+assert.ok(STARTUP_GROUPS.planning.kinds.includes('milestones'));assert.ok(STARTUP_GROUPS.planning.kinds.includes('someday'));assert.deepEqual(STARTUP_GROUPS.finance.kinds,['categories','transactions']);assert.ok(STARTUP_GROUPS.wellness.kinds.includes('habitLogs'));
+const base=emptyStartupState({id:'A'}),incoming={...base,inbox:[{id:'remote'}],diary:[{id:'not-yet-loaded'}],_routingVersion:'r1'},first=mergeStartupGroup(base,incoming,'inbox');assert.equal(first.inbox.length,1);assert.equal(first.diary.length,0);assert.equal(base.inbox.length,0);assert.throws(()=>mergeStartupGroup(base,{inbox:null},'inbox'),/incompleta/);
+const sent={...first,inbox:[{id:'new'}]},latest=mergeStartupGroup(first,{...incoming,diary:[{id:'loaded-later'}],diaryConfigured:true},'diary'),advanced=advanceSyncBaseline(latest,sent,{inbox:{upserts:[{}],deletions:[]},diary:{upserts:[],deletions:[]}});assert.equal(advanced.diary[0].id,'loaded-later');assert.equal(advanced.inbox[0].id,'new');assert.equal(latest.inbox[0].id,'remote');
+console.log('PASSOU: ordem por navegador, prioridade após Inbox, grupos relacionados, merge isolado e preservação de bancos carregados durante gravação.');
+}finally{fs.rmSync(dir,{recursive:true,force:true});}
