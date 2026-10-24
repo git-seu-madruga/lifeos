@@ -41,7 +41,7 @@ function Bar({ pct }) {
   return <div className="bar" role="progressbar" aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}><span style={{ width: `${pct}%` }} /></div>;
 }
 
-export default function ProjectsView({ user, tasks, setTasks, projects, setProjects, context, sub, selected, onSelect, areas=[], areasConfigured=false, onManageAreas }) {
+export default function ProjectsView({ user, tasks, setTasks, projects, setProjects, context, sub, selected, onSelect, areas=[], areasConfigured=false, onManageAreas, onLockState }) {
   const [openId, setOpenId] = useState(null);
   const [createdProjectId,setCreatedProjectId]=useState(null);
   useEffect(()=>()=>setProjects(previous=>previous.filter(project=>!project._untouchedDraft)),[setProjects]);
@@ -59,6 +59,8 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
   function updateProject(id, patch) {
     const current = projects.find(p => p.id === id);
     const next = { ...current, ...patch };
+    const protectedTask=tasks.find(t=>t.project===id&&t.locked&&(('shared' in patch&&patch.shared!==current.shared)||(['done','cancelled'].includes(patch.status)&&patch.status!==current.status&&t.status!=='done')));
+    if(protectedTask){setProjectError('Desbloqueie as tarefas afetadas antes de alterar o compartilhamento ou concluir/cancelar o projeto.');return;}
     if (next.due && next.milestones.some(m => m.due && m.due > next.due)) {
       setProjectError("Um marco ultrapassa o prazo final do projeto. Ajuste o marco antes de antecipar o prazo final.");
       return;
@@ -76,6 +78,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
     setProjects(prev => prev.map(p => p.id === id ? next : p));
   }
   function deleteProject() {
+    if(tasks.some(t=>t.project===project.id&&t.locked)){setProjectError("Desbloqueie as tarefas deste projeto e aguarde o salvamento antes de excluí-lo.");return;}
     const count = tasks.filter(t => t.project === project.id).length;
     if (!window.confirm(`Excluir “${project.name}”, seus marcos, anexos e todas as suas tarefas (${count} carregadas)? Tarefas concluídas também serão excluídas. Não dá para desfazer no app. Para preservar o histórico, use Cancelado ou Concluído.`)) return;
     setProjects(prev => prev.filter(p => p.id !== project.id));
@@ -93,6 +96,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
   }
 
   function setProjectContext(v) {
+    if(v!==project.context&&tasks.some(t=>t.project===project.id&&t.locked)){setProjectError("Desbloqueie as tarefas deste projeto antes de alterar o contexto.");return;}
     updateProject(project.id, { context: v });
     setTasks((prev) => prev.map((t) => (t.project === project.id ? { ...t, context: v } : t)));
   }
@@ -137,6 +141,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
 
   const setMs = (mid, patch) => updateProject(project.id, { milestones: project.milestones.map((m) => (m.id === mid ? { ...m, ...patch } : m)) });
   function delMs(mid) {
+    if(tasks.some(t=>t.milestone===mid&&t.locked)){setProjectError("Desbloqueie as tarefas deste marco antes de excluí-lo.");return;}
     updateProject(project.id, { milestones: project.milestones.filter((m) => m.id !== mid) });
     setTasks((prev) => prev.map((t) => (t.milestone === mid ? { ...t, milestone: null } : t)));
   }
@@ -153,7 +158,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
 
   const renderTask = (t) => (
     <li key={t.id} onClick={e=>{if(!e.target.closest('button,input,a,select'))setOpenId(t.id);}} className={"row" + (t.status === "done" ? " done" : "")}>
-      <input type="checkbox" className="check" checked={t.status === "done"} aria-label={`Concluir: ${t.title}`}
+      <input type="checkbox" className="check" checked={t.status === "done"} disabled={!!t.locked} aria-label={`Concluir: ${t.title}`}
         onChange={() => updateTask(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
       <button className="row-title" onClick={() => setOpenId(t.id)}>{t.title?.trim()||"Sem título"}</button>
       <span className="row-meta">
@@ -261,7 +266,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
       <ProjectAttachments key={project.id} items={project.attachments || []} onChange={(attachments) => updateProject(project.id, { attachments })} />
       <button className="danger" onClick={deleteProject}>Excluir projeto</button>
 
-      <ModalLayer open={!!openTask} onClose={()=>setOpenId(null)}>{openTask && <TaskDetail user={user} key={openTask.id} task={openTask} projects={projects} update={updateTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setOpenId(null)} />}</ModalLayer>
+      <ModalLayer open={!!openTask} onClose={()=>setOpenId(null)}>{openTask && <TaskDetail onLockState={onLockState} user={user} key={openTask.id} task={openTask} projects={projects} update={updateTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setOpenId(null)} />}</ModalLayer>
     </section>
   );
 }
