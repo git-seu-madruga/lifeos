@@ -41,7 +41,7 @@ function dateInfo(t) {
   return dueLabel(t.due);
 }
 
-export default function TasksView({ user, tasks, setTasks, projects, context, sub, onOpenProject }) {
+export default function TasksView({ user, tasks, setTasks, projects, context, sub, onOpenProject, onLockState }) {
   const [query, setQuery] = useState("");
   const [sort, setSort] = useState("due");
   const [quick, setQuick] = useState(null);
@@ -151,7 +151,7 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
                   const di = dateInfo(t);
                   return (
                     <li key={t.id} onClick={e=>{if(!e.target.closest('button,input,a,select'))setOpenId(t.id);}} className={"row" + (isClosed(t) ? " done" : "")}>
-                      <input type="checkbox" className="check" checked={t.status === "done"} aria-label={`Concluir: ${t.title}`}
+                      <input type="checkbox" className="check" checked={t.status === "done"} disabled={!!t.locked} aria-label={`Concluir: ${t.title}`}
                         onChange={() => update(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
                       <button className="row-title" onClick={() => setOpenId(t.id)}>
                         {t.title?.trim() || "Sem título"}
@@ -174,7 +174,7 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
         );
       })}
 
-      <ModalLayer open={!!current} onClose={closeTask}>{current && <TaskDetail user={user} key={current.id} newEntry={current.id===createdId} task={current} projects={projects} update={update} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={closeTask} />}</ModalLayer>
+      <ModalLayer open={!!current} onClose={closeTask}>{current && <TaskDetail onLockState={onLockState} user={user} key={current.id} newEntry={current.id===createdId} task={current} projects={projects} update={update} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={closeTask} />}</ModalLayer>
     </section>
   );
 }

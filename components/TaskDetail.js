@@ -1,4 +1,5 @@
 "use client";
+import {useTaskLock} from "../lib/useTaskLock";
 import SharingFields from "./SharingFields";
 import EntryTitle from "./EntryTitle";
 import LinkText, {TextLinks} from "./LinkText";
@@ -9,10 +10,11 @@ import { addDaysISO } from "../lib/dates";
 
 const STATUS = [["todo", "Não iniciada"], ["doing", "Em andamento"], ["hold", "On hold"], ["done", "Concluída"]];
 
-export default function TaskDetail({ user, task, projects, update, onDelete, onClose, newEntry=false }) {
+export default function TaskDetail({ user, task, projects, update, onDelete, onClose, onLockState, newEntry=false }) {
 
 
-  const set = (patch) => update(task.id, patch);
+  const locked=!!task.locked,lockError=useTaskLock(task,onLockState);
+  const set = (patch) => {if(!locked)update(task.id, patch);};
   const proj = projects.find((p) => p.id === task.project);
 
   function setStatus(s) {
@@ -25,10 +27,13 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
     <div className="overlay" onClick={onClose}>
       <aside className="panel" role="dialog" aria-modal="true" aria-label="Detalhes da tarefa" onClick={(e) => e.stopPropagation()}>
         <div className="panel-head">
-          <EntryTitle key={task.id} newEntry={newEntry} placeholder="Nova tarefa" className="panel-title" value={task.title} onChange={(e) => set({ title: e.target.value })} aria-label="Título" />
-          <button className="ghost" onClick={onClose}>Fechar</button>
+          <EntryTitle key={task.id} newEntry={newEntry} placeholder="Nova tarefa" className="panel-title" readOnly={locked} value={task.title} onChange={(e) => set({ title: e.target.value })} aria-label="Título" />
+          <div className="task-panel-actions"><button type="button" className="ghost task-edit-lock" aria-pressed={locked} aria-label={locked?'Desbloquear edição da tarefa':'Bloquear edição da tarefa'} title={locked?'Desbloquear edição':'Bloquear edição'} onClick={()=>update(task.id,{locked:!locked})}><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/>{locked?<path d="M8 10V6a4 4 0 0 1 8 0v4"/>:<path d="M8 10V6a4 4 0 0 1 8 0"/>}<path d="M12 15v2"/></svg></button><button className="ghost" onClick={onClose}>Fechar</button></div>
         </div>
 
+        {locked&&<p className="task-lock-notice" role="status">Edição bloqueada. Use o cadeado para desbloquear.</p>}
+        {lockError&&<p className="muted small" role="status">{lockError}</p>}
+        <fieldset className="task-edit-fields" disabled={locked}>
         <SharingFields item={task} user={user} onChange={set} locked={!!proj}/>
         <div className="field">
           <span className="label">Status</span>
@@ -100,17 +105,19 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
           )}
         </div>
 
-        <ProjectAttachments key={task.id} entity="tarefa" items={task.attachments || []} onChange={(attachments) => set({ attachments })} />
+        <ProjectAttachments key={task.id} entity="tarefa" readOnly={locked} items={task.attachments || []} onChange={(attachments) => set({ attachments })} />
 
         <div className="field">
           <span className="label">Anotações</span>
           <textarea className="search notes" rows={4} value={task.notes} placeholder="Texto livre (na versão real, o conteúdo da página)" onChange={(e) => set({ notes: e.target.value })} /><TextLinks text={task.notes}/>
         </div>
         <button className="danger" onClick={() => {
+          if (locked)return;
           if (!window.confirm("Excluir esta tarefa? Não dá para desfazer.")) return;
           onDelete(task.id);
           onClose();
         }}>Excluir tarefa</button>
+        </fieldset>
       </aside>
     </div>
   );

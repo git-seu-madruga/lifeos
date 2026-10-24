@@ -588,6 +588,42 @@ global.fetch=async(url,options={})=>{
   assert.equal((await get(new Request('https://lifeos.test/api/notion?group=desconhecido',{headers:{cookie}}))).status,400);
   assert.equal((await get(new Request('https://lifeos.test/api/notion?group=inbox'))).status,401);
  }
+ {
+  const A={id:'google:lock-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:lock-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+  const {compactSyncState,sameField}=require(path.join(temp,'lib/notionDiff'));assert.equal(sameField('locked',undefined,false),true);
+  const save=async(base,next,user=A)=>{const d=compactSyncState(base,next);return synchronize(d.base,d.next,user,async()=>{},true);};
+  let state=(await notionLib.readSnapshot(false,A)).state;const task={id:'shared-lock-test',title:'Original',status:'todo',priority:'medium',context:'personal',project:null,milestone:null,start:null,due:null,waitingOn:'',followUp:null,notes:'Conteúdo significativo',completedAt:null,attachments:[],shared:true,responsible:A.email,locked:false};
+  await save(state,{...state,tasks:[...state.tasks,task]});const stale=(await notionLib.readSnapshot(false,A)).state;
+  let b=(await notionLib.readSnapshot(false,B)).state,loaded=b.tasks.find(t=>t.title==='Original');await save(b,{...b,tasks:b.tasks.map(t=>t.id===loaded.id?{...t,locked:true}:t)},B);
+  state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.tasks.find(t=>t.id===loaded.id).locked,true,'Bloqueio por quem não é responsável chega ao dono');assert.equal(rows.get(loaded.id).properties['Edição bloqueada'].checkbox,true);
+  const writes=calls.filter(c=>c.route.startsWith('/pages')&&['POST','PATCH'].includes(c.method)).length;
+  await assert.rejects(()=>save(stale,{...stale,tasks:stale.tasks.map(t=>t.id===loaded.id?{...t,notes:'Edição desatualizada'}:t)}),/bloqueada para edição/);assert.equal(calls.filter(c=>c.route.startsWith('/pages')&&['POST','PATCH'].includes(c.method)).length,writes);
+  await assert.rejects(()=>save(state,{...state,tasks:state.tasks.filter(t=>t.id!==loaded.id)}),/Desbloqueie a tarefa/);
+  await save(state,{...state,tasks:state.tasks.map(t=>t.id===loaded.id?{...t,locked:false}:t)});b=(await notionLib.readSnapshot(false,B)).state;assert.equal(b.tasks.find(t=>t.id===loaded.id).locked,false);
+  const combined={...b,tasks:b.tasks.map(t=>t.id===loaded.id?{...t,title:'Salvo e bloqueado',locked:true}:t)};await save(b,combined,B);await save(b,combined,B);assert.equal((await notionLib.readSnapshot(false,A)).state.tasks.find(t=>t.id===loaded.id).title,'Salvo e bloqueado','Retentativa após salvar e bloquear é idempotente');
+  b=(await notionLib.readSnapshot(false,B)).state;await save(b,{...b,tasks:b.tasks.map(t=>t.id===loaded.id?{...t,locked:false}:t)},B);assert.equal((await notionLib.readSnapshot(false,A)).state.tasks.find(t=>t.id===loaded.id).locked,false,'Ambos também desbloqueiam');
+  state=(await notionLib.readSnapshot(false,A)).state;const privateTask={...task,id:'private-lock-test',title:'Particular',shared:false,responsible:'',locked:true};await save(state,{...state,tasks:[...state.tasks,privateTask]});state=(await notionLib.readSnapshot(false,A)).state;const privateId=state.tasks.find(t=>t.title==='Particular').id;
+  const get=require(path.join(temp,'app/api/notion/task-lock/route')).GET,cookieA=auth.sessionCookie(A).split(';')[0],cookieB=auth.sessionCookie(B).split(';')[0];const response=await get(new Request('https://lifeos.test/api/notion/task-lock?id='+privateId,{headers:{cookie:cookieA}}));assert.equal(response.status,200);assert.equal((await response.json()).locked,true);assert.equal((await get(new Request('https://lifeos.test/api/notion/task-lock?id='+privateId,{headers:{cookie:cookieB}}))).status,403);assert.equal((await get(new Request('https://lifeos.test/api/notion/task-lock?id='+privateId))).status,401);
+  const parent={id:'lock-parent',name:'Projeto protegido',status:'active',context:'personal',area:'',due:null,description:'',attachments:[],milestones:[],shared:true},child={...task,id:'lock-child',title:'Filha bloqueada',project:parent.id,locked:true};await save(state,{...state,projects:[...state.projects,parent],tasks:[...state.tasks,child]});state=(await notionLib.readSnapshot(false,A)).state;const project=state.projects.find(p=>p.name===parent.name);
+  await assert.rejects(()=>save(state,{...state,projects:state.projects.map(p=>p.id===project.id?{...p,status:'done'}:p)}),/Desbloqueie as tarefas/);await assert.rejects(()=>save(state,{...state,projects:state.projects.filter(p=>p.id!==project.id),tasks:state.tasks.filter(t=>t.project!==project.id)}),/Desbloqueie as tarefas/);
+ }
+
+ {
+  // Binary Inbox image: persistence, private download, conflicts, deletion and retries.
+  const A={id:'google:user-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:user-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+  const {compactSyncState}=require(path.join(temp,'lib/notionDiff'));
+  const save=async(base,next,user=A)=>{const delta=compactSyncState(base,next);return synchronize(delta.base,delta.next,user,async()=>{},true);};
+  let state=(await notionLib.readSnapshot(false,A)).state;assert.equal(sources.inbox.properties.Anexos.type,'files','Campo técnico criado automaticamente');
+  const name='inbox-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.png';const entry={id:'inbox-image-test',text:'',createdAt:Date.now(),attachments:[{id:'clip',name,uploadId:'clipboard-upload',uploadProof:auth.seal({user:A.id,uploadId:'clipboard-upload',exp:Date.now()+100000})}]};
+  const desired={...state,inbox:[...state.inbox,entry]};await save(state,desired);await save(state,desired);state=(await notionLib.readSnapshot(false,A)).state;
+  let loaded=state.inbox.find(i=>i.legacyId===entry.id);assert.ok(loaded);assert.equal(loaded.text,'');assert.equal(loaded.attachments[0].name,name);assert.equal(loaded.attachments[0].kind,'inbox');assert.equal(state.inbox.filter(i=>i.legacyId===entry.id).length,1);assert.equal((await notionLib.readSnapshot(false,B)).state.inbox.some(i=>i.id===loaded.id),false);
+  const get=require(path.join(temp,'app/api/notion/attachment/route')).GET;const url='https://lifeos.test/api/notion/attachment?kind=inbox&id='+loaded.id+'&index=0&name='+name;
+  const cookieA=auth.sessionCookie(A).split(';')[0],cookieB=auth.sessionCookie(B).split(';')[0];assert.equal((await get(new Request(url,{headers:{cookie:cookieA}}))).status,302);assert.equal((await get(new Request(url,{headers:{cookie:cookieB}}))).status,403);assert.equal((await get(new Request(url))).status,401);
+  await save(state,{...state,inbox:state.inbox.map(i=>i.id===loaded.id?{...i,text:'Texto simples **literal**'}:i)});state=(await notionLib.readSnapshot(false,A)).state;loaded=state.inbox.find(i=>i.id===loaded.id);assert.equal(loaded.attachments[0].name,name);assert.equal(loaded.text,'Texto simples **literal**');
+  const bad={...entry,id:'inbox-wrong-format',attachments:[{...entry.attachments[0],name:'document.pdf'}]};await assert.rejects(()=>save(state,{...state,inbox:[...state.inbox,bad]}),/Imagem do Inbox inválida/);
+  const changed=structuredClone(state);changed.inbox=changed.inbox.map(i=>i.id===loaded.id?{...i,attachments:[]}:i);const row=rows.get(loaded.id),original=structuredClone(row.properties.Anexos);row.properties.Anexos={type:'files',files:[{name:'inbox-bbbbbbbb.png',type:'external',external:{url:'https://files.notion.test/replacement.png'}}]};await assert.rejects(()=>save(state,changed),e=>e.status===409);row.properties.Anexos=original;
+  await save(state,{...state,inbox:state.inbox.filter(i=>i.id!==loaded.id)});state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.inbox.some(i=>i.id===loaded.id),false);assert.equal(rows.get(loaded.id).in_trash,true);assert.equal((await get(new Request(url,{headers:{cookie:cookieA}}))).status,404);
+ }
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão de projeto com tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');
  fs.rmSync(temp,{recursive:true});
 })().catch(error=>{console.error(error);process.exitCode=1;});
