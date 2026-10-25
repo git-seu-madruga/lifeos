@@ -17,8 +17,8 @@ import java.util.concurrent.ExecutorService;
 
 /** Lightweight native capture: typing never waits for a network request. */
 public class CaptureActivity extends Activity {
-    private Store store;private EditText text;private TextView status,account;private Button connect;private final Handler handler=new Handler(Looper.getMainLooper());private final ExecutorService network=Executors.newSingleThreadExecutor();private boolean visible,checking,saving;
-    private final Runnable saveDraft=()->{try{store.put("draft",text.getText().toString());}catch(Exception e){toast("Não foi possível guardar o rascunho. Mantenha a tela aberta.");}};
+    private Store store;private ClipboardEditText text;private TextView status,account;private Button connect;private final Handler handler=new Handler(Looper.getMainLooper());private final ExecutorService network=Executors.newSingleThreadExecutor();private boolean visible,checking,saving;
+    private final Runnable saveDraft=()->{try{store.putDraft(text.getText().toString(),text.imageJson());}catch(Exception e){toast("Não foi possível guardar o rascunho. Mantenha a tela aberta.");}};
     private final Runnable tick=new Runnable(){public void run(){if(!visible)return;refresh();checkPair();handler.postDelayed(this,2000);}};
     private int dp(int value){return (int)(getResources().getDisplayMetrics().density*value);}
     private GradientDrawable box(int color,int border){GradientDrawable d=new GradientDrawable();d.setColor(color);d.setCornerRadius(dp(14));if(border!=0)d.setStroke(dp(1),border);return d;}
@@ -34,9 +34,9 @@ public class CaptureActivity extends Activity {
         TextView brand=label("LifeOS · Captura",23,Color.parseColor("#58A6FF"));brand.setTypeface(null,Typeface.BOLD);add(body,brand,0);
         add(body,label("Inbox rápido",28,Color.WHITE),24);
         status=label("",13,Color.parseColor("#A8B8CE"));add(body,status,12);
-        text=new EditText(this);text.setTextColor(Color.WHITE);text.setHintTextColor(Color.parseColor("#91A2BA"));text.setTextSize(18);text.setHint("O que você quer guardar?\nUse Enter para novas linhas.");text.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE|android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);text.setGravity(Gravity.TOP|Gravity.START);text.setMinLines(5);text.setMaxLines(10);text.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10000)});text.setPadding(dp(16),dp(16),dp(16),dp(16));text.setBackground(box(Color.parseColor("#142033"),Color.parseColor("#58A6FF")));text.setImeOptions(android.view.inputmethod.EditorInfo.IME_FLAG_NO_ENTER_ACTION);
-        try{text.setText(store.get("draft"));text.setSelection(text.length());}catch(Exception e){toast("Falha ao abrir o rascunho. Não desinstale o aplicativo.");}
-        add(body,text,18);text.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){handler.removeCallbacks(saveDraft);handler.postDelayed(saveDraft,200);}public void afterTextChanged(Editable e){}});
+        text=new ClipboardEditText(this);text.setTextColor(Color.WHITE);text.setHintTextColor(Color.parseColor("#91A2BA"));text.setTextSize(18);text.setHint("O que você quer guardar?\nUse Enter para novas linhas.");text.setInputType(android.text.InputType.TYPE_CLASS_TEXT|android.text.InputType.TYPE_TEXT_FLAG_MULTI_LINE|android.text.InputType.TYPE_TEXT_FLAG_CAP_SENTENCES);text.setGravity(Gravity.TOP|Gravity.START);text.setMinLines(5);text.setMaxLines(10);text.setFilters(new InputFilter[]{new InputFilter.LengthFilter(10000)});text.setPadding(dp(16),dp(16),dp(16),dp(16));text.setBackground(box(Color.parseColor("#142033"),Color.parseColor("#58A6FF")));text.setImeOptions(android.view.inputmethod.EditorInfo.IME_FLAG_NO_ENTER_ACTION);
+        try{text.setText(store.get("draft"));text.restoreImage(store.draftImage());text.setSelection(text.length());}catch(Exception e){toast("Falha ao abrir o rascunho. Não desinstale o aplicativo.");}
+        add(body,text,18);text.attachPreview(body);text.onImageChanged(()->{handler.removeCallbacks(saveDraft);saveDraft.run();});text.addTextChangedListener(new TextWatcher(){public void beforeTextChanged(CharSequence s,int start,int count,int after){}public void onTextChanged(CharSequence s,int start,int before,int count){handler.removeCallbacks(saveDraft);handler.postDelayed(saveDraft,200);}public void afterTextChanged(Editable e){}});
         add(body,button("＋ Adicionar ao Inbox",true,this::capture),16);
         add(body,label("Guardado no aparelho antes do envio. Você pode sair após a confirmação local.",12,Color.parseColor("#91A2BA")),10);
         account=label("",12,Color.parseColor("#91A2BA"));add(body,account,24);
@@ -55,9 +55,9 @@ public class CaptureActivity extends Activity {
         text.requestFocus();if(getIntent().getBooleanExtra("quick",false))text.postDelayed(()->((InputMethodManager)getSystemService(INPUT_METHOD_SERVICE)).showSoftInput(text,InputMethodManager.SHOW_IMPLICIT),200);
     }
     private void capture(){
-        if(saving)return;String value=text.getText().toString();if(value.trim().isEmpty()){text.setError("Digite uma entrada.");return;}saving=true;
-        try{store.enqueue(value);}catch(Exception e){saving=false;toast(e.getMessage()==null?"Não foi possível guardar. Mantenha o texto nesta tela.":e.getMessage());return;}
-        handler.removeCallbacks(saveDraft);text.setText("");
+        if(saving)return;String value=text.getText().toString();if(value.trim().isEmpty()&&text.imageJson().isEmpty()){text.setError("Digite uma entrada.");return;}saving=true;
+        try{store.enqueue(value,text.imageJson());}catch(Exception e){saving=false;toast(e.getMessage()==null?"Não foi possível guardar. Mantenha o texto nesta tela.":e.getMessage());return;}
+        handler.removeCallbacks(saveDraft);text.clearImage();text.setText("");
         try{SyncWorker.schedule(this);}catch(Exception ignored){}
         CaptureWidget.updateAll(this);refresh();saving=false;toast("Guardado no aparelho. O envio continuará em segundo plano.");if(getIntent().getBooleanExtra("quick",false))finish();
     }
@@ -80,14 +80,14 @@ public class CaptureActivity extends Activity {
             JSONObject response=Api.call("/api/capture/device",null,pending);String state=response.optString("status");
             if(state.equals("approved")){
                 JSONObject user=response.getJSONObject("user");
-                try{String previous=store.user();if(!previous.isEmpty()&&!previous.equals(user.getString("id"))&&(store.count()>0||!store.get("draft").trim().isEmpty()))throw new IllegalStateException("Há capturas ou rascunho de outra conta. Reconecte a conta original.");store.bindOwner(user.getString("id"));}catch(Exception mismatch){try{Api.call("/api/capture/device",new JSONObject().put("action","disconnect"),pending);}catch(Exception ignored){}store.put("pending","");throw mismatch;}
+                try{String previous=store.user();if(!previous.isEmpty()&&!previous.equals(user.getString("id"))&&(store.count()>0||(!store.get("draft").trim().isEmpty()||!store.draftImage().isEmpty())))throw new IllegalStateException("Há capturas ou rascunho de outra conta. Reconecte a conta original.");store.bindOwner(user.getString("id"));}catch(Exception mismatch){try{Api.call("/api/capture/device",new JSONObject().put("action","disconnect"),pending);}catch(Exception ignored){}store.put("pending","");throw mismatch;}
                 store.put("credentials",pending);store.put("user",user.toString());store.put("expires",String.valueOf(response.getLong("expiresAt")));store.put("needsAuth","");store.put("lastError","");store.put("pending","");SyncWorker.schedule(this);CaptureWidget.updateAll(this);runOnUiThread(()->{refresh();toast("Conectado ao Inbox de "+user.optString("email"));});
             }else if(state.equals("denied")){store.put("pending","");runOnUiThread(()->toast("Autorização recusada. Seus textos continuam no aparelho."));}
         }catch(Exception e){try{if(e instanceof Api.Error&&((Api.Error)e).status==401)store.put("pending","");store.put("lastError",e instanceof Api.Error?e.getMessage():"Confira a conexão e volte após autorizar.");}catch(Exception ignored){}}
         finally{runOnUiThread(()->{checking=false;refresh();});}});
     }
     private void disconnect(){
-        if(text.length()>0){toast("Guarde ou limpe o rascunho antes de desconectar.");return;}
+        if(text.length()>0||!text.imageJson().isEmpty()){toast("Guarde ou limpe o rascunho antes de desconectar.");return;}
         new AlertDialog.Builder(this).setTitle("Desconectar captura?").setMessage("Entradas pendentes ficam no aparelho e só poderão ser enviadas ao reconectar a mesma conta.").setPositiveButton("Desconectar",(d,w)->network.execute(()->{
             try{String credentials=store.get("credentials");if(!credentials.isEmpty())Api.call("/api/capture/device",new JSONObject().put("action","disconnect"),credentials);}
             catch(Exception ignored){}

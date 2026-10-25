@@ -7,7 +7,7 @@ const sources={
  'org/json/JSONObject.java':`package org.json; import java.util.*; public class JSONObject {
  private final Map<String,Object> values=new HashMap<>(); public JSONObject put(String k,Object v){values.put(k,v);return this;}
  public String getString(String k){return (String)values.get(k);} public String optString(String k){return (String)values.getOrDefault(k,"");}
- public boolean optBoolean(String k){return Boolean.TRUE.equals(values.get(k));} }`,
+ public Object opt(String k){return values.get(k);} public boolean optBoolean(String k){return Boolean.TRUE.equals(values.get(k));} }`,
  'androidx/work/WorkerParameters.java':`package androidx.work; public class WorkerParameters {}`,
  'androidx/work/Worker.java':`package androidx.work; import android.content.Context; public abstract class Worker {
  private final Context context; public Worker(Context c,WorkerParameters p){context=c;} public Context getApplicationContext(){return context;}
@@ -38,9 +38,9 @@ const sources={
  String get(String k){return prefs.getOrDefault(k,"");}void put(String k,String v){prefs.put(k,v);}
  void confirmed(String id,String owner){queue.removeIf(q->q.getString("id").equals(id));} }`,
  'app/lifeos/capture/Api.java':`package app.lifeos.capture; import org.json.JSONObject; final class Api {
- static int calls=0; static boolean badAck=false;static Exception error=null;
+ static JSONObject lastInput=null; static int calls=0; static boolean badAck=false;static Exception error=null;
  static final class Error extends Exception {final int status;Error(int s,String m){super(m);status=s;}}
- static JSONObject call(String p,JSONObject input,String c)throws Exception {calls++;if(error!=null)throw error;
+ static JSONObject call(String p,JSONObject input,String c)throws Exception {lastInput=input;calls++;if(error!=null)throw error;
  return new JSONObject().put("saved",true).put("id",badAck?"wrong-id":input.getString("id"));} }`,
  'app/lifeos/capture/CaptureWidget.java':`package app.lifeos.capture; import android.content.Context; public class CaptureWidget {static void updateAll(Context c){}}`,
  'app/lifeos/capture/QueueTest.java':`package app.lifeos.capture;
@@ -65,6 +65,7 @@ const sources={
  reset();add("auth");Api.error=new Api.Error(401,"expirou");check(run()==Worker.Result.SUCCESS&&Store.queue.size()==1,"reautorização não apaga fila");check(Store.prefs.get("needsAuth").equals("1"),"pedir reautorização");
  reset();add("ambiguous");Api.error=new Api.Error(409,"aguardando confirmação");check(run()==Worker.Result.RETRY&&Store.queue.size()==1,"resultado ambíguo mantém fila e tenta consultar novamente");
  reset();for(int i=0;i<12;i++)add("batch-"+i);check(run()==Worker.Result.SUCCESS&&Store.queue.size()==2,"drenar lote com limite");flush();check(!wm.policies.isEmpty(),"continuar lote restante");check(run()==Worker.Result.SUCCESS&&Store.queue.isEmpty(),"concluir fila restante");
+ reset();JSONObject image=new JSONObject().put("mime","image/png").put("base64","binary-base64");Store.queue.add(new JSONObject().put("id","image-item").put("text","").put("image",image));Api.badAck=true;check(run()==Worker.Result.RETRY&&Store.queue.size()==1,"imagem sem confirmação permanece na fila");check(Api.lastInput.opt("image")==image,"worker encaminha os bytes da imagem junto do texto");Api.badAck=false;check(run()==Worker.Result.SUCCESS&&Store.queue.isEmpty(),"imagem só sai após confirmação do ID");
  reset();Store.auth=false;add("offline");check(run()==Worker.Result.SUCCESS&&Api.calls==0&&Store.queue.size()==1,"não enviar sem autorização");
  System.out.println("PASSOU: Java real do worker — backoff manual, agrupamento, corrida de término, confirmação, timeout, autorização e lotes. Simulação host; não substitui teste Android.");System.exit(0);
  }catch(Throwable e){e.printStackTrace();System.exit(1);}}

@@ -29,13 +29,15 @@ const principal={id:'google:p',name:'Péricles',email:'periclesbernardes@gmail.c
 const request=(cookie='',input,headers={})=>new Request('https://lifeos.test/api/capture/device',{method:input?'POST':'GET',headers:{cookie,origin:'https://lifeos.test',...headers},...(input?{body:JSON.stringify(input)}:{})});
 const dataOf=start=>{const url=new URL(start.url),params=new URLSearchParams(url.hash.slice(1));return {id:params.get('id'),token:params.get('token')};};
 const digest=v=>createHash('sha256').update(v).digest('hex');
-const redisFetch=global.fetch,pages=new Map(),calls=[];let postCount=0,uncertainAfter=false,uncertainBefore=false,rejectCreate=0;
+const redisFetch=global.fetch,pages=new Map(),calls=[];let uploadCount=0,postCount=0,uncertainAfter=false,uncertainBefore=false,rejectCreate=0;
 process.env.NOTION_INBOX_DATABASE_ID='inbox-test';
 let source={id:'inbox-source',properties:{Nome:{name:'Nome',type:'title'},Conteúdo:{name:'Conteúdo',type:'rich_text'}}};
 global.fetch=async(url,options={})=>{
  if(url==='https://redis.test')return redisFetch(url,options);
- const path=new URL(url).pathname.slice(3),body=options.body?JSON.parse(options.body):null;calls.push({path,body,method:options.method});
+ const path=new URL(url).pathname.slice(3),body=options.body instanceof FormData?options.body:options.body?JSON.parse(options.body):null;calls.push({path,body,method:options.method});
  assert.equal(options.headers.Authorization,'Bearer test');
+ if(path==='/file_uploads'){uploadCount++;return Response.json({id:'upload-'+uploadCount});}
+ if(path.startsWith('/file_uploads/')&&path.endsWith('/send')){assert.ok(body.get('file') instanceof File);return Response.json({status:'uploaded'});}
  if(path==='/databases/inbox-test')return Response.json({data_sources:[{id:source.id}]});
  if(path==='/data_sources/inbox-source'){
   if(options.method==='PATCH')for(const [name,type]of Object.entries(body.properties))source.properties[name]={name,type:Object.keys(type)[0]};
@@ -87,7 +89,18 @@ global.fetch=async(url,options={})=>{
  await assert.rejects(capture.captureInbox(native,{id:randomUUID(),text:'a'.repeat(10001)}),e=>e.status===400);
  await assert.rejects(capture.captureStatus(request('',undefined,{authorization:'Bearer '+start.id+'.'+'b'.repeat(64)})),e=>e.status===401);
  const secretB='b'.repeat(64),startB=await capture.startCapture(request(),{secretHash:digest(secretB),device:'Android Letícia'}),proofB=dataOf(startB);await capture.approveCapture(other,startB.id,proofB.token,true);const nativeB=request('',undefined,{authorization:'Bearer '+startB.id+'.'+secretB});await capture.captureInbox(nativeB,{id:item.id,text:'Da Letícia',userId:principal.id});assert.equal([...pages.values()].at(-1).properties['LifeOS Usuário'].rich_text[0].text.content,other.id,'Proprietário vem da credencial e IDs iguais são isolados por conta');
- assert.ok(calls.every(c=>c.path.includes('inbox')||c.path==='/pages'),'Somente o banco Inbox é acessado');
+
+ const image={mime:'image/png',base64:'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1cAAAAASUVORK5CYII='};
+ const photo={id:randomUUID(),text:'',image};const uploads=uploadCount;assert.equal((await capture.captureInbox(native,photo)).saved,true);assert.equal(uploadCount,uploads+1);let row=[...pages.values()].at(-1);assert.equal(row.properties.Anexos.files[0].name,'inbox-'+photo.id+'.png');assert.equal(row.properties['LifeOS Usuário'].rich_text[0].text.content,principal.id);
+ const imagePosts=postCount;await capture.captureInbox(native,photo);assert.equal(uploadCount,uploads+1);assert.equal(postCount,imagePosts);await assert.rejects(capture.captureInbox(native,{...photo,image:{...image,mime:'image/jpeg'}}),e=>e.status===422);
+ await assert.rejects(capture.captureInbox(native,{id:randomUUID(),text:'',image:{mime:'image/png',base64:Buffer.from('wrong bytes').toString('base64')}}),e=>e.status===422);await assert.rejects(capture.captureInbox(native,{id:randomUUID(),text:'',image:{...image,base64:Buffer.alloc(2*1024*1024+1).toString('base64')}}),e=>e.status===422);
+ const textPhoto={id:randomUUID(),text:'Comentário em texto simples',image};uncertainAfter=true;await assert.rejects(capture.captureInbox(native,textPhoto));const uncertainImageUploads=uploadCount,uncertainImagePosts=postCount;assert.equal((await capture.captureInbox(native,textPhoto)).saved,true);assert.equal(uploadCount,uncertainImageUploads);assert.equal(postCount,uncertainImagePosts);
+ rejectCreate=422;const retryImage={id:randomUUID(),text:'Retentativa da imagem',image};await assert.rejects(capture.captureInbox(native,retryImage));const savedUploads=uploadCount;rejectCreate=0;await capture.captureInbox(native,retryImage);assert.equal(uploadCount,savedUploads,'Upload já concluído é reutilizado após recusa explícita da página');
+ rejectCreate=422;const expiredUpload={id:randomUUID(),text:'Upload aguardou reconexão',image};await assert.rejects(capture.captureInbox(native,expiredUpload));const uploadsBeforeExpiry=uploadCount;now+=60*60*1000;rejectCreate=0;await capture.captureInbox(native,expiredUpload);assert.equal(uploadCount,uploadsBeforeExpiry+1,'Upload temporário expirado é renovado somente após recusa explícita da página');
+ uncertainBefore=true;const ambiguousImage={id:randomUUID(),text:'Imagem de resposta incerta',image};await assert.rejects(capture.captureInbox(native,ambiguousImage));const ambiguousPosts=postCount,ambiguousUploads=uploadCount;await assert.rejects(capture.captureInbox(native,ambiguousImage),e=>e.status===409);assert.equal(postCount,ambiguousPosts);assert.equal(uploadCount,ambiguousUploads);
+ const large=Buffer.alloc(2*1024*1024);Buffer.from(image.base64,'base64').copy(large);assert.equal(capture.captureImage({...image,base64:large.toString('base64')}).bytes.length,2*1024*1024,'Limite binário aceito sem erro de regex');
+ const photoResponse=await inboxRoute.POST(new Request('https://lifeos.test/api/capture/inbox',{method:'POST',headers:{authorization:native.headers.get('authorization'),'content-type':'application/json'},body:JSON.stringify({id:randomUUID(),text:'Pelo endpoint',image})}));assert.equal(photoResponse.status,200);
+ assert.ok(calls.every(c=>c.path.includes('inbox')||c.path==='/pages'||c.path.startsWith('/file_uploads')),'Somente o banco Inbox é acessado');
  const cookie=auth.sessionCookie(principal).split(';')[0];assert.equal((await route.POST(request(cookie,{action:'revoke',id:start.id},{origin:'https://evil.test'}))).status,403);
  assert.equal((await route.POST(request(cookie,{action:'details',...proof},{'X-LifeOS-User':other.id}))).status,401);
  await capture.revokeCapture(principal,start.id);await assert.rejects(capture.captureInbox(native,item),e=>e.status===401);

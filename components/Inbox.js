@@ -3,6 +3,8 @@ import LinkText, {TextLinks} from "./LinkText";
 import ModalLayer from './ModalLayer';
 import {useBackLayer} from '../lib/useBackNavigation';
 import {shouldSubmitInbox} from '../lib/inboxInput';
+import InboxImages,{InboxImageThumbnail} from './InboxImages';
+import {pastedInboxImages} from '../lib/inboxImages';
 import AutoTextarea from "./AutoTextarea";
 
 import { useState } from "react";
@@ -10,6 +12,8 @@ import { INBOX_TARGETS } from "../lib/nav";
 
 export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConvert }) {
   const [text, setText] = useState("");
+  const [images,setImages]=useState([]);
+  const [pasteError,setPasteError]=useState("");
   const [open, setOpen] = useState(false); // só afeta telas estreitas
   const [openId, setOpenId] = useState(null);
 
@@ -19,9 +23,15 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
   useBackLayer(open,()=>setOpen(false),15);
 
   function add() {
-    if (!text.trim()) return;
-    onAdd(text.trim());
+    if (!text.trim()&&!images.length) return;
+    onAdd(text.trim(),images);
+    setImages([]);setPasteError("");
     setText("");
+  }
+
+  function paste(event,attachments,save){
+    try{const added=pastedInboxImages(event,attachments);if(added){save([...attachments,...added]);setPasteError("");}}
+    catch(error){setPasteError(error.message);}
   }
 
   function remove() {
@@ -31,7 +41,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
   }
 
   function convert() {
-    if (!item || !target?.kind || onConvert(item, target.kind) === false) return;
+    if (!item || item.attachments?.length || !target?.kind || onConvert(item, target.kind) === false) return;
     setOpenId(null);
   }
 
@@ -51,6 +61,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
           value={text}
           placeholder="Anotar algo rápido…"
           onChange={(e) => setText(e.target.value)}
+          onPaste={e=>paste(e,images,setImages)}
           onKeyDown={(e) => {
             if (shouldSubmitInbox(e,window.matchMedia("(max-width: 999px), (pointer: coarse)").matches)) {
               e.preventDefault();
@@ -59,11 +70,13 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
           }}
           aria-label="Nova entrada no inbox"
         />
-        <div className="inbox-compose-actions"><p className="muted small quick-hint"><span className="desktop-inbox-hint">Enter salva · Shift+Enter nova linha</span><span className="mobile-inbox-hint">Enter cria uma nova linha</span></p><button className="primary" onClick={add} disabled={!text.trim()}>Adicionar</button></div>
+        <InboxImages items={images} onChange={setImages}/>
+        {pasteError&&<p className="date-error" role="alert">{pasteError}</p>}
+        <div className="inbox-compose-actions"><p className="muted small quick-hint"><span className="desktop-inbox-hint">Enter salva · Shift+Enter nova linha</span><span className="mobile-inbox-hint">Enter cria uma nova linha</span></p><button className="primary" onClick={add} disabled={!text.trim()&&!images.length}>Adicionar</button></div>
         {items.length === 0 && <p className="muted small inbox-empty">Inbox vazio.</p>}
         <ul className="inbox-list">
           {items.map((i) => (
-            <li key={i.id}><div className="inbox-item" role="button" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setOpenId(i.id);}}} onClick={() => setOpenId(i.id)}><LinkText text={i.text}/></div></li>
+            <li key={i.id}><div className="inbox-item" role="button" tabIndex={0} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();setOpenId(i.id);}}} onClick={() => setOpenId(i.id)}><LinkText text={i.text}/>{i.attachments?.length>0&&<InboxImageThumbnail item={i.attachments[0]}/>}</div></li>
           ))}
         </ul>
       </div></div>
@@ -77,11 +90,13 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
             </div>
             <div className="field">
               <span className="label">Conteúdo</span>
-              <AutoTextarea className="search notes" rows={6} value={item.text} onChange={(e) => onUpdate(item.id, e.target.value)} /><TextLinks text={item.text}/>
+              <AutoTextarea className="search notes" rows={6} value={item.text} onPaste={e=>paste(e,item.attachments||[],attachments=>onUpdate(item.id,item.text,attachments))} onChange={(e) => onUpdate(item.id, e.target.value)} /><TextLinks text={item.text}/>
             </div>
-            {target&&<p className="muted small">{tabId === "habitos" ? "Para criar um hábito, use + Novo hábito na tela Hábitos." : target.kind === "someday" ? "Primeira linha: título da ideia. Demais linhas: conteúdo. Escolha a área para concluir a transformação; o contexto pode ser ajustado no editor." : target.kind === "recado" ? "Primeira linha: título do recado. Demais linhas: mensagem. A entrada permanece no Inbox até o envio ser concluído." : target.kind === "shopping" ? "Primeira linha: nome da lista. Separe os itens nas linhas seguintes (Enter no celular ou Shift + Enter no computador)." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>}
+            <InboxImages items={item.attachments||[]} onChange={attachments=>onUpdate(item.id,item.text,attachments)}/>
+            {pasteError&&<p className="date-error" role="alert">{pasteError}</p>}
+            {target&&!item.attachments?.length&&<p className="muted small">{tabId === "habitos" ? "Para criar um hábito, use + Novo hábito na tela Hábitos." : target.kind === "someday" ? "Primeira linha: título da ideia. Demais linhas: conteúdo. Escolha a área para concluir a transformação; o contexto pode ser ajustado no editor." : target.kind === "recado" ? "Primeira linha: título do recado. Demais linhas: mensagem. A entrada permanece no Inbox até o envio ser concluído." : target.kind === "shopping" ? "Primeira linha: nome da lista. Separe os itens nas linhas seguintes (Enter no celular ou Shift + Enter no computador)." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>}
             <div className="inbox-actions">
-              {tabId !== "habitos" && target && <button className="primary" disabled={!target.kind} onClick={convert}>
+              {tabId !== "habitos" && target && <button className="primary" disabled={!target.kind||!!item.attachments?.length} title={item.attachments?.length?"Remova as imagens para transformar esta entrada":undefined} onClick={convert}>
                 Transformar em {target.label}{target.kind ? "" : " (em breve)"}
               </button>}
               <button className="danger" onClick={remove}>Excluir</button>

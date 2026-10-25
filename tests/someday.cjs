@@ -9,6 +9,8 @@ const publicDns=async()=>[{address:'93.184.216.34',family:4}];
  { // Area choice is required before moving Inbox, without losing the source.
  const area=domain.makeArea('Destino'),source={id:'inbox-someday',text:'Título da ideia\r\nLinha 1\r\n\r\n  Linha 2 com espaços\r\n<script>texto simples</script>',createdAt:1};
  const originalInbox={...state,someday:[area],somedayConfigured:true,user:{id:'account-a'},inbox:[source]};
+ assert.throws(()=>domain.moveInboxToSomeday({...originalInbox,inbox:[{...source,attachments:[{name:'inbox-a.png'}]}]},source.id,area.data.uid),/Remova as imagens/);
+ assert.equal(originalInbox.inbox.length,1);
  assert.throws(()=>domain.moveInboxToSomeday(originalInbox,source.id),/Escolha uma área/);
  const moved=domain.moveInboxToSomeday(originalInbox,source.id,area.data.uid),idea=moved.state.someday.find(r=>r.type==='idea');
  assert.equal(originalInbox.inbox.length,1);assert.equal(moved.state.inbox.length,0);assert.equal(idea.name,'Título da ideia');assert.equal(idea.data.area,area.data.uid);assert.equal(domain.validateSomeday(idea),'');assert.equal(domain.ideaText(idea.data.doc),'Linha 1\n\n  Linha 2 com espaços\n<script>texto simples</script>');

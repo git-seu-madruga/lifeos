@@ -15,9 +15,9 @@ import javax.crypto.spec.GCMParameterSpec;
 /** App-private durable queue; payloads and credentials encrypted with Android Keystore. */
 final class Store extends SQLiteOpenHelper {
     private final SharedPreferences prefs;
-    Store(Context context) { super(context,"capture.db",null,1); prefs=context.getSharedPreferences("capture",Context.MODE_PRIVATE); }
-    public void onCreate(SQLiteDatabase db) { db.execSQL("CREATE TABLE queue (id TEXT PRIMARY KEY, payload TEXT NOT NULL, owner TEXT, created INTEGER NOT NULL)"); db.execSQL("CREATE TABLE draft (id INTEGER PRIMARY KEY, payload TEXT NOT NULL)"); }
-    public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion) { throw new IllegalStateException("Migração não disponível"); }
+    Store(Context context) { super(context,"capture.db",null,2); prefs=context.getSharedPreferences("capture",Context.MODE_PRIVATE); }
+    public void onCreate(SQLiteDatabase db) { db.execSQL("CREATE TABLE queue (id TEXT PRIMARY KEY, payload TEXT NOT NULL, owner TEXT, created INTEGER NOT NULL, image TEXT)"); db.execSQL("CREATE TABLE draft (id INTEGER PRIMARY KEY, payload TEXT NOT NULL, image TEXT)"); }
+    public void onUpgrade(SQLiteDatabase db,int oldVersion,int newVersion) { if(oldVersion<2){db.execSQL("ALTER TABLE queue ADD COLUMN image TEXT");db.execSQL("ALTER TABLE draft ADD COLUMN image TEXT");} }
     private static synchronized SecretKey key() throws Exception {
         KeyStore ks=KeyStore.getInstance("AndroidKeyStore");ks.load(null);
         if(!ks.containsAlias("lifeos-capture")) {
@@ -39,9 +39,12 @@ final class Store extends SQLiteOpenHelper {
     String user() throws Exception { String raw=get("user");return raw.isEmpty()?"":new JSONObject(raw).getString("id"); }
     JSONObject userInfo() throws Exception { String raw=get("user");return raw.isEmpty()?new JSONObject():new JSONObject(raw); }
     boolean authorized() throws Exception { return !get("credentials").isEmpty()&&get("needsAuth").isEmpty()&&Long.parseLong(get("expires").isEmpty()?"0":get("expires"))>System.currentTimeMillis(); }
-    synchronized void enqueue(String text) throws Exception {
+    synchronized String draftImage() throws Exception {try(Cursor c=getReadableDatabase().rawQuery("SELECT image FROM draft WHERE id=1",null)){return c.moveToFirst()&&!c.isNull(0)?decrypt(c.getString(0)):"";}}
+    synchronized void putDraft(String text,String image) throws Exception {ContentValues v=new ContentValues();v.put("id",1);v.put("payload",encrypt(text));if(!image.isEmpty())v.put("image",encrypt(image));else v.putNull("image");if(getWritableDatabase().insertWithOnConflict("draft",null,v,SQLiteDatabase.CONFLICT_REPLACE)<0)throw new IllegalStateException("Não foi possível guardar o rascunho.");}
+    synchronized void enqueue(String text) throws Exception {enqueue(text,"");}
+    synchronized void enqueue(String text,String image) throws Exception {
         if(count()>=500)throw new IllegalStateException("Há 500 entradas pendentes. Sincronize antes de continuar.");
-        ContentValues values=new ContentValues();values.put("id",UUID.randomUUID().toString());values.put("payload",encrypt(text));String owner=user();if(!owner.isEmpty())values.put("owner",owner);values.put("created",System.currentTimeMillis());
+        ContentValues values=new ContentValues();values.put("id",UUID.randomUUID().toString());values.put("payload",encrypt(text));if(!image.isEmpty())values.put("image",encrypt(image));String owner=user();if(!owner.isEmpty())values.put("owner",owner);values.put("created",System.currentTimeMillis());
         SQLiteDatabase db=getWritableDatabase();db.beginTransaction();try{db.insertOrThrow("queue",null,values);db.delete("draft",null,null);db.setTransactionSuccessful();}finally{db.endTransaction();}
     }
     int count() { try(Cursor c=getReadableDatabase().rawQuery("SELECT count(*) FROM queue",null)){c.moveToFirst();return c.getInt(0);} }
@@ -50,13 +53,13 @@ final class Store extends SQLiteOpenHelper {
         ContentValues v=new ContentValues();v.put("owner",id);getWritableDatabase().update("queue",v,"owner IS NULL",null);
     }
     JSONObject first(String owner) throws Exception {
-        try(Cursor c=getReadableDatabase().rawQuery("SELECT id,payload FROM queue WHERE owner = ? ORDER BY created,id LIMIT 1",new String[]{owner})){
-            if(!c.moveToFirst())return null;return new JSONObject().put("id",c.getString(0)).put("text",decrypt(c.getString(1)));
+        try(Cursor c=getReadableDatabase().rawQuery("SELECT id,payload,image FROM queue WHERE owner = ? ORDER BY created,id LIMIT 1",new String[]{owner})){
+            if(!c.moveToFirst())return null;JSONObject item=new JSONObject().put("id",c.getString(0)).put("text",decrypt(c.getString(1)));if(!c.isNull(2))item.put("image",new JSONObject(decrypt(c.getString(2))));return item;
         }
     }
     synchronized void confirmed(String id,String owner) { getWritableDatabase().delete("queue","id = ? AND owner = ?",new String[]{id,owner}); }
     String exportPending() throws Exception {
-        StringBuilder all=new StringBuilder();try(Cursor c=getReadableDatabase().rawQuery("SELECT payload FROM queue ORDER BY created,id",null)){while(c.moveToNext()){if(all.length()>0)all.append("\n\n────────\n\n");all.append(decrypt(c.getString(0)));}}return all.toString();
+        StringBuilder all=new StringBuilder();try(Cursor c=getReadableDatabase().rawQuery("SELECT payload,image FROM queue ORDER BY created,id",null)){while(c.moveToNext()){if(all.length()>0)all.append("\n\n────────\n\n");all.append(decrypt(c.getString(0)));if(!c.isNull(1))all.append("\n[Imagem guardada no aparelho; Copiar pendentes copia somente o texto.]");}}return all.toString();
     }
     static String secret() { byte[] bytes=new byte[32];new SecureRandom().nextBytes(bytes);StringBuilder s=new StringBuilder();for(byte b:bytes)s.append(String.format(Locale.ROOT,"%02x",b&255));return s.toString(); }
     static String hash(String value) throws Exception {byte[] bytes=MessageDigest.getInstance("SHA-256").digest(value.getBytes(StandardCharsets.UTF_8));StringBuilder s=new StringBuilder();for(byte b:bytes)s.append(String.format(Locale.ROOT,"%02x",b&255));return s.toString();}
