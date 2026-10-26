@@ -29,6 +29,11 @@ final class ClipboardEditText extends EditText {
             Button remove=new Button(getContext());remove.setText("×");remove.setTextColor(Color.parseColor("#58A6FF"));remove.setBackgroundColor(Color.TRANSPARENT);remove.setContentDescription("Remover imagem");preview.addView(remove);remove.setOnClickListener(v->{clearImage();changed.run();});
         }catch(Exception e){Toast.makeText(getContext(),"Não foi possível abrir a imagem guardada. Não limpe o rascunho.",Toast.LENGTH_LONG).show();}
     }
+    boolean importSharedImage(Uri uri){
+        if(image!=null)return false;
+        Runnable callback=changed;changed=()->{};
+        try{receive(uri);return image!=null;}finally{changed=callback;}
+    }
     private boolean receive(Uri uri){
         if(uri==null||!"content".equals(uri.getScheme()))return false;
         String type;try{type=getContext().getContentResolver().getType(uri);}catch(Exception e){Toast.makeText(getContext(),"Copie a imagem novamente para liberar a leitura.",Toast.LENGTH_LONG).show();return true;}if(type==null||!type.startsWith("image/"))return false;

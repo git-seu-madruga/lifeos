@@ -1,5 +1,11 @@
 # LifeOS — Guia de configuração e uso
 
+## Miniaturas nas ideias de Algum dia
+
+Os cards dentro das gavetas, em Mostrar todos e nos resultados de busca mostram a miniatura da primeira imagem inserida no conteúdo da ideia ao lado do título, no espaço antes ocupado pelo ícone da categoria. O ícone da categoria permanece nas gavetas e não se repete nos cards das ideias. Entradas sem imagem não reservam esse espaço: mantêm título, prévia e tag da categoria. A miniatura mantém a proporção, sem recortar a imagem; ideias só com imagem deixam de exibir o marcador “[Imagem: ...]” como prévia. Tocar no card continua abrindo a ideia para ver o conteúdo completo. As gavetas de áreas e o editor mantêm o comportamento atual.
+
+Usa os anexos já salvos, com carregamento sob demanda e acesso autenticado do próprio usuário. Nenhum banco, campo, variável, reimportação ou APK novo. Publique este pacote cumulativo e recarregue o LifeOS.
+
 ## Cadeado de edição das tarefas
 
 Uma tarefa aberta mostra um **cadeado azul ao lado de Fechar**, aberto por padrão. Toque para fechá-lo e bloquear título, status, datas, prioridade, contexto, projeto/marco, compartilhamento/responsável, anotações e alterações dos anexos. Fechar o painel, ler o conteúdo, abrir links e consultar/baixar os anexos continuam disponíveis. Para editar ou excluir a tarefa, abra o cadeado novamente.
@@ -269,7 +275,7 @@ As datas usam **DD/MM/AAAA**, com barras automáticas e calendário alternativo.
 
 O mesmo campo aceita colar imagens binárias (Ctrl+V/copiar e colar), na nova entrada ou em uma já aberta, junto de texto simples. Não há editor rico, botão de arquivo ou aviso fixo. PNG/JPG/WebP/GIF, até 4 MB por imagem. A miniatura abre a imagem completa; × remove a imagem. Pode adicionar uma entrada só com imagem. Enquanto houver imagens, Transformar fica desabilitado para todos os destinos; remover todas libera novamente. Imagens permanecem no Notion até remover/excluir a entrada, sujeito à lixeira e retenção do serviço, sem promessa de apagamento físico imediato.
 
-O campo **Anexos** (Arquivos e mídia) do banco Inbox será criado automaticamente. **Nome** e **Conteúdo** continuam iguais, sem texto especial ou alteração de formato. Não exige variável, novo banco ou APK. O APK de captura continua recebendo somente texto. Rascunhos pendentes das imagens adicionadas são cifrados nas sessões permanentes e retomáveis após falha; sessões QR não persistem rascunhos privados.
+O campo **Anexos** (Arquivos e mídia) do banco Inbox será criado automaticamente. **Nome** e **Conteúdo** continuam iguais, sem texto especial ou alteração de formato. Não exige variável, novo banco ou APK. O APK Captura 1.0.4 também aceita uma imagem colada; instale a atualização separadamente. Rascunhos pendentes das imagens adicionadas são cifrados nas sessões permanentes e retomáveis após falha; sessões QR não persistem rascunhos privados.
 
 No desktop, fica à esquerda; no celular, pode ser aberto/recolhido. O campo cresce com o texto. No celular, Enter cria uma nova linha e o botão Adicionar confirma. No desktop, use Shift+Enter para quebra de linha.
 
@@ -956,14 +962,14 @@ Botões principais de inclusão em Projetos, Tarefas, Compras, Aniversários e V
 O ícone da aba Aniversários fica dourado quando há contatos na lista dos próximos 7 dias (hoje e os seis dias seguintes). Usa os contatos já carregados e a mesma regra do resumo, sem filtro da busca e sem consulta extra. Sem aniversários nessa janela, retorna ao ícone padrão; só o ícone recebe cor.
 
 
-## LifeOS Captura — aplicativo Android e widget (v1.0.3)
+## LifeOS Captura — aplicativo Android e widget (v1.0.5)
 
-Aplicativo complementar **somente para adicionar textos ao Inbox privado**, independente do PWA. Não mostra a lista do Inbox nem lê os outros bancos. Android 8.0 ou mais recente. O domínio desta compilação é `https://lifeos-two-kohl-18.vercel.app`.
+Aplicativo complementar **somente para adicionar texto e imagem colada ao Inbox privado**, independente do PWA. Não mostra a lista do Inbox nem lê os outros bancos. Android 8.0 ou mais recente. O domínio desta compilação é `https://lifeos-two-kohl-18.vercel.app`.
 
 ### Implantação e primeira conexão
 
 1. Publique primeiro o conteúdo de `lifeos/` deste pacote no repositório/Vercel, incluindo as novas rotas `app/api/capture/` e a página `app/capture/pair/`. Preserve as variáveis já configuradas. Não há novo banco Notion, nova variável ou cliente OAuth Android.
-2. No Android, baixe e instale **LifeOS-Captura-1.0.3.apk**. Se solicitado, permita a instalação por essa fonte. O app tem nome/ícone próprios e não substitui o LifeOS PWA. Se já estiver instalado, atualize por cima, sem desinstalar.
+2. No Android, baixe e instale **LifeOS-Captura-1.0.5.apk**. Se solicitado, permita a instalação por essa fonte. O app tem nome/ícone próprios e não substitui o LifeOS PWA. Se já estiver instalado, atualize por cima, sem desinstalar.
 3. Abra **LifeOS Captura**, toque **Conectar ao LifeOS**, confira o código e abra a autorização no navegador. Use o login Google de uma das duas contas existentes e confirme **Autorizar captura**. A página não carrega os bancos completos.
 4. Volte ao aplicativo Android. Ele conclui o pareamento e vincula os envios à conta autorizada. Se houver capturas feitas antes da primeira conexão, serão enviadas a essa conta; a página de autorização explica isso.
 5. Na home do Android, mantenha pressionado um espaço vazio, abra **Widgets**, escolha **LifeOS Captura** e adicione o widget. O caminho exato depende do launcher.
@@ -1003,6 +1009,28 @@ O projeto Android está em `lifeos/android-capture/`. Pode ser aberto no Android
 ### Verificação desta entrega
 
 Os testes do servidor usam serviços simulados e scripts Redis Lua reais em VM: pareamento de uso único, duas contas, revogação, limites, origem, escopo restrito, isolamento, manutenção, envio incremental, reenvio e respostas perdidas. A compilação Next valida as novas rotas/página. Compilação e lint do Android verificam o pacote; uso em aparelho real, restrições de bateria e comportamento do launcher devem ser confirmados no seu teste inicial. Não houve gravação ou migração nos serviços de produção durante o desenvolvimento.
+
+### Atualização 1.0.5 — Compartilhar com LifeOS Captura
+
+O **LifeOS Captura** aparece na folha de compartilhamento do Android para links/texto simples e uma imagem por captura. No navegador, galeria ou outro app, use **Compartilhar → LifeOS Captura**. A mesma janela compacta do widget abre para revisar, acrescentar texto e confirmar em **Enviar ao Inbox**. Receber um compartilhamento não envia nada automaticamente. Imagens preservam miniatura, ampliação, remoção, limites e fila cifrada da versão 1.0.4; no LifeOS, a conversão para outras abas continua bloqueada enquanto houver imagem. Links/textos preservam as conversões existentes.
+
+Títulos fornecidos pelo aplicativo de origem entram antes do texto/link, sem duplicar um título já presente. Texto vem sem formatação. Se existir rascunho, o Captura pede para acrescentar ao conteúdo atual; cancelar o mantém. Se o rascunho já tiver imagem, compartilhar outra não a substitui: envie/remova a atual e compartilhe novamente. Compartilhamentos vazios, arquivos de outros tipos, URLs de imagem sem arquivo e múltiplas imagens são recusados. Não há permissão ampla de galeria, envio automático ou acesso remoto ao conteúdo da origem.
+
+Instale **LifeOS-Captura-1.0.5.apk por cima**, sem desinstalar nem limpar dados. Mesma assinatura/applicationId, versionCode 6; fila, rascunhos, conta e preferências são preservados. Se a API com imagens da versão 1.0.4 já estiver publicada, esta mudança precisa somente do APK. O ZIP cumulativo traz todo o código atual se ainda houver deploy pendente; não exige banco/variável nova.
+
+Validação: parser Java real em host (`JAVA_HOME=/caminho/jdk17 npm run test:android-share`), worker e compilação/lint do APK. A aparição e o uso do menu precisam ser conferidos no aparelho, pois variam conforme aplicativo de origem e versão do Android. Não houve teste em celular durante o desenvolvimento.
+
+### Atualização 1.0.4 — colar imagem no widget
+
+Publique primeiro o pacote cumulativo do site e depois instale **LifeOS-Captura-1.0.4.apk por cima do atual**, sem desinstalar. A assinatura e o identificador são os mesmos; o banco local é atualizado para a versão 2, preservando textos, rascunhos, conta e envios pendentes. Nenhuma nova variável, permissão de galeria, banco remoto ou pareamento obrigatório.
+
+Abra a captura pelo widget, copie uma imagem em outro aplicativo e use **Colar** ao manter o campo pressionado ou a imagem oferecida pela área de transferência do teclado. O teclado/aplicativo de origem precisa fornecer a imagem, não apenas seu endereço ou texto. Funciona também na tela principal do Captura. Continua sendo texto simples, sem botão de arquivos ou formatação especial. Uma imagem por captura, com miniatura, ampliação e × para remover. Pode haver só imagem ou texto junto. Remova a imagem atual antes de colar outra.
+
+A imagem é copiada imediatamente para o rascunho privado e criptografada junto da fila antes da confirmação local. O envio usa o mesmo proprietário, ID estável e confirmação do servidor; falhas não removem a captura do aparelho nem geram outra página automaticamente. No LifeOS, a imagem aparece no Inbox normal e impede a transformação para outras abas enquanto estiver anexada. O widget na tela inicial continua sem expor conteúdo, apenas seu indicador de pendência.
+
+Imagens são normalizadas para PNG/JPEG, até 1600 pixels no maior lado e 512 KB no envio, reduzindo mais quando necessário para caber com segurança na fila cifrada. A leitura inicial aceita até 8 MB/40 megapixels; imagens maiores exibem erro sem apagar texto ou imagem anterior. Não é um recurso de arquivamento da imagem original em resolução integral. **Copiar pendentes copia somente texto**, com uma indicação quando a captura contém imagem; os bytes continuam na fila até confirmação. Não limpe dados nem desinstale com pendências.
+
+O servidor valida formato/tamanho binário, nunca baixa URLs fornecidas pelo aparelho e não recebe tokens Notion do APK. Recibos guardam apenas informações técnicas para reutilizar uploads concluídos e impedir duplicação após resposta perdida. Testes de servidor e worker são simulados; compilação/lint não substituem o teste de colagem com seu teclado no aparelho.
 
 ### Atualização 1.0.3 — sincronização e widget
 

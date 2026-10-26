@@ -830,3 +830,6 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 .inbox-image-full{width:min(1100px,96vw);max-width:96vw}
 .inbox-image-full .panel-head{justify-content:flex-end}
 .inbox-image-full>img{display:block;max-width:100%;max-height:80dvh;object-fit:contain;margin:auto}
+
+/* Idea cards use a small image beside the title, without a category icon. */
+.sd-card-image{display:block;width:66px;height:66px;flex-shrink:0;object-fit:contain;border-radius:12px;background:#0e1219}

@@ -6,6 +6,13 @@ const state={someday:[],projects:[],tasks:[],inbox:[],diary:[]};
 const transport=(replies,calls)=>((url,options,callback)=>{calls.push({url:url.href,options});const req=new EventEmitter();req.end=()=>queueMicrotask(()=>{const reply=replies.shift();assert.ok(reply,'Resposta simulada ausente');const res=Readable.from([Buffer.from(reply.body||'')]);res.statusCode=reply.status||200;res.headers={'content-type':'text/html',...reply.headers};callback(res);});return req;});
 const publicDns=async()=>[{address:'93.184.216.34',family:4}];
 (async()=>{try{
+ {
+ const record={data:{doc:{type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Antes da imagem'}]},{type:'blockquote',content:[{type:'ideaImage',attrs:{attachmentId:'missing.png',alt:'Ausente'}},{type:'ideaImage',attrs:{attachmentId:'first.webp',alt:'Minha figura'}}]},{type:'paragraph',content:[{type:'text',text:'Depois da imagem'}]},{type:'ideaImage',attrs:{attachmentId:'second.png',alt:'Outra'}}]}},attachments:[{id:'new-id-2',name:'second.png',notion:{type:'external',external:{url:'https://example.com/second.png'}}},{id:'new-id-1',name:'first.webp',pageId:'restored-page',index:7,notion:{type:'file',file:{url:'https://example.com/expired'}}}]};
+ const before=JSON.stringify(record),card=domain.ideaCardPreview(record);assert.equal(card.image.alt,'Minha figura');assert.match(card.image.src,/kind=someday&id=restored-page&index=7&name=first.webp/);assert.equal(card.text,'Antes da imagem\n\nDepois da imagem');assert.equal(JSON.stringify(record),before,'Prévia não altera documento/anexos');assert.ok(domain.ideaText(record.data.doc).includes('[Imagem: Minha figura]'),'Busca/conversão mantêm o texto completo');
+ const onlyImage={data:{doc:{type:'doc',content:[{type:'ideaImage',attrs:{attachmentId:'second.png',alt:''}}]}},attachments:record.attachments};assert.equal(domain.ideaCardPreview(onlyImage).text,'');assert.equal(domain.ideaCardPreview(onlyImage).image.src,'https://example.com/second.png');
+ assert.equal(domain.ideaCardPreview({...onlyImage,attachments:[]}).image,null);assert.equal(domain.ideaCardPreview({...onlyImage,attachments:[{name:'second.png',notion:{type:'external',external:{url:'javascript:alert(1)'}}}]}).image,null);
+ assert.equal(domain.ideaCardPreview({data:{doc:{type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'x'.repeat(250)}]}]}}}).text.length,180);
+ }
  { // Area choice is required before moving Inbox, without losing the source.
  const area=domain.makeArea('Destino'),source={id:'inbox-someday',text:'Título da ideia\r\nLinha 1\r\n\r\n  Linha 2 com espaços\r\n<script>texto simples</script>',createdAt:1};
  const originalInbox={...state,someday:[area],somedayConfigured:true,user:{id:'account-a'},inbox:[source]};
