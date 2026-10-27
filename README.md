@@ -1,5 +1,11 @@
 # LifeOS — Guia de configuração e uso
 
+## Distância percorrida entre abastecimentos
+
+A tabela de abastecimentos mostra **Distância percorrida**, em km, ao lado da quilometragem do hodômetro. É a diferença entre o abastecimento da linha e o abastecimento anterior registrado daquele veículo, em ordem cronológica, incluindo abastecimentos parciais. O primeiro aparece como — por não ter uma referência anterior. Distância zero aparece como 0 km. Ordenar a tabela ou mostrar só cinco linhas não altera a referência, calculada pelo histórico completo. Editar/excluir/inserir abastecimentos recalcula as distâncias automaticamente.
+
+Se um abastecimento intermediário não foi registrado, a coluna continua indicando a distância entre os dois registros conhecidos; o cálculo de consumo mantém a regra existente de interrupção do intervalo. O campo não é previsão de alcance do tanque nem exige preenchimento. Sem banco/campo novo, variável, reimportação ou APK: publique o pacote cumulativo e recarregue o app.
+
 ## Aviso dourado na aba Veículos
 
 O ícone da aba Veículos fica dourado, no mesmo tom de Aniversários, se qualquer veículo tiver manutenção próxima ou vencida ainda não concluída. Segue exatamente os avisos existentes: antecedência em km configurada por veículo (500 km por padrão) ou até 30 dias; ao atingir km/data passa a vencida. Alertas somente agendados fora desses limites não acendem o ícone. Ao concluir/remover o último alerta ou ajustar os limites para fora da faixa, ele volta à cor normal. Vale no desktop/mobile e com a aba selecionada ou não.

@@ -269,3 +269,9 @@ Widget Captura Android 1.0.3 ocupa uma linha horizontal de duas colunas, redimen
 
 - hasVehicleMaintenanceAlert reutiliza maintenanceAlerts para todos os veículos da garagem: true somente se existir near/overdue ativo. Respeitar warningKm individual, 30 dias, maior km dos lançamentos e completed. Não limitar ao veículo selecionado nem acender para scheduled ou registros órfãos.
 - Home só calcula aviso após veículos carregados/configurados e sessão ready. Dia local de Brasília acompanha useDateRollover, sem novas consultas de rede. TabIcon recebe highlighted e aplica vehicle-notice apenas a veiculos; CSS usa o mesmo dourado/sombra de birthday-notice, somente no SVG. Preservar aviso de Aniversários e estado/ordem/cores do restante da aba; rótulo acessível informa manutenções próximas/vencidas.
+
+
+## Distância entre abastecimentos
+
+- fuelEntryMetrics inclui distance derivada da diferença de hodômetro entre abastecimentos consecutivos registrados, inclusive parciais, por veículo e segundo orderedFuel. Não usar distância do intervalo de tanques cheios de fuelSummary nem km inicial do cadastro. Usar todo histórico antes de limitar/ordenar visualmente a tabela.
+- Primeiro abastecimento ou km ausente/inconsistente retorna null (—); zero é válido. missedPrevious mantém diferença entre registros conhecidos, sem modificar a interrupção de consumo. Distância somente de leitura ao lado de Km, unidade km, sem persistência/schema ou nova importação. Recalcular após edição/exclusão/inserção, não misturar veículos.
