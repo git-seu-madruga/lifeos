@@ -1,5 +1,11 @@
 # LifeOS — Guia de configuração e uso
 
+## Aviso dourado na aba Veículos
+
+O ícone da aba Veículos fica dourado, no mesmo tom de Aniversários, se qualquer veículo tiver manutenção próxima ou vencida ainda não concluída. Segue exatamente os avisos existentes: antecedência em km configurada por veículo (500 km por padrão) ou até 30 dias; ao atingir km/data passa a vencida. Alertas somente agendados fora desses limites não acendem o ícone. Ao concluir/remover o último alerta ou ajustar os limites para fora da faixa, ele volta à cor normal. Vale no desktop/mobile e com a aba selecionada ou não.
+
+O aviso usa os dados já carregados e a maior km registrada, incluindo abastecimentos/manutenções, sem consultas extras ao Notion. A data acompanha o dia de Brasília ao retornar ao app e na virada do dia. Sem novo banco, variável, importação ou APK; basta publicar este pacote cumulativo e recarregar o app.
+
 ## Miniaturas nas ideias de Algum dia
 
 Os cards dentro das gavetas, em Mostrar todos e nos resultados de busca mostram a miniatura da primeira imagem inserida no conteúdo da ideia ao lado do título, no espaço antes ocupado pelo ícone da categoria. O ícone da categoria permanece nas gavetas e não se repete nos cards das ideias. Entradas sem imagem não reservam esse espaço: mantêm título, prévia e tag da categoria. A miniatura mantém a proporção, sem recortar a imagem; ideias só com imagem deixam de exibir o marcador “[Imagem: ...]” como prévia. Tocar no card continua abrindo a ideia para ver o conteúdo completo. As gavetas de áreas e o editor mantêm o comportamento atual.

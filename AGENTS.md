@@ -263,3 +263,9 @@ Widget Captura Android 1.0.3 ocupa uma linha horizontal de duas colunas, redimen
 
 - ideaCardPreview seleciona a primeira ideaImage disponível na ordem do documento por attachmentId = nome estável do anexo; nunca usar posição da lista de anexos ou ID efêmero como vínculo. Resolver pageId/index/nome no endpoint autenticado kind=someday, com fallback seguro HTTPS de anexos ainda sem pageId. Ignorar referências ausentes e arquivos que não aparecem no documento.
 - Retirar marcadores de imagem apenas da prévia visual, preservando ideaText, busca, conversões, documento e metadados. Cards com imagem e texto mostram ambos; só imagem dispensa texto genérico. Miniatura lazy/async, proporção preservada com object-fit:contain, falha não quebra abertura do card. Miniatura de 66×66px fica no heading ao lado do título, substituindo o ícone da categoria, sem uma segunda imagem grande abaixo. Cards sem imagem não têm ícone nem espaço vazio reservado; manter tag da área e demais informações. Ilustrações das gavetas permanecem. Não estender a mudança a Referência Geral ou gavetas de áreas sem pedido.
+
+
+## Aviso de manutenção no ícone da aba Veículos
+
+- hasVehicleMaintenanceAlert reutiliza maintenanceAlerts para todos os veículos da garagem: true somente se existir near/overdue ativo. Respeitar warningKm individual, 30 dias, maior km dos lançamentos e completed. Não limitar ao veículo selecionado nem acender para scheduled ou registros órfãos.
+- Home só calcula aviso após veículos carregados/configurados e sessão ready. Dia local de Brasília acompanha useDateRollover, sem novas consultas de rede. TabIcon recebe highlighted e aplica vehicle-notice apenas a veiculos; CSS usa o mesmo dourado/sombra de birthday-notice, somente no SVG. Preservar aviso de Aniversários e estado/ordem/cores do restante da aba; rótulo acessível informa manutenções próximas/vencidas.

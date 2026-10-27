@@ -20,6 +20,9 @@ import QrLock from '../components/QrLock';
 import {PageActionsTarget} from "../components/PageActions";
 import NutritionView from '../components/NutritionView';
 import VehiclesView from '../components/VehiclesView';
+import {hasVehicleMaintenanceAlert} from '../lib/vehicles';
+import {habitToday} from '../lib/habits';
+import {useDateRollover} from '../lib/useDateRollover';
 import QrSessions from '../components/QrSessions';
 import BackupView from '../components/BackupView';
 import RecadosView from "../components/RecadosView";
@@ -93,6 +96,9 @@ export default function Home() {
   const recadoNotice=useRecadoNotification(remote.user,remote.authenticated===true&&remote.ready&&(!remote.isTabReady||remote.isTabReady('recados')));
   const [recadoTodayRequest,setRecadoTodayRequest]=useState(0);
   const { tasks, projects, inbox, setInbox, setTasks, setProjects, ready, saving, refreshedAt } = remote;
+  const [noticeToday,setNoticeToday]=useState(habitToday);
+  useDateRollover(noticeToday,setNoticeToday);
+  const vehicleNotice=remote.ready&&remote.vehiclesConfigured&&(!remote.isTabReady||remote.isTabReady('veiculos'))&&hasVehicleMaintenanceAlert(remote.vehicles||[],noticeToday);
   const birthdayToday=todayLocal();
   const birthdayNotice=birthdaySummary(remote.contacts||[],'',birthdayToday.getFullYear(),birthdayToday.getMonth()+1,birthdayToday).week.length>0;
 
@@ -267,7 +273,7 @@ export default function Home() {
               className={"tab" + (t.id === tabId ? " on" : "") + (dragged === t.id ? " dragging" : "") + (touchReorder&&reorderSource===t.id?" reorder-selected":"")}
               draggable={!touchMode&&!touchReorder}
               data-tab-id={t.id} data-romantic={t.id==='recados'||undefined}
-              aria-label={t.label+(['compras','financas','aniversarios','veiculos'].includes(t.id)?", compartilhado":"")+(t.id==='aniversarios'&&birthdayNotice?", há aniversários nos próximos 7 dias":"")}
+              aria-label={t.label+(['compras','financas','aniversarios','veiculos'].includes(t.id)?", compartilhado":"")+(t.id==='aniversarios'&&birthdayNotice?", há aniversários nos próximos 7 dias":"")+(t.id==='veiculos'&&vehicleNotice?", há manutenções próximas ou vencidas":"")}
               title={t.label+" · "+(touchMode?"Deslize para ver as abas · Use Ordenar abas para reorganizar":"Arraste para reordenar · Alt + seta também move")}
               onDragStart={e=>{draggedTab.current=t.id;setDragged(t.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',t.id);}}
               onDragOver={e=>{if(draggedTab.current){e.preventDefault();e.dataTransfer.dropEffect='move';}}}
@@ -280,7 +286,7 @@ export default function Home() {
               aria-busy={remote.isTabReady?!remote.isTabReady(t.id):undefined}
               onClick={()=>pickTab(t.id)}
             >
-              <TabIcon id={t.id} highlighted={t.id==='aniversarios'&&birthdayNotice}/><span className="tab-label" data-expanded={t.id===tabId||touchReorder} aria-hidden={!(t.id===tabId||touchReorder)}><span className="tab-label-content"><span className="tab-name">{t.label}</span>{['compras','financas','aniversarios','veiculos'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span></span>
+              <TabIcon id={t.id} highlighted={(t.id==='aniversarios'&&birthdayNotice)||(t.id==='veiculos'&&vehicleNotice)}/><span className="tab-label" data-expanded={t.id===tabId||touchReorder} aria-hidden={!(t.id===tabId||touchReorder)}><span className="tab-label-content"><span className="tab-name">{t.label}</span>{['compras','financas','aniversarios','veiculos'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span></span>
             </button>
           </span>
         ))}
