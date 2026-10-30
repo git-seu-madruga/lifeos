@@ -1,5 +1,5 @@
 "use client";
-import {followupToday,followupDue,followupLabel,followupDateInfo,taskVisibleOutsideProject} from '../lib/followups';
+import {followupToday,followupDue,followupChecked,followupLabel,followupDateInfo,taskVisibleOutsideProject} from '../lib/followups';
 import {useDateRollover} from '../lib/useDateRollover';
 import PageActions from "./PageActions";
 import SharedBadge from "./SharedBadge";
@@ -155,7 +155,7 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
                   const di = dateInfo(t,today);
                   return (
                     <li key={t.id} onClick={e=>{if(!e.target.closest('button,input,a,select'))setOpenId(t.id);}} className={"row" + (isClosed(t) ? " done" : "")}>
-                      <input type="checkbox" className="check" checked={t.status === "done"} disabled={!!t.locked||!!t.recurrence&&!followupDue(t,today)} aria-label={`${t.recurrence?"Acompanhamento feito":"Concluir"}: ${t.title}`}
+                      <input type="checkbox" className="check" checked={t.status === "done"||followupChecked(t,today)} disabled={!!t.locked||!!t.recurrence&&!followupDue(t,today)} aria-label={`${t.recurrence?"Acompanhamento feito":"Concluir"}: ${t.title}`} title={followupChecked(t,today)?"Consulta realizada. O check será liberado na próxima data programada.":undefined}
                         onChange={() => update(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
                       <button className="row-title" onClick={() => setOpenId(t.id)}>
                         {t.title?.trim() || "Sem título"}

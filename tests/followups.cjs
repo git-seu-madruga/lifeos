@@ -8,6 +8,27 @@ try{
  assert.equal(f.followupToday(new Date('2026-10-31T01:00:00Z')),'2026-10-30');
  let task=base(),done=f.completeFollowup(task,'Sem novidades','2026-10-30',1234);
  assert.equal(done.status,'hold');assert.equal(done.recurrence.next,'2026-11-06');assert.equal(done.recurrence.total,1);assert.equal(done.recurrence.history[0].note,'Sem novidades');assert.equal(done.due,'2020-01-01');assert.equal(f.validateFollowup(done),'');assert.equal(f.completeFollowup(done,'','2026-10-30'),done,'Double click never registers a future cycle');assert.equal(task.recurrence.total,0);
+ // A check is a receipt until the next cycle, never an inferred completion.
+ const receiptBefore=JSON.stringify(done);
+ assert.equal(f.followupChecked(task,'2026-10-30'),false);
+ assert.equal(f.followupChecked(base('2027-01-01'),'2026-10-30'),false,'Future unconsulted tasks stay empty');
+ assert.equal(f.followupChecked(done,'2026-10-30'),true);
+ assert.equal(f.followupChecked(done,'2026-11-05'),true,'Weekly receipt survives the following days');
+ assert.equal(f.followupChecked(done,'2026-11-06'),false,'Next date clears the receipt');
+ assert.equal(f.followupChecked(done,'2026-11-07'),false,'Overdue checks remain empty');
+ assert.equal(f.followupChecked(done,'2026-10-29'),false,'Never show a future history entry as done');
+ assert.equal(f.followupChecked({...done,locked:true},'2026-10-31'),true);
+ assert.equal(f.followupChecked({...done,recurrence:{...done.recurrence,state:'paused'}},'2026-10-31'),true);
+ assert.equal(f.followupChecked({...done,recurrence:{...done.recurrence,next:'2026-11-10'}},'2026-10-31'),false,'Rescheduling does not inherit an old receipt');
+ assert.equal(JSON.stringify(done),receiptBefore,'Visual rollover never changes persisted data');
+ const daily=f.completeFollowup(base('2026-10-30',{every:1}),'','2026-10-30',1234);
+ assert.equal(f.followupChecked(daily,'2026-10-30'),true);assert.equal(f.followupChecked(daily,'2026-10-31'),false);
+ for(const mode of ['after','fixed']){
+  const late=f.completeFollowup(base('2026-10-30',{mode}),'','2026-11-09',1234);
+  assert.equal(f.followupChecked(late,'2026-11-09'),true);assert.equal(f.followupChecked(late,late.recurrence.next),false);
+  const second=f.completeFollowup(late,'',late.recurrence.next,2345);
+  assert.equal(f.followupChecked(second,late.recurrence.next),true);assert.equal(second.recurrence.total,2);
+ }
  assert.equal(f.nextFollowupDate({...task.recurrence,mode:'fixed'},'2026-11-09'),'2026-11-13','Fixed schedule skips missed checks');
  assert.equal(f.nextFollowupDate({...task.recurrence,mode:'after'},'2026-11-09'),'2026-11-16');
  assert.equal(f.nextFollowupDate({...f.makeFollowup('2026-01-31'),mode:'fixed',unit:'months',every:1},'2026-01-31'),'2026-02-28');
@@ -34,6 +55,17 @@ try{
  const render=()=>{cursor=0;return walk(View({tasks,projects,context:'all',sub:'status',setTasks:fn=>tasks=fn(tasks),onOpenProject(){}}));};
  let nodes=render();assert.deepEqual(nodes.filter(n=>n.type==='li').map(n=>n.key),['o','today','future']);assert.ok(!nodes.some(n=>n.props.className==='seg-row followup-switch'),'No separate view');assert.ok(nodes.some(n=>n.props.children==='On hold / Follow-up'));
  const check=nodes.find(n=>n.props['aria-label']==='Acompanhamento feito: Consultar concurso'&&!n.props.disabled);check.props.onChange();assert.equal(tasks.find(t=>t.id==='today').status,'hold');assert.equal(tasks.find(t=>t.id==='today').recurrence.total,1);assert.equal(render().filter(n=>n.type==='li').length,3,'Remains in hold after checking');
+ const taskRow=id=>render().find(n=>n.type==='li'&&n.key===id),rowCheck=id=>walk(taskRow(id)).find(n=>n.type==='input'&&n.props.type==='checkbox');
+ assert.equal(rowCheck('today').props.checked,true);assert.equal(rowCheck('today').props.disabled,true);
+ assert.ok(!taskRow('today').props.className.includes('done'),'Visual receipt never strikes out the title');
+ assert.equal(rowCheck('future').props.checked,false);assert.equal(rowCheck('o').props.checked,false);
+ const justChecked=tasks.find(t=>t.id==='today'),historyBefore=JSON.stringify(justChecked.recurrence.history);
+ rowCheck('today').props.onChange();assert.equal(JSON.stringify(tasks.find(t=>t.id==='today').recurrence.history),historyBefore,'Repeated click cannot add a check');
+ // Simulate the day state delivered by useDateRollover while this view stays mounted.
+ slots[7]=justChecked.recurrence.next;
+ assert.equal(rowCheck('today').props.checked,false);assert.equal(rowCheck('today').props.disabled,false);
+ assert.equal(JSON.stringify(tasks.find(t=>t.id==='today').recurrence.history),historyBefore);
+ slots[7]=today;
  projects=projects.map(p=>({...p,status:'active'}));assert.equal(render().filter(n=>n.type==='li').length,5,'Resuming project restores both kinds');projects=projects.map(p=>({...p,status:'paused'}));nodes=render();nodes.find(n=>n.props['aria-label']==='Buscar').props.onChange({target:{value:'Oculta'}});assert.equal(render().filter(n=>n.type==='li').length,0,'Paused tasks stay hidden during search');
  // The same details editor configures type, interval and manual lifecycle.
  slots=[];cursor=0;const Detail=require(path.join(folder,'components/TaskDetail')).default;let update;
@@ -56,5 +88,14 @@ try{
  global.window={confirm:text=>{message=text;return approve;}};approve=false;setProjectStatus('done');assert.equal(projectList[0].status,'active');assert.equal(tasks[0].recurrence.state,'paused');assert.ok(message.includes('follow-ups')&&message.includes('em aberto'));
  approve=true;setProjectStatus('done');assert.equal(tasks[0].status,'done');assert.equal(tasks[0].recurrence.state,'ended');assert.equal(tasks[0].recurrence.total,0);assert.equal(tasks[1].status,'done');assert.equal(projectList[0].status,'done');
  setProjectStatus('active');assert.equal(tasks[0].recurrence.state,'ended');
+ // Project lists use the same receipt and live date as the global task list.
+ tasks=[{...checkedTask,id:'project-receipt',project:'parent'},{...ordinary,id:'project-ordinary',project:'parent'}];
+ const projectCheck=id=>walk(projectTree().find(n=>n.type==='li'&&n.key===id)).find(n=>n.type==='input'&&n.props.type==='checkbox');
+ assert.equal(projectCheck('project-receipt').props.checked,true);assert.equal(projectCheck('project-receipt').props.disabled,true);
+ assert.equal(projectCheck('project-ordinary').props.checked,false);
+ slots[1]=checkedTask.recurrence.next;
+ assert.equal(projectCheck('project-receipt').props.checked,false);assert.equal(projectCheck('project-receipt').props.disabled,false);
+ tasks[0]={...tasks[0],locked:true};assert.equal(projectCheck('project-receipt').props.disabled,true);
+ tasks[0]={...tasks[0],locked:false,recurrence:{...tasks[0].recurrence,state:'paused'}};assert.equal(projectCheck('project-receipt').props.disabled,true);
  console.log('PASSOU: follow-ups em On hold, recorrência após consulta/calendário fixo, dias da semana, meses/bissexto, idempotência, prazo informativo, histórico, bloqueio, pausa de projetos, filtros e ciclo manual.');
 }finally{Object.assign(React,saved);if(oldWindow===undefined)delete global.window;else global.window=oldWindow;fs.rmSync(folder,{recursive:true,force:true});}

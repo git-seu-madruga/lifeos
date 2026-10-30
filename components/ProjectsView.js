@@ -1,6 +1,7 @@
 "use client";
 import {normalizeAreaName} from "../lib/someday";
-import {followupDue,followupDateInfo} from '../lib/followups';
+import {followupToday,followupDue,followupChecked,followupDateInfo} from '../lib/followups';
+import {useDateRollover} from '../lib/useDateRollover';
 import PageActions from "./PageActions";
 import SharingFields from "./SharingFields";
 import SharedBadge from "./SharedBadge";
@@ -44,6 +45,7 @@ function Bar({ pct }) {
 
 export default function ProjectsView({ user, tasks, setTasks, projects, setProjects, context, sub, selected, onSelect, areas=[], areasConfigured=false, onManageAreas, onLockState }) {
   const [openId, setOpenId] = useState(null);
+  const [today,setToday]=useState(followupToday);useDateRollover(today,setToday);
   const [createdProjectId,setCreatedProjectId]=useState(null);
   useEffect(()=>()=>setProjects(previous=>previous.filter(project=>!project._untouchedDraft)),[setProjects]);
   // A seleção também pode ser fechada pelas abas e filtros externos ao editor.
@@ -159,10 +161,10 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
 
   const renderTask = (t) => (
     <li key={t.id} onClick={e=>{if(!e.target.closest('button,input,a,select'))setOpenId(t.id);}} className={"row" + (t.status === "done" ? " done" : "")}>
-      <input type="checkbox" className="check" checked={t.status === "done"} disabled={!!t.locked||!!t.recurrence&&!followupDue(t)} aria-label={`${t.recurrence?"Acompanhamento feito":"Concluir"}: ${t.title}`}
+      <input type="checkbox" className="check" checked={t.status === "done"||followupChecked(t,today)} disabled={!!t.locked||!!t.recurrence&&!followupDue(t,today)} aria-label={`${t.recurrence?"Acompanhamento feito":"Concluir"}: ${t.title}`} title={followupChecked(t,today)?"Consulta realizada. O check será liberado na próxima data programada.":undefined}
         onChange={() => updateTask(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
       <button className="row-title" onClick={() => setOpenId(t.id)}>{t.title?.trim()||"Sem título"}</button>
-      <span className="row-meta">{t.recurrence&&<><span className="chip">Follow-up</span><span className={"due due-"+followupDateInfo(t).tone}>{followupDateInfo(t).text}</span></>}
+      <span className="row-meta">{t.recurrence&&<><span className="chip">Follow-up</span><span className={"due due-"+followupDateInfo(t,today).tone}>{followupDateInfo(t,today).text}</span></>}
         {t.shared&&<SharedBadge responsible={t.responsible}/>}<span className="chip">{STATUS_LABEL[t.status]}</span>
       </span>
     </li>

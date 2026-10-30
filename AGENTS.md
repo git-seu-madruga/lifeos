@@ -322,3 +322,10 @@ Widget Captura Android 1.0.3 ocupa uma linha horizontal de duas colunas, redimen
 
 - Substituir seletor Tipo por button role=switch aria-checked abaixo de todos os campos principais (incluindo notas/anexos), antes da exclusão. Off por padrão; ao ligar, makeFollowup + hold, preservando campos comuns. Somente a configuração adicional de FollowupFields é revelada abaixo do toggle; não mover status/compartilhamento/datas/projeto para essa seção.
 - Marcar acompanhamento feito mantém recurrence e toggle on. Encerrar mantém identificação/histórico e toggle on; somente desligar explicitamente converte para tarefa comum (recurrence:null), sem resetar status/datas/conteúdo. Confirmar descarte quando houver histórico e sugerir Encerrar para preservá-lo. Respeitar cadeado no disabled e no handler; teclado/foco/aria-controls e prefers-reduced-motion. Visual discreto em azul LifeOS, sem imagem de interface raster.
+
+
+## Check visual do ciclo de follow-up
+
+- Nas listas de Tarefas e do projeto, checkbox marcado = status done OU followupChecked(task,today). O helper deriva a indicação da última consulta do histórico: date <= hoje < recurrence.next e last.next igual à programação atual. Sem histórico, não marcar apenas porque a consulta está no futuro. Reprogramação manual para outra data não herda o check do ciclo anterior.
+- Check permanece azul/desabilitado até a próxima consulta; quando devida fica vazio/habilitado, respeitando pausa e cadeado. Nunca riscar título nem mover para Concluídas por causa dessa indicação. Status, datas, histórico e prevenção de clique repetido continuam pelo fluxo existente.
+- Ambas as telas usam useDateRollover com hoje de Brasília, inclusive ao retornar ao foco e durante a sessão aberta; nenhuma escrita/reset persistido ou consulta de rede para liberar o check. Testar ciclos diário/semanal/fixo/atrasado, reprogramação, pausa/cadeado, tarefa comum e listas de projeto, preservando histórico.
