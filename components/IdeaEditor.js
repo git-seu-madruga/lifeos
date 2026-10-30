@@ -11,7 +11,7 @@ import {prepareIdeaImage} from '../lib/ideaImages';
 const AttachmentContext=createContext([]);
 export const ideaFileUrl=file=>file?.pageId?'/api/notion/attachment?kind='+encodeURIComponent(file.kind||'someday')+'&id='+encodeURIComponent(file.pageId)+'&index='+file.index+'&name='+encodeURIComponent(file.name):file?.notion?.[file.notion.type]?.url||'';
 
-export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onError,label="Anotações da ideia"}){
+export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onError,label="Anotações da ideia",autoFocus=false}){
  const latest=useRef({attachments,onChange,onImage,onBusy,onError});latest.current={attachments,onChange,onImage,onBusy,onError};
  const editorRef=useRef(null),alive=useRef(true),input=useRef(null),jobs=useRef(0),[revision,setRevision]=useState(0);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
@@ -41,6 +41,7 @@ export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onEr
  };
  const editor=useEditor({
   immediatelyRender:false,
+  autofocus:autoFocus?'end':false,
   extensions:[
    StarterKit.configure({heading:{levels:[2,3]},codeBlock:false,code:false,link:{openOnClick:true,protocols:['https'],defaultProtocol:'https',isAllowedUri:url=>!!safeIdeaUrl(url),HTMLAttributes:{target:'_blank',rel:'noopener noreferrer'}},trailingNode:false}),
    Node.create({name:'ideaImage',group:'block',atom:true,draggable:false,addAttributes(){return {attachmentId:{default:''},alt:{default:''}};},parseHTML(){return [{tag:'figure[data-idea-image]'}];},renderHTML({HTMLAttributes}){return ['figure',mergeAttributes(HTMLAttributes,{'data-idea-image':''})];},addNodeView(){return ReactNodeViewRenderer(({node,deleteNode})=>{

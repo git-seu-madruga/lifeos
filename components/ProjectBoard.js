@@ -4,7 +4,7 @@ import SharedBadge from "./SharedBadge";
 import { useState } from "react";
 import { formatDateInput } from "../lib/dateInput";
 
-const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold", done: "Concluída" };
+const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold / Follow-up", done: "Concluída" };
 
 // Colunas = marcos em ordem cronológica. Arraste o cartão para outra coluna (ou use o seletor, que também funciona no celular).
 export default function ProjectBoard({ milestones, tasks, onMove, onOpen }) {
@@ -34,7 +34,7 @@ export default function ProjectBoard({ milestones, tasks, onMove, onOpen }) {
             {items.map((t) => (
               <div key={t.id} className="kcard" onClick={e=>{if(!e.target.closest('button,input,a,select'))onOpen(t.id);}} draggable={!t.locked} onDragStart={(e) => e.dataTransfer.setData("text/plain", t.id)}>
                 <button className="kcard-title" onClick={() => onOpen(t.id)}>{t.title?.trim()||"Sem título"}</button>
-                {t.shared&&<SharedBadge responsible={t.responsible}/>}<span className="chip">{STATUS_LABEL[t.status]}</span>
+                {t.recurrence&&<span className="chip">Follow-up</span>}{t.shared&&<SharedBadge responsible={t.responsible}/>}<span className="chip">{STATUS_LABEL[t.status]}</span>
                 <select disabled={!!t.locked} value={t.milestone || ""} onChange={(e) => onMove(t.id, e.target.value || null)} aria-label={`Mover: ${t.title}`}>
                   <option value="">Sem marco</option>
                   {milestones.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}

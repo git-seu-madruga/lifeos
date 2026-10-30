@@ -19,6 +19,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
 
   const target = INBOX_TARGETS[tabId];
   const item = items.find((i) => i.id === openId);
+  const blockedImages=!!item?.attachments?.length&&target?.kind!=="diary";
 
   useBackLayer(open,()=>setOpen(false),15);
 
@@ -41,7 +42,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
   }
 
   function convert() {
-    if (!item || item.attachments?.length || !target?.kind || onConvert(item, target.kind) === false) return;
+    if (!item || blockedImages || !target?.kind || onConvert(item, target.kind) === false) return;
     setOpenId(null);
   }
 
@@ -94,9 +95,9 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
             </div>
             <InboxImages items={item.attachments||[]} onChange={attachments=>onUpdate(item.id,item.text,attachments)}/>
             {pasteError&&<p className="date-error" role="alert">{pasteError}</p>}
-            {target&&!item.attachments?.length&&<p className="muted small">{tabId === "habitos" ? "Para criar um hábito, use + Novo hábito na tela Hábitos." : target.kind === "someday" ? "Primeira linha: título da ideia. Demais linhas: conteúdo. Escolha a área para concluir a transformação; o contexto pode ser ajustado no editor." : target.kind === "recado" ? "Primeira linha: título do recado. Demais linhas: mensagem. A entrada permanece no Inbox até o envio ser concluído." : target.kind === "shopping" ? "Primeira linha: nome da lista. Separe os itens nas linhas seguintes (Enter no celular ou Shift + Enter no computador)." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>}
+            {target&&!blockedImages&&<p className="muted small">{tabId === "habitos" ? "Para criar um hábito, use + Novo hábito na tela Hábitos." : target.kind === "diary" ? "O texto será acrescentado ao Diário de hoje e as imagens serão incluídas como anexos." : target.kind === "someday" ? "Primeira linha: título da ideia. Demais linhas: conteúdo. Escolha a área para concluir a transformação; o contexto pode ser ajustado no editor." : target.kind === "recado" ? "Primeira linha: título do recado. Demais linhas: mensagem. A entrada permanece no Inbox até o envio ser concluído." : target.kind === "shopping" ? "Primeira linha: nome da lista. Separe os itens nas linhas seguintes (Enter no celular ou Shift + Enter no computador)." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>}
             <div className="inbox-actions">
-              {tabId !== "habitos" && target && <button className="primary" disabled={!target.kind||!!item.attachments?.length} title={item.attachments?.length?"Remova as imagens para transformar esta entrada":undefined} onClick={convert}>
+              {tabId !== "habitos" && target && <button className="primary" disabled={!target.kind||blockedImages} title={blockedImages?"Remova as imagens para transformar esta entrada":undefined} onClick={convert}>
                 Transformar em {target.label}{target.kind ? "" : " (em breve)"}
               </button>}
               <button className="danger" onClick={remove}>Excluir</button>

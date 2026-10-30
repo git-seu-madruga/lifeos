@@ -1,4 +1,6 @@
 "use client";
+import {followupToday,followupDue,followupLabel,followupDateInfo,taskVisibleOutsideProject} from '../lib/followups';
+import {useDateRollover} from '../lib/useDateRollover';
 import PageActions from "./PageActions";
 import SharedBadge from "./SharedBadge";
 import LinkText, {TextLinks} from "./LinkText";
@@ -14,7 +16,7 @@ import TaskDetail from "./TaskDetail";
 const STATUS = [
   { key: "todo", label: "Não iniciadas", tone: "plain" },
   { key: "doing", label: "Em andamento", tone: "blue" },
-  { key: "hold", label: "On hold", tone: "today" },
+  { key: "hold", label: "On hold / Follow-up", tone: "today" },
   { key: "done", label: "Concluídas", tone: "muted" },
 ];
 const ORDER = { todo: 0, doing: 1, hold: 2, done: 3 };
@@ -31,7 +33,8 @@ const SORTERS = {
   title: (a, b) => a.title.localeCompare(b.title, "pt-BR"),
 };
 
-function dateInfo(t) {
+function dateInfo(t,today) {
+  if(t.recurrence)return followupDateInfo(t,today);
   if (t.status === "done") return { text: "Concluída", tone: "muted" };
   if (t.status === "hold") {
     if (!t.followUp) return { text: "Sem cobrança", tone: "muted" };
@@ -49,13 +52,14 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
   const [collapsed, setCollapsed] = useState({ done: true });
   const [openId, setOpenId] = useState(null);
   const [createdId,setCreatedId]=useState(null);
+  const [today,setToday]=useState(followupToday);useDateRollover(today,setToday);
 
   useEffect(()=>()=>setTasks(previous=>previous.filter(task=>!task._untouchedDraft)),[setTasks]);
   function closeTask(){setTasks(previous=>previous.filter(task=>!(task.id===openId&&task._untouchedDraft)));setOpenId(null);setCreatedId(null);}
 
   const byProject = sub === "projeto";
   const pn = (id) => projects.find((p) => p.id === id)?.name || "";
-  const scoped = useMemo(() => tasks.filter((t) => !t._untouchedDraft && (context === "all" || t.context === context)), [tasks, context]);
+  const scoped = useMemo(() => tasks.filter((t) => !t._untouchedDraft && taskVisibleOutsideProject(t,projects) && (context === "all" || t.context === context)), [tasks, context, projects]);
   const update = (id, patch) => setTasks((prev) => prev.map((t) => (t.id === id ? patchTask(t, patch) : t)));
 
   const visibleProjects = projects.filter((p) => context === "all" || p.context === context);
@@ -148,16 +152,17 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
             {!closed && (
               <ul className="rows">
                 {g.items.map((t) => {
-                  const di = dateInfo(t);
+                  const di = dateInfo(t,today);
                   return (
                     <li key={t.id} onClick={e=>{if(!e.target.closest('button,input,a,select'))setOpenId(t.id);}} className={"row" + (isClosed(t) ? " done" : "")}>
-                      <input type="checkbox" className="check" checked={t.status === "done"} disabled={!!t.locked} aria-label={`Concluir: ${t.title}`}
+                      <input type="checkbox" className="check" checked={t.status === "done"} disabled={!!t.locked||!!t.recurrence&&!followupDue(t,today)} aria-label={`${t.recurrence?"Acompanhamento feito":"Concluir"}: ${t.title}`}
                         onChange={() => update(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
                       <button className="row-title" onClick={() => setOpenId(t.id)}>
                         {t.title?.trim() || "Sem título"}
                         {t.status === "hold" && t.waitingOn && <span className="row-project">Aguardando: <LinkText text={t.waitingOn}/></span>}
                       </button>
                       <span className="row-meta">
+                        {t.recurrence&&<span className="chip followup-chip" title={followupLabel(t.recurrence)}>Follow-up</span>}
                         {t.shared&&<SharedBadge responsible={t.responsible}/>}
                         {(t.attachments || []).length > 0 && <span className="muted small" title="Anexos">📎 {t.attachments.length}</span>}
                         {t.project && <button className="proj" onClick={() => onOpenProject(t.project)} title="Abrir projeto">{pn(t.project)}</button>}
