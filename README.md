@@ -1,5 +1,25 @@
 # LifeOS — Guia de configuração e uso
 
+## Follow-ups em On hold / Follow-up
+
+O cadastro de tarefas agora possui **Tipo: Tarefa / Follow-up**. Não há nova aba ou visualização separada: tarefas aguardando algo e acompanhamentos programados ficam juntos em **On hold / Follow-up**, com o mesmo layout de lista e uma identificação discreta nos programados. Follow-ups futuros continuam nesse grupo, com a próxima consulta visível; pausados mostram sua situação. Os encerrados aparecem em Concluídas, preservando as informações.
+
+Configure o intervalo em dias, semanas ou meses, a próxima consulta e uma das regras: **Após a consulta realizada** conta a partir do dia em que você marcou como feito; **Calendário fixo** mantém o ciclo original, permite dias da semana para a repetição semanal e preserva o dia do mês (ajustando ao último dia quando necessário). Uma consulta atrasada é uma única pendência, sem acumular cópias. Ao marcar **Acompanhamento feito**, a tarefa permanece On hold, registra data/observação opcional e calcula a próxima consulta. O histórico mostra as últimas 200 consultas e mantém o total registrado. O checkbox da lista executa a mesma ação, sem exigir observação.
+
+O ícone de Tarefas fica dourado quando há follow-up ativo para hoje ou atrasado. É um aviso dentro do app; não consulta sites automaticamente nem envia notificação com o app fechado. Prazos são informativos e nunca encerram a recorrência. Pausar o acompanhamento suspende o aviso; retomar preserva sua data. Encerrar acompanhamento é uma ação manual com confirmação.
+
+Follow-ups podem pertencer a projetos e marcos e seguem as regras de compartilhamento e cadeado das demais tarefas. **Concluir ou cancelar um projeto** pede confirmação sobre os itens abertos, conclui suas tarefas/marcos e encerra seus follow-ups, interrompendo as repetições e preservando o histórico. Excluir o projeto, após confirmação, também exclui seus follow-ups. Reabrir o projeto não reabre automaticamente tarefas ou acompanhamentos encerrados. Tarefas bloqueadas precisam ser desbloqueadas antes das ações que já exigiam isso.
+
+**Projetos pausados:** suas tarefas e follow-ups ficam ocultos da lista, contagens e busca de Tarefas, acessíveis apenas dentro do projeto. Também não acendem o aviso de follow-up. Retornar o projeto para Ativo faz os itens reaparecerem com as mesmas datas/status; o tempo continua correndo, de modo que consultas vencidas reaparecem atrasadas. Pausar o projeto não altera a programação de cada tarefa.
+
+O campo Texto **Recorrência** é criado automaticamente no banco Tarefas existente, sem novo banco, variável, reimportação ou APK. A opção do Notion **On hold** continua com seu valor anterior; somente os rótulos do app passam a On hold / Follow-up. Tarefas antigas e cobranças On hold comuns mantêm suas datas e comportamento. Backup/restauração e rascunhos cifrados preservam a programação e o histórico. Use somente este ZIP cumulativo mais recente no seu próximo deploy.
+
+## Bloquear manualmente a sessão temporária
+
+No menu da conta, **Bloquear sessão** aparece para o navegador autorizado por QR Code. O botão fecha o menu e aplica imediatamente a mesma tela de bloqueio por inatividade. Use o código vigente de seis dígitos para desbloquear: não é criado outro código e o prazo total de uma hora continua contando desde a autorização original. Bloquear/desbloquear não prolonga esse prazo. Se já expirou ou foi revogada, permanece o fluxo normal de login e autorização de uma nova sessão.
+
+Edições pendentes permanecem em memória durante o bloqueio e retomam o fluxo normal após desbloquear, sem gravar rascunhos privados em sessões QR. O botão não se aplica ao login Google permanente, que não possui esse código. Não exige alteração de Notion, variável ou APK. Alteração preparada para publicação posterior; nenhum deploy é executado por este pacote.
+
 ## Distância percorrida entre abastecimentos
 
 A tabela de abastecimentos mostra **Distância percorrida**, em km, ao lado da quilometragem do hodômetro. É a diferença entre o abastecimento da linha e o abastecimento anterior registrado daquele veículo, em ordem cronológica, incluindo abastecimentos parciais. O primeiro aparece como — por não ter uma referência anterior. Distância zero aparece como 0 km. Ordenar a tabela ou mostrar só cinco linhas não altera a referência, calculada pelo histórico completo. Editar/excluir/inserir abastecimentos recalcula as distâncias automaticamente.
@@ -51,6 +71,22 @@ Se um grupo falhar, ele exibe Tentar novamente, enquanto as demais áreas contin
 
 O botão Atualizar mantém a atualização completa com proteção das edições. O ganho desta mudança é disponibilizar o Inbox e as primeiras áreas mais cedo; o tempo total depende do volume de dados e do Notion. Não adiciona banco, variável ou atualização de APK. Este pacote cumulativo inclui Referência Geral, busca no Diário e todas as melhorias anteriores; mantenha a configuração do banco de Referência Geral indicada abaixo se ainda não a fez.
 
+
+## Inbox com imagens para o Diário
+
+Na aba Diário, Transformar em Diário aceita texto com imagens ou só imagens do Inbox. Acrescenta o texto à entrada de hoje e inclui todas as imagens como anexos, preservando o documento rico e os arquivos que já existiam. Havendo uma entrada hoje, mantém a confirmação antes de reabrir para edição. A imagem transferida não é inserida automaticamente dentro do texto.
+
+A alteração local é única; o servidor vincula os anexos ao Diário antes de arquivar a origem. Falhas deixam a operação pendente para retentativa, sem repetir texto/anexos. Imagens ainda não enviadas permanecem no rascunho cifrado das sessões Google; sessões QR continuam apenas em memória. Aguarde Salvo no Notion antes de fechar o app.
+
+As outras conversões continuam bloqueadas quando o Inbox contém imagens. Não exige novo campo, banco, variável, APK ou reimportação além da configuração do editor do Diário já descrita neste pacote. Sem deploy automático.
+
+## Editor completo no Diário
+
+O Diário usa o mesmo editor de Algum dia e Referência Geral: negrito, itálico, títulos, listas, imagens no texto por copiar/colar ou pelo botão Imagem, e cards de links HTTPS colados ou inseridos pelo botão Link. Imagens são redimensionadas e salvas como anexos privados no Notion; os cards usam a mesma prévia segura das novas áreas. Em leitura, clicar na imagem abre o arquivo completo.
+
+Entradas antigas mantêm seu conteúdo e formatação simples; são convertidas para o editor rico apenas ao editar. A busca continua local em todas as datas, com trechos do texto e dos links. Ao reabrir uma entrada existente, ela permanece bloqueada até tocar em Editar entrada, inclusive se houver apenas anexos. Excluir um anexo também retira suas imagens do texto. Aguarde o envio de imagens antes de concluir ou trocar de data.
+
+O campo Texto **Documento** é acrescentado automaticamente ao banco Diário existente para guardar o documento rico; Conteúdo mantém a versão de texto para consulta. Não exige novo banco, variável, reimportação ou atualização do APK. O backup preserva Documento e as imagens anexadas; miniaturas remotas de links continuam referências externas. Este pacote acumula as mudanças anteriores e não foi publicado.
 
 ## Busca por conteúdo no Diário
 
@@ -285,7 +321,7 @@ As datas usam **DD/MM/AAAA**, com barras automáticas e calendário alternativo.
 
 ### Inbox
 
-O mesmo campo aceita colar imagens binárias (Ctrl+V/copiar e colar), na nova entrada ou em uma já aberta, junto de texto simples. Não há editor rico, botão de arquivo ou aviso fixo. PNG/JPG/WebP/GIF, até 4 MB por imagem. A miniatura abre a imagem completa; × remove a imagem. Pode adicionar uma entrada só com imagem. Enquanto houver imagens, Transformar fica desabilitado para todos os destinos; remover todas libera novamente. Imagens permanecem no Notion até remover/excluir a entrada, sujeito à lixeira e retenção do serviço, sem promessa de apagamento físico imediato.
+O mesmo campo aceita colar imagens binárias (Ctrl+V/copiar e colar), na nova entrada ou em uma já aberta, junto de texto simples. Não há editor rico, botão de arquivo ou aviso fixo. PNG/JPG/WebP/GIF, até 4 MB por imagem. A miniatura abre a imagem completa; × remove a imagem. Pode adicionar uma entrada só com imagem. Entradas com imagens podem ser transformadas em Diário: texto vai para a entrada de hoje, imagens vão como anexos. Para os demais destinos, Transformar fica desabilitado enquanto houver imagens; remover todas libera novamente. Imagens permanecem no Notion até remover/excluir a entrada, sujeito à lixeira e retenção do serviço, sem promessa de apagamento físico imediato.
 
 O campo **Anexos** (Arquivos e mídia) do banco Inbox será criado automaticamente. **Nome** e **Conteúdo** continuam iguais, sem texto especial ou alteração de formato. Não exige variável, novo banco ou APK. O APK Captura 1.0.4 também aceita uma imagem colada; instale a atualização separadamente. Rascunhos pendentes das imagens adicionadas são cifrados nas sessões permanentes e retomáveis após falha; sessões QR não persistem rascunhos privados.
 
@@ -294,7 +330,7 @@ No desktop, fica à esquerda; no celular, pode ser aberto/recolhido. O campo cre
 | Destino | Texto da entrada |
 | --- | --- |
 | Projeto ou tarefa | Primeira linha: título; demais: descrição/anotações |
-| Diário | Texto inteiro acrescentado em hoje; se já houver entrada, pede confirmação e reabre para edição |
+| Diário | Texto inteiro acrescentado em hoje e imagens como anexos; se já houver entrada, pede confirmação e reabre para edição |
 | Aniversários | Primeira linha: nome; segunda: DD/MM ou DD/MM/AAAA |
 | Compras | Primeira linha: nome da lista; demais: um item por linha |
 | Recados | Primeira linha: título; demais: mensagem de hoje |
@@ -313,7 +349,7 @@ Tarefas têm Não iniciada, Em andamento, On hold e Concluída, prioridade, data
 
 ### Diário
 
-Uma entrada por dia e usuário. Navegue pelo calendário, setas ou campo de data. Selecionar uma data no campo/calendário abre aquele dia. Entradas existentes são abertas para leitura: use Editar para desbloquear. Ao sair ou trocar o dia, voltam a ficar bloqueadas. Texto aceita múltiplas linhas e formatação simples; pode incluir anexos. Apagar todo o texto sem manter anexos faz o dia voltar ao estado vazio, sem marcador. Uma entrada com anexos ainda tem conteúdo.
+Uma entrada por dia e usuário. Navegue pelo calendário, setas ou campo de data. Selecionar uma data no campo/calendário abre aquele dia. Entradas existentes são abertas para leitura: use Editar para desbloquear. Ao sair ou trocar o dia, voltam a ficar bloqueadas. O editor aceita rich text, imagens no texto por copiar/colar, cards de links HTTPS e anexos, como Algum dia e Referência Geral. Apagar todo o texto sem manter anexos faz o dia voltar ao estado vazio, sem marcador. Uma entrada com anexos ainda tem conteúdo.
 
 ### Finanças
 
@@ -454,8 +490,9 @@ Use o ID do banco de dados antes de ?v=; o valor v é a visualização. Textos d
 | --- | --- | --- |
 | Nome | Título |  |
 | Data | Data |  |
-| Conteúdo | Texto |  |
-| Anexos | Arquivos e mídia |  |
+| Conteúdo | Texto | Versão em texto para consulta |
+| Documento | Texto | JSON do editor, criado automaticamente |
+| Anexos | Arquivos e mídia | Imagens e arquivos da entrada |
 
 #### Importar o histórico do carro
 
@@ -600,7 +637,7 @@ Baixe **modelo-despesas-lifeos.csv** no importador selecionando o tipo Manutenç
 
 O app acrescenta propriedades técnicas: **LifeOS ID**, **LifeOS Usuário** nas áreas privadas, **LifeOS Último editor** e **LifeOS Editado em** nas compartilhadas. Não altere esses campos. Ano, Plataformas e Concluído em de Entretenimento, Encerrado de Hábitos e Observação financeira podem ser acrescentados automaticamente quando ausentes. Compartilhado de Projetos, Marcos e Tarefas e Responsável de Tarefas também são acrescentados automaticamente. Os outros campos de negócio devem ter os nomes/tipos acima.
 
-Registros privados criados diretamente no Notion sem LifeOS Usuário pertencem à conta principal. Para a segunda conta, prefira criar pelo aplicativo. Em Inbox, preencha Conteúdo: Nome é apenas o título resumido. Em Diário, preencha Data e Conteúdo, evitando duplicar um dia do mesmo usuário. Aniversários usa números separados para admitir ano desconhecido.
+Registros privados criados diretamente no Notion sem LifeOS Usuário pertencem à conta principal. Para a segunda conta, prefira criar pelo aplicativo. Em Inbox, preencha Conteúdo: Nome é apenas o título resumido. Em Diário, preencha Data e Conteúdo para entradas simples, evitando duplicar um dia do mesmo usuário. Entradas com Documento devem ser editadas pelo app para preservar a formatação e as imagens. Aniversários usa números separados para admitir ano desconhecido.
 
 ## Algum dia — configuração e uso
 
@@ -1024,7 +1061,7 @@ Os testes do servidor usam serviços simulados e scripts Redis Lua reais em VM: 
 
 ### Atualização 1.0.5 — Compartilhar com LifeOS Captura
 
-O **LifeOS Captura** aparece na folha de compartilhamento do Android para links/texto simples e uma imagem por captura. No navegador, galeria ou outro app, use **Compartilhar → LifeOS Captura**. A mesma janela compacta do widget abre para revisar, acrescentar texto e confirmar em **Enviar ao Inbox**. Receber um compartilhamento não envia nada automaticamente. Imagens preservam miniatura, ampliação, remoção, limites e fila cifrada da versão 1.0.4; no LifeOS, a conversão para outras abas continua bloqueada enquanto houver imagem. Links/textos preservam as conversões existentes.
+O **LifeOS Captura** aparece na folha de compartilhamento do Android para links/texto simples e uma imagem por captura. No navegador, galeria ou outro app, use **Compartilhar → LifeOS Captura**. A mesma janela compacta do widget abre para revisar, acrescentar texto e confirmar em **Enviar ao Inbox**. Receber um compartilhamento não envia nada automaticamente. Imagens preservam miniatura, ampliação, remoção, limites e fila cifrada da versão 1.0.4; no LifeOS, entradas com imagem podem ir para o Diário como anexos; os demais destinos permanecem bloqueados. Links/textos preservam as conversões existentes.
 
 Títulos fornecidos pelo aplicativo de origem entram antes do texto/link, sem duplicar um título já presente. Texto vem sem formatação. Se existir rascunho, o Captura pede para acrescentar ao conteúdo atual; cancelar o mantém. Se o rascunho já tiver imagem, compartilhar outra não a substitui: envie/remova a atual e compartilhe novamente. Compartilhamentos vazios, arquivos de outros tipos, URLs de imagem sem arquivo e múltiplas imagens são recusados. Não há permissão ampla de galeria, envio automático ou acesso remoto ao conteúdo da origem.
 
@@ -1038,7 +1075,7 @@ Publique primeiro o pacote cumulativo do site e depois instale **LifeOS-Captura-
 
 Abra a captura pelo widget, copie uma imagem em outro aplicativo e use **Colar** ao manter o campo pressionado ou a imagem oferecida pela área de transferência do teclado. O teclado/aplicativo de origem precisa fornecer a imagem, não apenas seu endereço ou texto. Funciona também na tela principal do Captura. Continua sendo texto simples, sem botão de arquivos ou formatação especial. Uma imagem por captura, com miniatura, ampliação e × para remover. Pode haver só imagem ou texto junto. Remova a imagem atual antes de colar outra.
 
-A imagem é copiada imediatamente para o rascunho privado e criptografada junto da fila antes da confirmação local. O envio usa o mesmo proprietário, ID estável e confirmação do servidor; falhas não removem a captura do aparelho nem geram outra página automaticamente. No LifeOS, a imagem aparece no Inbox normal e impede a transformação para outras abas enquanto estiver anexada. O widget na tela inicial continua sem expor conteúdo, apenas seu indicador de pendência.
+A imagem é copiada imediatamente para o rascunho privado e criptografada junto da fila antes da confirmação local. O envio usa o mesmo proprietário, ID estável e confirmação do servidor; falhas não removem a captura do aparelho nem geram outra página automaticamente. No LifeOS, a imagem aparece no Inbox normal e pode ser levada ao Diário como anexo; as demais conversões permanecem bloqueadas enquanto estiver anexada. O widget na tela inicial continua sem expor conteúdo, apenas seu indicador de pendência.
 
 Imagens são normalizadas para PNG/JPEG, até 1600 pixels no maior lado e 512 KB no envio, reduzindo mais quando necessário para caber com segurança na fila cifrada. A leitura inicial aceita até 8 MB/40 megapixels; imagens maiores exibem erro sem apagar texto ou imagem anterior. Não é um recurso de arquivamento da imagem original em resolução integral. **Copiar pendentes copia somente texto**, com uma indicação quando a captura contém imagem; os bytes continuam na fila até confirmação. Não limpe dados nem desinstale com pendências.
 

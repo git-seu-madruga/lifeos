@@ -37,7 +37,7 @@ try{
   const show=()=>{index=0;return Inbox({items:[current],tabId:tab,onConvert(){count++;},onUpdate(id,text,attachments){current={...current,text,attachments};}});};
   let view=show();walk(view,n=>n.props?.className==='inbox-item').props.onClick();view=show();
   const button=walk(view,n=>n.type==='button'&&Array.isArray(n.props.children)&&n.props.children[0]==='Transformar em ');
-  if(button){assert.equal(button.props.disabled,true);button.props.onClick();assert.equal(count,0);}
+  if(button){assert.equal(button.props.disabled,tab!=='diario');button.props.onClick();assert.equal(count,tab==='diario'?1:0);}
   const images=walk(view,n=>n.type?.name==='InboxImages'&&n.props.items===current.attachments);images.props.onChange([]);view=show();
   const unlocked=walk(view,n=>n.type==='button'&&Array.isArray(n.props.children)&&n.props.children[0]==='Transformar em ');if(unlocked&&unlocked.props.title===undefined)assert.equal(unlocked.props.disabled,!require(path.join(folder,'lib/nav')).INBOX_TARGETS[tab]?.kind);
  }

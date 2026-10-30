@@ -179,7 +179,30 @@ global.fetch=async(url,options={})=>{
  const competing={...state,diary:[{id:'different-id',date:'2026-10-04',text:'Outra',attachments:[]}]};await assert.rejects(()=>synchronize(state,competing),/Já existe/);
  const changedDiary=structuredClone(state);changedDiary.diary[0].text='Texto editado';await synchronize(state,changedDiary);
  ({state}=await notionLib.readSnapshot());assert.equal(state.diary[0].text,'Texto editado');
- const emptyDiary=structuredClone(state);emptyDiary.diary[0].attachments=[];await synchronize(state,emptyDiary);
+ // Rich diary persists structured formatting independently of its searchable plain text.
+ const richDiary=structuredClone(state),richEntry=richDiary.diary[0];
+ richEntry.doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Dia especial',marks:[{type:'bold'}]}]},{type:'ideaImage',attrs:{attachmentId:richEntry.attachments[0].name,alt:'Recordação'}},{type:'ideaBookmark',attrs:{id:'diary-link',url:'https://example.com/consulta',title:'Consulta',description:'Descrição',image:''}}]};
+ richEntry.text=require(path.join(temp,'lib/diary')).diaryText(richEntry);
+ await synchronize(state,richDiary);({state}=await notionLib.readSnapshot());assert.deepEqual(state.diary[0].doc,richEntry.doc);assert.equal(state.diary[0].text,richEntry.text);assert.ok(state.diary[0].attachments[0].pageId);assert.equal(state.diary[0].attachments[0].kind,'diary');
+ const replayRich=structuredClone(richDiary);await synchronize(richDiary,replayRich);
+ const badRich=structuredClone(state);badRich.diary[0].doc.content[1].attrs.attachmentId='missing.webp';await assert.rejects(()=>synchronize(state,badRich),/sem anexo/);
+ const staleRich=structuredClone(state),newRich=structuredClone(state);newRich.diary[0].doc.content[0].content[0].marks=[{type:'italic'}];await synchronize(state,newRich);
+ const competingRich=structuredClone(staleRich);competingRich.diary[0].doc.content[0].content[0].marks=[{type:'strike'}];await assert.rejects(()=>synchronize(staleRich,competingRich),e=>e.status===409);
+ ({state}=await notionLib.readSnapshot());
+ const {moveInboxToDiary}=require(path.join(temp,'lib/diary'));
+ const inboxWithImage={...state,inbox:[...state.inbox,{id:'inbox-diary-image',text:'Texto e imagem do Inbox',attachments:[{id:'inbox-diary-attachment',...uploaded,name:'inbox-12345678-1234-1234-1234-123456789abc.png'}]}]};
+ await synchronize(state,inboxWithImage);const imageSource=(await notionLib.readSnapshot()).state;
+ const sourceImage=imageSource.inbox.find(i=>i.text==='Texto e imagem do Inbox');sourceImage.attachments[0].notion.file.url+='&expired=1';
+ const imageMoved=moveInboxToDiary(imageSource,sourceImage.id,'2026-10-04');failInboxArchive=true;
+ await assert.rejects(()=>synchronize(imageSource,imageMoved),/Falha simulada/);
+ let recoveredImages=(await notionLib.readSnapshot()).state;assert.ok(recoveredImages.inbox.some(i=>i.id===sourceImage.id));assert.equal(recoveredImages.diary[0].attachments.length,2,'Destino salvo antes de arquivar origem');
+ const createdBeforeRetry=creates;await synchronize(imageSource,imageMoved);assert.equal(creates,createdBeforeRetry);({state}=await notionLib.readSnapshot());assert.ok(!state.inbox.some(i=>i.id===sourceImage.id));assert.equal(state.diary[0].attachments.length,2);assert.ok(state.diary[0].attachments.every(a=>a.kind==='diary'&&a.pageId===state.diary[0].id));assert.ok(state.diary[0].text.endsWith('Texto e imagem do Inbox'));
+ // A new, image-only day also receives the image as an attachment, without an inline node.
+ await synchronize(state,{...state,inbox:[{id:'inbox-only-image',text:'',attachments:[{id:'image-only-file',...uploaded,name:'inbox-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.png'}]}]});
+ const onlyImageBase=(await notionLib.readSnapshot()).state,onlyImageMove=moveInboxToDiary(onlyImageBase,onlyImageBase.inbox[0].id,'2026-10-05');await synchronize(onlyImageBase,onlyImageMove);({state}=await notionLib.readSnapshot());assert.equal(state.diary.find(i=>i.date==='2026-10-05').attachments.length,1);assert.equal(state.diary.find(i=>i.date==='2026-10-05').text,'');
+ // Keep subsequent fixture assertions scoped to the original day.
+ const clearOnlyImage={...state,diary:state.diary.filter(i=>i.date==='2026-10-04')};await synchronize(state,clearOnlyImage);({state}=await notionLib.readSnapshot());
+ const emptyDiary=structuredClone(state);emptyDiary.diary[0]=require(path.join(temp,'lib/diary')).removeDiaryAttachments(emptyDiary.diary[0],[]);await synchronize(state,emptyDiary);
  ({state}=await notionLib.readSnapshot());assert.equal(state.diary[0].attachments.length,0);
  delete process.env.NOTION_DIARY_DATABASE_ID;
  const withoutDiary=(await notionLib.readSnapshot()).state;assert.equal(withoutDiary.diaryConfigured,false);assert.deepEqual(withoutDiary.diary,[]);
@@ -623,6 +646,43 @@ global.fetch=async(url,options={})=>{
   const bad={...entry,id:'inbox-wrong-format',attachments:[{...entry.attachments[0],name:'document.pdf'}]};await assert.rejects(()=>save(state,{...state,inbox:[...state.inbox,bad]}),/Imagem do Inbox inválida/);
   const changed=structuredClone(state);changed.inbox=changed.inbox.map(i=>i.id===loaded.id?{...i,attachments:[]}:i);const row=rows.get(loaded.id),original=structuredClone(row.properties.Anexos);row.properties.Anexos={type:'files',files:[{name:'inbox-bbbbbbbb.png',type:'external',external:{url:'https://files.notion.test/replacement.png'}}]};await assert.rejects(()=>save(state,changed),e=>e.status===409);row.properties.Anexos=original;
   await save(state,{...state,inbox:state.inbox.filter(i=>i.id!==loaded.id)});state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.inbox.some(i=>i.id===loaded.id),false);assert.equal(rows.get(loaded.id).in_trash,true);assert.equal((await get(new Request(url,{headers:{cookie:cookieA}}))).status,404);
+ }
+
+ {
+  // Follow-ups share task authorization/locks and preserve recurrence through sync.
+  const A={id:'google:user-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:user-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+  const {compactSyncState}=require(path.join(temp,'lib/notionDiff')),{makeFollowup,completeFollowup,followupToday}=require(path.join(temp,'lib/followups'));
+  const save=async(base,next,user=A)=>{const delta=compactSyncState(base,next);return synchronize(delta.base,delta.next,user,async()=>{},true);};
+  let state=(await notionLib.readSnapshot(false,A)).state;
+  assert.equal(sources.tasks.properties['Recorrência'].type,'rich_text');
+  const template={title:'Follow-up de concurso',status:'hold',priority:'medium',context:'personal',project:null,milestone:null,start:null,due:'2020-01-01',waitingOn:'',followUp:null,notes:'https://example.com',completedAt:null,attachments:[],shared:true,responsible:A.email,locked:false,recurrence:makeFollowup(followupToday())};
+  await save(state,{...state,tasks:[...state.tasks,{...template,id:'recurring-test'}]});
+  state=(await notionLib.readSnapshot(false,A)).state;let loaded=state.tasks.find(t=>t.title===template.title);assert.deepEqual(loaded.recurrence,template.recurrence);assert.equal(loaded.status,'hold');
+  const readB=(await notionLib.readSnapshot(false,B)).state;assert.ok(readB.tasks.some(t=>t.id===loaded.id),'Shared follow-up visible to both users');
+  const completed=completeFollowup(loaded,'Sem novas publicações'),desired={...state,tasks:state.tasks.map(t=>t.id===loaded.id?completed:t)};
+  const createdBefore=creates;await save(state,desired);await save(state,desired);assert.equal(creates,createdBefore);let fresh=(await notionLib.readSnapshot(false,A)).state;assert.equal(fresh.tasks.find(t=>t.id===loaded.id).recurrence.total,1);assert.equal(fresh.tasks.find(t=>t.id===loaded.id).status,'hold');assert.equal(fresh.tasks.find(t=>t.id===loaded.id).due,'2020-01-01');
+  const competing=completeFollowup(loaded,'Outra consulta');await assert.rejects(()=>save(state,{...state,tasks:state.tasks.map(t=>t.id===loaded.id?competing:t)}),e=>e.status===409);
+  // An older client cannot set done without explicitly ending the persisted rule.
+  const oldClient=structuredClone(fresh);oldClient.tasks=oldClient.tasks.map(t=>{const {recurrence,...rest}=t;return t.id===loaded.id?rest:t;});
+  await assert.rejects(()=>save(oldClient,{...oldClient,tasks:oldClient.tasks.map(t=>t.id===loaded.id?{...t,status:'done',completedAt:Date.now()}:t)}),/manualmente|On hold/);
+  let b=(await notionLib.readSnapshot(false,B)).state;await save(b,{...b,tasks:b.tasks.map(t=>t.id===loaded.id?{...t,locked:true}:t)},B);
+  await assert.rejects(()=>save(fresh,{...fresh,tasks:fresh.tasks.map(t=>t.id===loaded.id?{...t,recurrence:{...t.recurrence,every:3}}:t)}),/bloqueada/);
+  b=(await notionLib.readSnapshot(false,B)).state;await save(b,{...b,tasks:b.tasks.map(t=>t.id===loaded.id?{...t,locked:false}:t)},B);
+  for(const finalStatus of ['done','cancelled']){
+   state=(await notionLib.readSnapshot(false,A)).state;
+   const parent={id:'followup-parent-'+finalStatus,name:'Projeto follow-up '+finalStatus,status:'active',context:'personal',area:'',due:null,description:'',attachments:[],milestones:[],shared:true};
+   await save(state,{...state,projects:[...state.projects,parent],tasks:[...state.tasks,{...template,id:'followup-child-'+finalStatus,title:'Filha '+finalStatus,project:parent.id}]});
+   const stale=(await notionLib.readSnapshot(false,A)).state,project=stale.projects.find(p=>p.name===parent.name),child=stale.tasks.find(t=>t.title==='Filha '+finalStatus);
+   const closing={...stale,projects:stale.projects.map(p=>p.id===project.id?{...p,status:finalStatus}:p)};
+   // Include a fresh remote child omitted by the caller, as in real partial sync.
+   const remoteExtra={...template,id:'late-followup-'+finalStatus,title:'Remota '+finalStatus,project:project.id};await save(stale,{...stale,tasks:[...stale.tasks,remoteExtra]});
+   failCompletionProjectWrite=true;await assert.rejects(()=>save(stale,closing),/Falha simulada/);
+   const partial=(await notionLib.readSnapshot(false,A)).state;assert.equal(partial.tasks.find(t=>t.id===child.id).recurrence.state,'ended');const completion=partial.tasks.find(t=>t.id===child.id).completedAt;
+   await save(stale,closing);const finished=(await notionLib.readSnapshot(false,A)).state;
+   assert.equal(finished.projects.find(p=>p.id===project.id).status,finalStatus);assert.ok(finished.tasks.filter(t=>t.project===project.id).every(t=>t.status==='done'&&t.recurrence.state==='ended'));assert.equal(finished.tasks.find(t=>t.id===child.id).completedAt,completion);
+   const reopened={...finished,projects:finished.projects.map(p=>p.id===project.id?{...p,status:'active'}:p)};await save(finished,reopened);assert.equal((await notionLib.readSnapshot(false,A)).state.tasks.find(t=>t.id===child.id).recurrence.state,'ended','Reopening project never resumes follow-ups');
+   const beforeDelete=(await notionLib.readSnapshot(false,A)).state;await save(beforeDelete,{...beforeDelete,projects:beforeDelete.projects.filter(p=>p.id!==project.id),tasks:beforeDelete.tasks.filter(t=>t.project!==project.id)});assert.ok(!(await notionLib.readSnapshot(false,A)).state.tasks.some(t=>t.project===project.id));
+  }
  }
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão de projeto com tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');
  fs.rmSync(temp,{recursive:true});

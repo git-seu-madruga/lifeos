@@ -3,7 +3,7 @@ const swc=require('next/dist/build/swc'),React=require('react'),{renderToStaticM
 const folder=path.resolve('.diary-test');
 for(const dir of ['lib','components']){fs.mkdirSync(path.join(folder,dir),{recursive:true});for(const name of fs.readdirSync(dir)){if(!name.endsWith('.js'))continue;const source=fs.readFileSync(path.join(dir,name),'utf8');fs.writeFileSync(path.join(folder,dir,name),swc.transformSync(source,{filename:name,jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'automatic'}},target:'es2022'},module:{type:'commonjs'}}).code);}}
 try {
- const {calendarDays,dateKey,moveTab,normalizeTabOrder,appendInboxToDiary,hasDiaryText,updateDiaryEntry,searchDiaryEntries}=require(path.join(folder,'lib/diary'));
+ const {calendarDays,dateKey,moveTab,normalizeTabOrder,appendInboxToDiary,hasDiaryText,updateDiaryEntry,searchDiaryEntries,diaryDoc,diaryText,validateDiary,removeDiaryAttachments,hasDiaryEntry,moveInboxToDiary}=require(path.join(folder,'lib/diary'));
  const feb=calendarDays(2024,1);assert.equal(feb.length,42);assert.equal(feb.filter(day=>!day.outside).length,29);assert.equal(feb[0].date,'2024-01-28');assert.equal(new Set(feb.map(day=>day.date)).size,42);
  assert.equal(calendarDays(2025,1).filter(day=>!day.outside).length,28);assert.ok(calendarDays(2026,11).some(day=>day.date.startsWith('2027')));
  const order=['projetos','tarefas','diario','financas'];assert.deepEqual(moveTab(order,'diario','projetos'),['diario','projetos','tarefas','financas']);assert.deepEqual(moveTab(order,'projetos','financas'),['tarefas','diario','financas','projetos']);assert.deepEqual(normalizeTabOrder(['diario','diario','unknown'],order),['diario','projetos','tarefas','financas']);
@@ -11,14 +11,27 @@ try {
  const entry={id:'d',date:'2026-10-04',text:'## Título\n**Negrito** e *itálico*\n- Um\n- Dois\n<script>alert(1)</script>',attachments:[]};
  const readonly=renderToStaticMarkup(React.createElement(DiaryEntry,{date:entry.date,entry,onChange(){},onClose(){}}));
  assert.match(readonly,/Editar entrada/);assert.doesNotMatch(readonly,/<textarea|type="file"|Excluir anexo/);assert.match(readonly,/<strong>Negrito<\/strong>/);assert.match(readonly,/<em>itálico<\/em>/);assert.match(readonly,/<ul><li>Um<\/li><li>Dois<\/li><\/ul>/);assert.doesNotMatch(readonly,/<script>/);assert.match(readonly,/&lt;script&gt;/);
- const reopened=renderToStaticMarkup(React.createElement(DiaryEntry,{date:entry.date,entry,initialEditing:true,onChange(){},onClose(){}}));assert.match(reopened,/<textarea/);assert.match(reopened,/Concluir edição/);
+ const reopened=renderToStaticMarkup(React.createElement(DiaryEntry,{date:entry.date,entry,initialEditing:true,onChange(){},onClose(){}}));assert.match(reopened,/Abrindo editor/);assert.match(reopened,/Concluir edição/);
  const added=appendInboxToDiary([entry],{text:'Texto do Inbox\nOutra linha'},entry.date);assert.equal(added.entries.length,1);assert.equal(added.entry.text,entry.text+'\nTexto do Inbox\nOutra linha');assert.equal(added.entry.attachments,entry.attachments);assert.equal(entry.text.includes('Texto do Inbox'),false);
  const fresh=appendInboxToDiary([],{text:'Anotação completa'},'2026-10-05');assert.equal(fresh.entry.date,'2026-10-05');assert.equal(fresh.entry.text,'Anotação completa');assert.throws(()=>appendInboxToDiary([{...entry,text:'x'.repeat(10000)}],{text:'Mais'},entry.date),/continua no Inbox/);
- const empty=renderToStaticMarkup(React.createElement(DiaryEntry,{date:entry.date,onChange(){},onClose(){}}));assert.match(empty,/<textarea/);assert.match(empty,/type="file"/);assert.match(empty,/Concluir edição/);
+ const empty=renderToStaticMarkup(React.createElement(DiaryEntry,{date:entry.date,onChange(){},onClose(){}}));assert.match(empty,/Abrindo editor/);assert.match(empty,/type="file"/);assert.match(empty,/Concluir edição/);
  const erased={...entry,text:' '+String.fromCharCode(10)+' '};
  assert.equal(hasDiaryText(erased),false);assert.deepEqual(updateDiaryEntry([entry],erased),[]);
- const erasedHtml=renderToStaticMarkup(React.createElement(DiaryEntry,{date:entry.date,entry:erased,onChange(){},onClose(){}}));assert.match(erasedHtml,/<textarea/);assert.doesNotMatch(erasedHtml,/Editar entrada/);
+ const erasedHtml=renderToStaticMarkup(React.createElement(DiaryEntry,{date:entry.date,entry:erased,onChange(){},onClose(){}}));assert.match(erasedHtml,/Abrindo editor/);assert.doesNotMatch(erasedHtml,/Editar entrada/);
  const withFile={...erased,attachments:[{id:'a',name:'ref.txt'}]};assert.equal(updateDiaryEntry([entry],withFile)[0].attachments.length,1);assert.equal(hasDiaryText(withFile),false);
+ const legacy=diaryDoc(entry);assert.equal(legacy.content[0].type,'heading');assert.equal(legacy.content[1].content[0].marks[0].type,'bold');assert.equal(legacy.content[2].type,'bulletList');assert.equal(entry.doc,undefined,'Abrir não migra entradas antigas');
+ const image={id:'image',name:'pasted.webp',pageId:'12345678-1234-1234-1234-123456789abc',index:0,kind:'diary',notion:{type:'file',file:{url:'https://files.test/image'}}};
+ const doc={type:'doc',content:[{type:'heading',attrs:{level:2},content:[{type:'text',text:'Viagem',marks:[{type:'bold'}]}]},{type:'paragraph',content:[{type:'text',text:'Café em família'}]},{type:'ideaImage',attrs:{attachmentId:image.name,alt:'Imagem colada'}},{type:'ideaBookmark',attrs:{id:'link',url:'https://example.com/roteiro',title:'Roteiro',description:'Texto de consulta',image:''}}]};
+ const rich={...entry,doc,text:diaryText({doc}),attachments:[image]};assert.equal(validateDiary(rich),'');assert.ok(hasDiaryEntry(rich));assert.equal(searchDiaryEntries([rich],'cafe')[0].entry,rich);assert.equal(searchDiaryEntries([rich],'roteiro').length,1);
+ assert.match(validateDiary({...rich,text:'outro'}),/não corresponde/);assert.match(validateDiary({...rich,attachments:[]}),/sem anexo/);
+ const html=renderToStaticMarkup(React.createElement(DiaryEntry,{date:rich.date,entry:rich,onChange(){},onClose(){}}));assert.match(html,/Editar entrada/);assert.match(html,/<h2><strong>Viagem/);assert.match(html,/kind=diary/);assert.match(html,/<img/);assert.match(html,/sd-bookmark/);assert.doesNotMatch(html,/Retirar imagem|Manter apenas|Excluir anexo|type="file"/);
+ const appended=appendInboxToDiary([rich],{text:'Inbox novo\nSegunda linha'},rich.date);assert.deepEqual(appended.entry.doc.content.slice(0,doc.content.length),doc.content);assert.ok(appended.entry.text.endsWith('Inbox novo\nSegunda linha'));assert.equal(validateDiary(appended.entry),'');assert.equal(appended.entry.attachments,rich.attachments);
+ const removed=removeDiaryAttachments(rich,[]);assert.equal(removed.doc.content.some(n=>n.type==='ideaImage'),false);assert.equal(validateDiary(removed),'');assert.equal(rich.doc.content.some(n=>n.type==='ideaImage'),true);
+ const inboxImage={id:'inbox-photo',text:'Foto do dia',attachments:[{...image,name:'inbox-pasted.webp'}]};const source={diaryConfigured:true,diary:[rich],inbox:[inboxImage]};
+ const moved=moveInboxToDiary(source,inboxImage.id,rich.date);assert.equal(moved.inbox.length,0);assert.equal(source.inbox.length,1);assert.deepEqual(moved.diary[0].doc.content.slice(0,doc.content.length),doc.content);assert.equal(moved.diary[0].attachments.length,2);assert.equal(moved.diary[0].attachments[1].inboxSourceId,inboxImage.id);assert.notEqual(moved.diary[0].attachments[1].id,image.id);assert.equal(validateDiary(moved.diary[0]),'');
+ const only=appendInboxToDiary([],{...inboxImage,text:''},'2026-10-06').entry;assert.equal(only.text,'');assert.equal(only.attachments.length,1);assert.ok(hasDiaryEntry(only));
+ assert.throws(()=>moveInboxToDiary({...source,diaryConfigured:false},inboxImage.id,rich.date),/Configure/);assert.throws(()=>moveInboxToDiary(moved,inboxImage.id,rich.date),/não está mais/);assert.throws(()=>appendInboxToDiary([{...rich,attachments:Array(100).fill(image)}],inboxImage,rich.date),/100 anexos/);
+ const unsafe=structuredClone(doc);unsafe.content[3].attrs.url='javascript:alert(1)';assert.match(validateDiary({...rich,doc:unsafe,text:diaryText({doc:unsafe})}),/inválida/);
  const calendar=renderToStaticMarkup(React.createElement(DiaryView,{entries:[],configured:true,setEntries(){}}));assert.match(calendar,/aria-current="date"/);assert.match(calendar,new RegExp(dateKey(new Date()).split('-').reverse().join('/')));assert.equal((calendar.match(/class="diary-day/g)||[]).length,42);
  const setup=renderToStaticMarkup(React.createElement(DiaryView,{entries:[],configured:false,setEntries(){}}));assert.match(setup,/NOTION_DIARY_DATABASE_ID/);
 
@@ -35,6 +48,12 @@ try {
  React.useState=initial=>{const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return [slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value;}];};
  function walk(node,predicate){if(!node||typeof node!=='object')return null;if(predicate(node))return node;for(const child of React.Children.toArray(node.props?.children)){const found=walk(child,predicate);if(found)return found;}return null;}
  try {
+   let saved=rich;const entryRender=()=>{cursor=0;return DiaryEntry({date:rich.date,entry:saved,initialEditing:true,onChange:value=>{saved=value;},onClose(){}});};
+   let entryTree=entryRender();const editor=walk(entryTree,n=>n.props?.label==='Texto do diário');assert.ok(editor,'Reutiliza editor rich text');
+   assert.deepEqual(editor.props.doc,doc);assert.equal(editor.props.attachments,rich.attachments);
+   const image2={...image,id:'second',name:'second.webp'};editor.props.onImage(image2);const withImage={...doc,content:[...doc.content,{type:'ideaImage',attrs:{attachmentId:image2.name,alt:'Segunda'}}]};editor.props.onChange(withImage);assert.equal(saved.attachments.length,2,'Upload e documento preservados antes do próximo render');assert.equal(saved.doc,withImage);assert.equal(validateDiary(saved),'');
+   editor.props.onBusy(true);entryTree=entryRender();assert.equal(walk(entryTree,n=>n.type==='button'&&n.props.children==='Fechar').props.disabled,true);editor.props.onBusy(false);
+   slots.length=0;cursor=0;
    const render=()=>{cursor=0;return DiaryView({entries:[entry,longEntry,newer,noText],configured:true,setEntries(){}});};
    let tree=render();const input=walk(tree,node=>node.type?.name==='DateInput');assert.ok(input);assert.equal(input.props.className,'search');
    input.props.onChange({target:{value:'2026-10-04'}});tree=render();let opened=walk(tree,node=>node.type===DiaryEntry);assert.equal(opened.props.date,'2026-10-04');assert.equal(opened.props.entry,entry);
