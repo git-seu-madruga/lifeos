@@ -746,7 +746,7 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 .tabs.reordering .tab.reorder-selected{border-color:#94bdff;background:#234e86;box-shadow:inset 0 0 0 1px #94bdff;color:#fff}
 
 /* Birthday reminder colors only the tab icon, preserving its shape and spacing. */
-.tabs .tab-icon.birthday-notice,.tabs .tab-icon.vehicle-notice{color:#ffc857;filter:drop-shadow(0 0 4px #ffc85740)}
+.tabs .tab-icon.birthday-notice,.tabs .tab-icon.vehicle-notice,.tabs .tab-icon.followup-notice{color:#ffc857;filter:drop-shadow(0 0 4px #ffc85740)}
 
 .birthday-contact-notes{display:block;color:var(--muted);font-size:11px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:5px;max-width:420px}
 
@@ -833,3 +833,5 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 
 /* Idea cards use a small image beside the title, without a category icon. */
 .sd-card-image{display:block;width:66px;height:66px;flex-shrink:0;object-fit:contain;border-radius:12px;background:#0e1219}
+
+.followup-chip{color:#e8c476;border-color:#e8c47640}.followup-fields{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:16px 0;margin:14px 0}.followup-weekday{display:flex;align-items:center;gap:5px;font-size:12px}.followup-actions{gap:8px;flex-wrap:wrap}.followup-actions button{font-size:12px}.followup-history{margin-top:18px;font-size:13px}.followup-history summary{cursor:pointer;color:var(--muted)}.followup-history ul{list-style:none;padding:0;max-height:260px;overflow:auto}.followup-history li{padding:10px 0;border-bottom:1px solid var(--line);overflow-wrap:anywhere}.followup-history p{white-space:pre-wrap;margin:5px 0}.followup-history time{font-weight:600}

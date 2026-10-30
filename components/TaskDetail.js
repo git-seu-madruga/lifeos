@@ -1,4 +1,6 @@
 "use client";
+import FollowupFields from './FollowupFields';
+import {makeFollowup} from '../lib/followups';
 import {useTaskLock} from "../lib/useTaskLock";
 import SharingFields from "./SharingFields";
 import EntryTitle from "./EntryTitle";
@@ -8,7 +10,7 @@ import DateInput from "./DateInput";
 
 import { addDaysISO } from "../lib/dates";
 
-const STATUS = [["todo", "Não iniciada"], ["doing", "Em andamento"], ["hold", "On hold"], ["done", "Concluída"]];
+const STATUS = [["todo", "Não iniciada"], ["doing", "Em andamento"], ["hold", "On hold / Follow-up"], ["done", "Concluída"]];
 
 export default function TaskDetail({ user, task, projects, update, onDelete, onClose, onLockState, newEntry=false }) {
 
@@ -34,17 +36,22 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
         {locked&&<p className="task-lock-notice" role="status">Edição bloqueada. Use o cadeado para desbloquear.</p>}
         {lockError&&<p className="muted small" role="status">{lockError}</p>}
         <fieldset className="task-edit-fields" disabled={locked}>
+        <label className="field"><span className="label">Tipo</span><select aria-label="Tipo da tarefa" value={task.recurrence?'followup':'task'} onChange={e=>{
+          if(e.target.value==='followup')set({recurrence:makeFollowup(),status:'hold',completedAt:null});
+          else if(!task.recurrence?.total||window.confirm('Transformar em tarefa comum? A repetição e o histórico deste acompanhamento serão removidos.'))set({recurrence:null,status:'todo',completedAt:null});
+        }}><option value="task">Tarefa</option><option value="followup">Follow-up</option></select></label>
         <SharingFields item={task} user={user} onChange={set} locked={!!proj}/>
         <div className="field">
           <span className="label">Status</span>
           <div className="seg-row">
-            {STATUS.map(([k, l]) => (
-              <button key={k} className={"subtab" + (task.status === k ? " on" : "")} onClick={() => setStatus(k)}>{l}</button>
+            {STATUS.filter(([k])=>!task.recurrence||k==="hold").map(([k, l]) => (
+              <button key={k} className={"subtab" + (task.status === k ? " on" : "")} disabled={!!task.recurrence&&task.recurrence.state!=='active'} onClick={() => setStatus(k)}>{l}</button>
             ))}
           </div>
         </div>
 
-        {task.status === "hold" && (
+        {task.recurrence&&<FollowupFields task={task} set={set}/>}
+        {!task.recurrence&&task.status === "hold" && (
           <div className="field-row">
             <div className="field">
               <span className="label">Aguardando</span>
@@ -63,7 +70,7 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
             <DateInput className="search" value={task.start || ""} onChange={(e) => set({ start: e.target.value || null })} />
           </div>
           <div className="field">
-            <span className="label">Prazo</span>
+            <span className="label">{task.recurrence?"Prazo (informativo)":"Prazo"}</span>
             <DateInput className="search" value={task.due || ""} onChange={(e) => set({ due: e.target.value || null })} />
           </div>
         </div>

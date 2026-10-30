@@ -6,6 +6,7 @@ const SomedayView=dynamic(()=>import('../components/SomedayView'));
 const AreaManager=dynamic(()=>import('../components/AreaManager'));
 
 import {startupGroupForTab} from '../lib/startup';
+import {hasFollowupNotice} from '../lib/followups';
 import { patchTask } from "../lib/tasks";
 
 
@@ -42,7 +43,7 @@ import BirthdaysView from '../components/BirthdaysView';
 import {contactFromInbox,birthdaySummary,todayLocal} from '../lib/birthdays';
 import FinanceView from "../components/FinanceView";
 import DiaryView from "../components/DiaryView";
-import { normalizeTabOrder, moveTab, moveTabBefore, dateKey, appendInboxToDiary } from "../lib/diary";
+import { normalizeTabOrder, moveTab, moveTabBefore, dateKey } from "../lib/diary";
 import Placeholder from "../components/Placeholder";
 
 const CONTEXTS = [
@@ -98,6 +99,7 @@ export default function Home() {
   const { tasks, projects, inbox, setInbox, setTasks, setProjects, ready, saving, refreshedAt } = remote;
   const [noticeToday,setNoticeToday]=useState(habitToday);
   useDateRollover(noticeToday,setNoticeToday);
+  const followupNotice=remote.ready&&(!remote.isTabReady||remote.isTabReady('tarefas'))&&hasFollowupNotice(remote.tasks||[],remote.projects||[],noticeToday);
   const vehicleNotice=remote.ready&&remote.vehiclesConfigured&&(!remote.isTabReady||remote.isTabReady('veiculos'))&&hasVehicleMaintenanceAlert(remote.vehicles||[],noticeToday);
   const birthdayToday=todayLocal();
   const birthdayNotice=birthdaySummary(remote.contacts||[],'',birthdayToday.getFullYear(),birthdayToday.getMonth()+1,birthdayToday).week.length>0;
@@ -139,7 +141,8 @@ export default function Home() {
   const [somedayInbox,setSomedayInbox]=useState(null),[somedayInboxArea,setSomedayInboxArea]=useState('');
   useEffect(()=>{setSelected(null);setAreasOpen(false);setShoppingSelected(null);setShoppingCreating(false);setShoppingInbox(null);setContactOpen(null);setDiaryOpen(null);setNewTaskId(null);setRecadoInbox(null);setSomedayOpen(null);setSomedayInbox(null);setSomedayInboxArea('');},[remote.user?.id,remote.user?.sessionId]);
   function convertInbox(item, kind) {
-    if((inbox.find(entry=>entry.id===item.id)||item).attachments?.length)return false;
+    item=inbox.find(entry=>entry.id===item.id);if(!item)return false;
+    if(item.attachments?.length&&kind!=="diary")return false;
     if(remote.isTabReady&&!remote.isTabReady(tabId)){remote.prioritizeTab(tabId);window.alert('Esta aba ainda está carregando. Aguarde para transformar a entrada. O texto continua no Inbox.');return false;}
     if(kind==="someday"){
       if(!remote.somedayConfigured){window.alert('Configure o banco Algum dia no Notion. O texto continua no Inbox.');return false;}
@@ -166,13 +169,10 @@ export default function Home() {
     if (kind === "diary") {
       if (!remote.diaryConfigured) { window.alert("Configure o banco Diário no Notion antes de mover esta entrada. O texto continua no Inbox."); return false; }
       const date=dateKey(new Date());
-      let result;
-      try { result=appendInboxToDiary(remote.diary || [],item,date); }
-      catch(error) { window.alert(error.message);return false; }
       const existing=(remote.diary || []).find(entry=>entry.date===date);
-      if (existing && !window.confirm("Já existe uma entrada no Diário de hoje. Reabrir para edição e acrescentar o texto do Inbox ao final, com uma quebra de linha antes?")) return false;
-      remote.setDiary(result.entries);
-      deleteInbox(item.id);
+      if (existing && !window.confirm("Já existe uma entrada no Diário de hoje. Reabrir para edição e acrescentar o texto e os anexos do Inbox?")) return false;
+      try { remote.convertInboxToDiary(item.id,date); }
+      catch(error) { window.alert(error.message);return false; }
       setDiaryOpen({date,token:uid("open")});
       setTabId("diario");
       return true;
@@ -260,7 +260,7 @@ export default function Home() {
             </svg>
           </button>
           <span className="refreshed" title={refreshedAt?.toLocaleString("pt-BR")}>{time && `Dados atualizados às ${time}`}</span>
-          {sessionsOpen&&<QrSessions onClose={()=>setSessionsOpen(false)}/>}<AccountMenu onSessions={()=>setSessionsOpen(true)} user={remote.user} onLogout={()=>remote.logout().catch(()=>{})} onBackup={()=>setBackupOpen(true)}/>
+          {sessionsOpen&&<QrSessions onClose={()=>setSessionsOpen(false)}/>}<AccountMenu onLock={remote.lockQr} onSessions={()=>setSessionsOpen(true)} user={remote.user} onLogout={()=>remote.logout().catch(()=>{})} onBackup={()=>setBackupOpen(true)}/>
         </div>
       </header>
       {remote.user?.temporary&&<p className="temporary-session-note">Sessão temporária · expira às {new Date(remote.user.expiresAt).toLocaleTimeString('pt-BR')} · rascunhos apenas na memória. Aguarde “Salvo no Notion” antes de sair.</p>}
@@ -273,7 +273,7 @@ export default function Home() {
               className={"tab" + (t.id === tabId ? " on" : "") + (dragged === t.id ? " dragging" : "") + (touchReorder&&reorderSource===t.id?" reorder-selected":"")}
               draggable={!touchMode&&!touchReorder}
               data-tab-id={t.id} data-romantic={t.id==='recados'||undefined}
-              aria-label={t.label+(['compras','financas','aniversarios','veiculos'].includes(t.id)?", compartilhado":"")+(t.id==='aniversarios'&&birthdayNotice?", há aniversários nos próximos 7 dias":"")+(t.id==='veiculos'&&vehicleNotice?", há manutenções próximas ou vencidas":"")}
+              aria-label={t.label+(['compras','financas','aniversarios','veiculos'].includes(t.id)?", compartilhado":"")+(t.id==='aniversarios'&&birthdayNotice?", há aniversários nos próximos 7 dias":"")+(t.id==='tarefas'&&followupNotice?", há follow-ups para hoje ou atrasados":"")+(t.id==='veiculos'&&vehicleNotice?", há manutenções próximas ou vencidas":"")}
               title={t.label+" · "+(touchMode?"Deslize para ver as abas · Use Ordenar abas para reorganizar":"Arraste para reordenar · Alt + seta também move")}
               onDragStart={e=>{draggedTab.current=t.id;setDragged(t.id);e.dataTransfer.effectAllowed='move';e.dataTransfer.setData('text/plain',t.id);}}
               onDragOver={e=>{if(draggedTab.current){e.preventDefault();e.dataTransfer.dropEffect='move';}}}
@@ -286,7 +286,7 @@ export default function Home() {
               aria-busy={remote.isTabReady?!remote.isTabReady(t.id):undefined}
               onClick={()=>pickTab(t.id)}
             >
-              <TabIcon id={t.id} highlighted={(t.id==='aniversarios'&&birthdayNotice)||(t.id==='veiculos'&&vehicleNotice)}/><span className="tab-label" data-expanded={t.id===tabId||touchReorder} aria-hidden={!(t.id===tabId||touchReorder)}><span className="tab-label-content"><span className="tab-name">{t.label}</span>{['compras','financas','aniversarios','veiculos'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span></span>
+              <TabIcon id={t.id} highlighted={(t.id==='aniversarios'&&birthdayNotice)||(t.id==='veiculos'&&vehicleNotice)||(t.id==='tarefas'&&followupNotice)}/><span className="tab-label" data-expanded={t.id===tabId||touchReorder} aria-hidden={!(t.id===tabId||touchReorder)}><span className="tab-label-content"><span className="tab-name">{t.label}</span>{['compras','financas','aniversarios','veiculos'].includes(t.id)&&<small className="tab-shared">COMPARTILHADO</small>}</span></span>
             </button>
           </span>
         ))}

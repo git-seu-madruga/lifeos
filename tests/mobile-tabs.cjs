@@ -1,8 +1,8 @@
 // Two-tap mobile ordering must never capture the native scrolling gesture.
 const assert=require('node:assert/strict'),fs=require('node:fs'),Module=require('node:module'),swc=require('next/dist/build/swc');
 const page=fs.readFileSync('app/page.js','utf8'),css=fs.readFileSync('app/globals.css','utf8');
-const domain=new Module(module.filename);domain._compile(swc.transformSync(fs.readFileSync('lib/diary.js','utf8'),{filename:'diary.js',jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code,module.filename);
-const {moveTabBefore,moveTab}=domain.exports;
+function loadDomain(file){const domain=new Module(module.filename);domain.require=request=>request.startsWith('.')?loadDomain(require('node:path').resolve(require('node:path').dirname(file),request+'.js')):require(request);domain._compile(swc.transformSync(fs.readFileSync(file,'utf8'),{filename:file,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code,file);return domain.exports;}
+const {moveTabBefore,moveTab}=loadDomain(require('node:path').resolve('lib/diary.js'));
 const original=['projetos','tarefas','diario','financas'];
 assert.deepEqual(moveTabBefore(original,'projetos','financas'),['tarefas','diario','projetos','financas']);
 assert.deepEqual(moveTabBefore(original,'financas','projetos'),['financas','projetos','tarefas','diario']);

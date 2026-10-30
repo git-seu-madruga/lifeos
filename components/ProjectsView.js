@@ -1,5 +1,6 @@
 "use client";
 import {normalizeAreaName} from "../lib/someday";
+import {followupDue,followupDateInfo} from '../lib/followups';
 import PageActions from "./PageActions";
 import SharingFields from "./SharingFields";
 import SharedBadge from "./SharedBadge";
@@ -9,7 +10,7 @@ import LinkText, {TextLinks} from "./LinkText";
 import ProjectAttachments from "./ProjectAttachments";
 import DateInput from "./DateInput";
 
-import { patchTask, newestCompleted, oldestInserted, taskDate } from "../lib/tasks";
+import { patchTask, closeProjectTask, newestCompleted, oldestInserted, taskDate } from "../lib/tasks";
 
 import { useEffect, useState } from "react";
 import { formatDateInput } from "../lib/dateInput";
@@ -23,7 +24,7 @@ import ProjectGantt from "./ProjectGantt";
 
 const SUB_STATUS = { ativos: "active", pausados: "paused", concluidos: "done", cancelados: "cancelled" };
 const P_STATUS = [["active", "Ativo"], ["paused", "Pausado"], ["done", "Concluído"], ["cancelled", "Cancelado"]];
-const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold", done: "Concluída" };
+const STATUS_LABEL = { todo: "Não iniciada", doing: "Em andamento", hold: "On hold / Follow-up", done: "Concluída" };
 const CTX = { work: "Trabalho", personal: "Pessoal" };
 const ORDER = { doing: 0, hold: 1, todo: 2, done: 3 };
 
@@ -69,9 +70,9 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
       const openTasks = tasks.filter(t => t.project === id && t.status !== "done");
       const openMilestones = next.milestones.filter(m => !m.done);
       const action = patch.status === "cancelled" ? "Cancelar" : "Concluir";
-      if ((openTasks.length || openMilestones.length) && !window.confirm(`${action} “${current.name}”? Há ${openTasks.length} tarefa(s) e ${openMilestones.length} marco(s) em aberto. Ao confirmar, todas as tarefas e marcos ainda abertos deste projeto também serão concluídos automaticamente. O histórico será preservado.`)) return;
+      if ((openTasks.length || openMilestones.length) && !window.confirm(`${action} “${current.name}”? Há ${openTasks.length} tarefa(s) e ${openMilestones.length} marco(s) em aberto. Ao confirmar, todas as tarefas e marcos ainda abertos deste projeto também serão concluídos. Os follow-ups vinculados serão encerrados e deixarão de se repetir. O histórico será preservado.`)) return;
       next.milestones = next.milestones.map(m => m.done ? m : { ...m, done: true });
-      setTasks(prev => prev.map(t => t.project === id && t.status !== "done" ? patchTask(t, { status: "done" }) : t));
+      setTasks(prev => prev.map(t => t.project === id && t.status !== "done" ? closeProjectTask(t) : t));
     }
     if('shared' in patch){setTasks(prev=>prev.map(t=>t.project===id?{...t,shared:!!next.shared,responsible:next.shared?(t.responsible||user?.email):''}:t));}
     setProjectError("");
@@ -80,7 +81,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
   function deleteProject() {
     if(tasks.some(t=>t.project===project.id&&t.locked)){setProjectError("Desbloqueie as tarefas deste projeto e aguarde o salvamento antes de excluí-lo.");return;}
     const count = tasks.filter(t => t.project === project.id).length;
-    if (!window.confirm(`Excluir “${project.name}”, seus marcos, anexos e todas as suas tarefas (${count} carregadas)? Tarefas concluídas também serão excluídas. Não dá para desfazer no app. Para preservar o histórico, use Cancelado ou Concluído.`)) return;
+    if (!window.confirm(`Excluir “${project.name}”, seus marcos, anexos e todas as suas tarefas (${count} carregadas)? Tarefas concluídas e follow-ups também serão excluídos. Não dá para desfazer no app. Para preservar o histórico, use Cancelado ou Concluído.`)) return;
     setProjects(prev => prev.filter(p => p.id !== project.id));
     setTasks(prev => prev.filter(t => t.project !== project.id));
     setProjectError("");
@@ -158,10 +159,10 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
 
   const renderTask = (t) => (
     <li key={t.id} onClick={e=>{if(!e.target.closest('button,input,a,select'))setOpenId(t.id);}} className={"row" + (t.status === "done" ? " done" : "")}>
-      <input type="checkbox" className="check" checked={t.status === "done"} disabled={!!t.locked} aria-label={`Concluir: ${t.title}`}
+      <input type="checkbox" className="check" checked={t.status === "done"} disabled={!!t.locked||!!t.recurrence&&!followupDue(t)} aria-label={`${t.recurrence?"Acompanhamento feito":"Concluir"}: ${t.title}`}
         onChange={() => updateTask(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
       <button className="row-title" onClick={() => setOpenId(t.id)}>{t.title?.trim()||"Sem título"}</button>
-      <span className="row-meta">
+      <span className="row-meta">{t.recurrence&&<><span className="chip">Follow-up</span><span className={"due due-"+followupDateInfo(t).tone}>{followupDateInfo(t).text}</span></>}
         {t.shared&&<SharedBadge responsible={t.responsible}/>}<span className="chip">{STATUS_LABEL[t.status]}</span>
       </span>
     </li>
