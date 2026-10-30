@@ -36,10 +36,6 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
         {locked&&<p className="task-lock-notice" role="status">Edição bloqueada. Use o cadeado para desbloquear.</p>}
         {lockError&&<p className="muted small" role="status">{lockError}</p>}
         <fieldset className="task-edit-fields" disabled={locked}>
-        <label className="field"><span className="label">Tipo</span><select aria-label="Tipo da tarefa" value={task.recurrence?'followup':'task'} onChange={e=>{
-          if(e.target.value==='followup')set({recurrence:makeFollowup(),status:'hold',completedAt:null});
-          else if(!task.recurrence?.total||window.confirm('Transformar em tarefa comum? A repetição e o histórico deste acompanhamento serão removidos.'))set({recurrence:null,status:'todo',completedAt:null});
-        }}><option value="task">Tarefa</option><option value="followup">Follow-up</option></select></label>
         <SharingFields item={task} user={user} onChange={set} locked={!!proj}/>
         <div className="field">
           <span className="label">Status</span>
@@ -50,7 +46,6 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
           </div>
         </div>
 
-        {task.recurrence&&<FollowupFields task={task} set={set}/>}
         {!task.recurrence&&task.status === "hold" && (
           <div className="field-row">
             <div className="field">
@@ -117,6 +112,14 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
         <div className="field">
           <span className="label">Anotações</span>
           <textarea className="search notes" rows={4} value={task.notes} placeholder="Texto livre (na versão real, o conteúdo da página)" onChange={(e) => set({ notes: e.target.value })} /><TextLinks text={task.notes}/>
+        </div>
+        <div className="task-followup-section">
+          <div className="task-followup-toggle-row"><span className="label">Acompanhamento programado (follow-up)</span><button type="button" role="switch" aria-label="Acompanhamento programado (follow-up)" aria-checked={!!task.recurrence} aria-controls={`followup-config-${task.id}`} className="task-followup-toggle" disabled={locked} onClick={()=>{
+            if(locked)return;
+            if(!task.recurrence)set({recurrence:makeFollowup(),status:'hold',completedAt:null});
+            else if(!task.recurrence.total||window.confirm('Desativar o follow-up e manter como tarefa comum? A programação e o histórico de acompanhamento serão removidos. Para preservar o histórico, use Encerrar acompanhamento.'))set({recurrence:null});
+          }}><span aria-hidden="true"/></button></div>
+          {task.recurrence&&<div id={`followup-config-${task.id}`}><FollowupFields task={task} set={set}/></div>}
         </div>
         <button className="danger" onClick={() => {
           if (locked)return;

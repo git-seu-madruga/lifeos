@@ -17,13 +17,13 @@ function Reference({ item, onDelete, readOnly }) {
     {!readOnly && <button className="danger" onClick={onDelete}>Excluir anexo</button>}
   </li>;
 }
-export default function ProjectAttachments({ items = [], onChange, entity = "projeto", readOnly = false }) {
+export default function ProjectAttachments({ items = [], onChange, entity = "projeto", readOnly = false, nameForFile = file=>file.name }) {
   const [error, setError] = useState('');
   function add(e) {
     const files = Array.from(e.target.files || []);
     if (files.some(file => file.size > 4 * 1024 * 1024)) { setError('O limite é 4 MB por arquivo. Envie arquivos maiores diretamente no Notion.'); e.target.value=''; return; }
     setError('');
-    onChange([...items, ...files.map(file => ({ id: `a${Date.now()}${Math.random().toString(36).slice(2)}`, name: file.name, file }))]);
+    onChange([...items, ...files.map(file => ({ id: `a${Date.now()}${Math.random().toString(36).slice(2)}`, name: nameForFile(file), file }))]);
     e.target.value = '';
   }
   function remove(item) {

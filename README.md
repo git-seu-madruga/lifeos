@@ -2,7 +2,7 @@
 
 ## Follow-ups em On hold / Follow-up
 
-O cadastro de tarefas agora possui **Tipo: Tarefa / Follow-up**. Não há nova aba ou visualização separada: tarefas aguardando algo e acompanhamentos programados ficam juntos em **On hold / Follow-up**, com o mesmo layout de lista e uma identificação discreta nos programados. Follow-ups futuros continuam nesse grupo, com a próxima consulta visível; pausados mostram sua situação. Os encerrados aparecem em Concluídas, preservando as informações.
+Abaixo dos campos principais da tarefa, o toggle **Acompanhamento programado (follow-up)** ativa os campos adicionais de repetição. Desligado por padrão, transforma a tarefa em acompanhamento ao ser ligado, mantendo título, projeto, prioridade, datas, anotações e anexos. A tarefa passa a On hold / Follow-up. Marcar uma consulta como feita mantém o toggle ligado; encerrar preserva a identificação e o histórico. Desligar o toggle remove a recorrência e mantém a tarefa comum com seu status atual, pedindo confirmação se houver histórico. Não há nova aba ou visualização separada: tarefas aguardando algo e acompanhamentos programados ficam juntos em **On hold / Follow-up**, com o mesmo layout de lista e uma identificação discreta nos programados. Follow-ups futuros continuam nesse grupo, com a próxima consulta visível; pausados mostram sua situação. Os encerrados aparecem em Concluídas, preservando as informações.
 
 Configure o intervalo em dias, semanas ou meses, a próxima consulta e uma das regras: **Após a consulta realizada** conta a partir do dia em que você marcou como feito; **Calendário fixo** mantém o ciclo original, permite dias da semana para a repetição semanal e preserva o dia do mês (ajustando ao último dia quando necessário). Uma consulta atrasada é uma única pendência, sem acumular cópias. Ao marcar **Acompanhamento feito**, a tarefa permanece On hold, registra data/observação opcional e calcula a próxima consulta. O histórico mostra as últimas 200 consultas e mantém o total registrado. O checkbox da lista executa a mesma ação, sem exigir observação.
 
@@ -74,7 +74,11 @@ O botão Atualizar mantém a atualização completa com proteção das edições
 
 ## Inbox com imagens para o Diário
 
-Na aba Diário, Transformar em Diário aceita texto com imagens ou só imagens do Inbox. Acrescenta o texto à entrada de hoje e inclui todas as imagens como anexos, preservando o documento rico e os arquivos que já existiam. Havendo uma entrada hoje, mantém a confirmação antes de reabrir para edição. A imagem transferida não é inserida automaticamente dentro do texto.
+Na aba Diário, Transformar em Diário aceita texto com imagens ou só imagens do Inbox. Acrescenta texto e imagens dentro do corpo da entrada de hoje, preservando o conteúdo e os arquivos que já existiam. Havendo uma entrada hoje, mantém a confirmação antes de reabrir para edição. A imagem usa o acesso privado da própria entrada do Diário, sem apontar para o Inbox arquivado.
+
+A área Anexos e referências mostra somente os arquivos incluídos manualmente. As imagens do corpo continuam armazenadas no campo Anexos do Notion como suporte ao editor, mas não ficam duplicadas nessa listagem do app. Excluir uma imagem do texto também retira seu arquivo de suporte da entrada. Arquivos manuais são preservados ao editar ou remover imagens.
+
+Entradas já transferidas pela versão anterior exibem suas imagens no corpo ao reabrir, desde que os arquivos ainda estejam no campo Anexos do Diário. Isso não faz gravações em massa: o documento convertido é persistido na próxima edição. Metadados antigos que apontavam para o Inbox são substituídos pelos do Diário. Não recupera arquivos removidos do próprio Notion.
 
 A alteração local é única; o servidor vincula os anexos ao Diário antes de arquivar a origem. Falhas deixam a operação pendente para retentativa, sem repetir texto/anexos. Imagens ainda não enviadas permanecem no rascunho cifrado das sessões Google; sessões QR continuam apenas em memória. Aguarde Salvo no Notion antes de fechar o app.
 
@@ -321,7 +325,7 @@ As datas usam **DD/MM/AAAA**, com barras automáticas e calendário alternativo.
 
 ### Inbox
 
-O mesmo campo aceita colar imagens binárias (Ctrl+V/copiar e colar), na nova entrada ou em uma já aberta, junto de texto simples. Não há editor rico, botão de arquivo ou aviso fixo. PNG/JPG/WebP/GIF, até 4 MB por imagem. A miniatura abre a imagem completa; × remove a imagem. Pode adicionar uma entrada só com imagem. Entradas com imagens podem ser transformadas em Diário: texto vai para a entrada de hoje, imagens vão como anexos. Para os demais destinos, Transformar fica desabilitado enquanto houver imagens; remover todas libera novamente. Imagens permanecem no Notion até remover/excluir a entrada, sujeito à lixeira e retenção do serviço, sem promessa de apagamento físico imediato.
+O mesmo campo aceita colar imagens binárias (Ctrl+V/copiar e colar), na nova entrada ou em uma já aberta, junto de texto simples. Não há editor rico, botão de arquivo ou aviso fixo. PNG/JPG/WebP/GIF, até 4 MB por imagem. A miniatura abre a imagem completa; × remove a imagem. Pode adicionar uma entrada só com imagem. Entradas com imagens podem ser transformadas em Diário: texto e imagens vão para o corpo da entrada de hoje. Para os demais destinos, Transformar fica desabilitado enquanto houver imagens; remover todas libera novamente. Imagens permanecem no Notion até remover/excluir a entrada, sujeito à lixeira e retenção do serviço, sem promessa de apagamento físico imediato.
 
 O campo **Anexos** (Arquivos e mídia) do banco Inbox será criado automaticamente. **Nome** e **Conteúdo** continuam iguais, sem texto especial ou alteração de formato. Não exige variável, novo banco ou APK. O APK Captura 1.0.4 também aceita uma imagem colada; instale a atualização separadamente. Rascunhos pendentes das imagens adicionadas são cifrados nas sessões permanentes e retomáveis após falha; sessões QR não persistem rascunhos privados.
 
@@ -330,7 +334,7 @@ No desktop, fica à esquerda; no celular, pode ser aberto/recolhido. O campo cre
 | Destino | Texto da entrada |
 | --- | --- |
 | Projeto ou tarefa | Primeira linha: título; demais: descrição/anotações |
-| Diário | Texto inteiro acrescentado em hoje e imagens como anexos; se já houver entrada, pede confirmação e reabre para edição |
+| Diário | Texto inteiro e imagens acrescentados no corpo da entrada de hoje; se já houver entrada, pede confirmação e reabre para edição |
 | Aniversários | Primeira linha: nome; segunda: DD/MM ou DD/MM/AAAA |
 | Compras | Primeira linha: nome da lista; demais: um item por linha |
 | Recados | Primeira linha: título; demais: mensagem de hoje |
@@ -1061,7 +1065,7 @@ Os testes do servidor usam serviços simulados e scripts Redis Lua reais em VM: 
 
 ### Atualização 1.0.5 — Compartilhar com LifeOS Captura
 
-O **LifeOS Captura** aparece na folha de compartilhamento do Android para links/texto simples e uma imagem por captura. No navegador, galeria ou outro app, use **Compartilhar → LifeOS Captura**. A mesma janela compacta do widget abre para revisar, acrescentar texto e confirmar em **Enviar ao Inbox**. Receber um compartilhamento não envia nada automaticamente. Imagens preservam miniatura, ampliação, remoção, limites e fila cifrada da versão 1.0.4; no LifeOS, entradas com imagem podem ir para o Diário como anexos; os demais destinos permanecem bloqueados. Links/textos preservam as conversões existentes.
+O **LifeOS Captura** aparece na folha de compartilhamento do Android para links/texto simples e uma imagem por captura. No navegador, galeria ou outro app, use **Compartilhar → LifeOS Captura**. A mesma janela compacta do widget abre para revisar, acrescentar texto e confirmar em **Enviar ao Inbox**. Receber um compartilhamento não envia nada automaticamente. Imagens preservam miniatura, ampliação, remoção, limites e fila cifrada da versão 1.0.4; no LifeOS, entradas com imagem podem ir para o corpo do Diário; os demais destinos permanecem bloqueados. Links/textos preservam as conversões existentes.
 
 Títulos fornecidos pelo aplicativo de origem entram antes do texto/link, sem duplicar um título já presente. Texto vem sem formatação. Se existir rascunho, o Captura pede para acrescentar ao conteúdo atual; cancelar o mantém. Se o rascunho já tiver imagem, compartilhar outra não a substitui: envie/remova a atual e compartilhe novamente. Compartilhamentos vazios, arquivos de outros tipos, URLs de imagem sem arquivo e múltiplas imagens são recusados. Não há permissão ampla de galeria, envio automático ou acesso remoto ao conteúdo da origem.
 
@@ -1075,7 +1079,7 @@ Publique primeiro o pacote cumulativo do site e depois instale **LifeOS-Captura-
 
 Abra a captura pelo widget, copie uma imagem em outro aplicativo e use **Colar** ao manter o campo pressionado ou a imagem oferecida pela área de transferência do teclado. O teclado/aplicativo de origem precisa fornecer a imagem, não apenas seu endereço ou texto. Funciona também na tela principal do Captura. Continua sendo texto simples, sem botão de arquivos ou formatação especial. Uma imagem por captura, com miniatura, ampliação e × para remover. Pode haver só imagem ou texto junto. Remova a imagem atual antes de colar outra.
 
-A imagem é copiada imediatamente para o rascunho privado e criptografada junto da fila antes da confirmação local. O envio usa o mesmo proprietário, ID estável e confirmação do servidor; falhas não removem a captura do aparelho nem geram outra página automaticamente. No LifeOS, a imagem aparece no Inbox normal e pode ser levada ao Diário como anexo; as demais conversões permanecem bloqueadas enquanto estiver anexada. O widget na tela inicial continua sem expor conteúdo, apenas seu indicador de pendência.
+A imagem é copiada imediatamente para o rascunho privado e criptografada junto da fila antes da confirmação local. O envio usa o mesmo proprietário, ID estável e confirmação do servidor; falhas não removem a captura do aparelho nem geram outra página automaticamente. No LifeOS, a imagem aparece no Inbox normal e pode ser levada ao corpo do Diário; as demais conversões permanecem bloqueadas enquanto estiver anexada. O widget na tela inicial continua sem expor conteúdo, apenas seu indicador de pendência.
 
 Imagens são normalizadas para PNG/JPEG, até 1600 pixels no maior lado e 512 KB no envio, reduzindo mais quando necessário para caber com segurança na fila cifrada. A leitura inicial aceita até 8 MB/40 megapixels; imagens maiores exibem erro sem apagar texto ou imagem anterior. Não é um recurso de arquivamento da imagem original em resolução integral. **Copiar pendentes copia somente texto**, com uma indicação quando a captura contém imagem; os bytes continuam na fila até confirmação. Não limpe dados nem desinstale com pendências.
 

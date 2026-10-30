@@ -3,7 +3,7 @@ import {habitToday} from '../lib/habits';
 import {useDateRollover} from '../lib/useDateRollover';
 import LinkText from "./LinkText";
 import { useEffect, useRef, useState } from 'react';
-import { calendarDays, dateKey, hasDiaryEntry, diaryDoc, validateDiary, removeDiaryAttachments, updateDiaryEntry, searchDiaryEntries } from '../lib/diary';
+import { calendarDays, dateKey, hasDiaryEntry, diaryDoc, validateDiary, diaryPresentation, diaryManualAttachments, setDiaryDocument, setDiaryManualAttachments, updateDiaryEntry, searchDiaryEntries } from '../lib/diary';
 import { formatDateInput } from '../lib/dateInput';
 import {useBackLayer} from '../lib/useBackNavigation';
 import DateInput from './DateInput';
@@ -35,7 +35,7 @@ export function DiaryEntry({date,entry,onChange,onClose,initialEditing=false,onB
   const [editing,setEditing]=useState(initialEditing || !hasDiaryEntry(entry));
   const [busy,setBusy]=useState(false),[error,setError]=useState('');
   const editable=editing||!hasDiaryEntry(entry);
-  const value=entry || {id:`d${date}`,date,text:'',attachments:[]};
+  const value=diaryPresentation(entry) || {id:`d${date}`,date,text:'',attachments:[]};
   const latest=useRef(value);latest.current=value;
   const jobs=useRef(false);
   useEffect(()=>{if(editable)return holdEditor();},[editable]);
@@ -54,14 +54,14 @@ export function DiaryEntry({date,entry,onChange,onClose,initialEditing=false,onB
       <button className="ghost" disabled={busy} onClick={close}>Fechar</button>
     </div></div>
     {editable?<>
-      <IdeaEditor autoFocus={initialEditing} label="Texto do diário" doc={diaryDoc(value)} attachments={value.attachments||[]} onBusy={uploading} onError={setError}
-        onChange={doc=>update({doc,text:ideaText(doc)})}
+      <IdeaEditor autoFocus={initialEditing} imagePrefix="diary-inline-" label="Texto do diário" doc={diaryDoc(value)} attachments={value.attachments||[]} onBusy={uploading} onError={setError}
+        onChange={doc=>update(previous=>setDiaryDocument(previous,doc))}
         onImage={image=>update(previous=>({attachments:[...(previous.attachments||[]),image]}))}/>
       <p className="muted small">Salvamento automático · A edição será bloqueada ao fechar, trocar de data ou sair do Diário.</p>
     </>:value.doc?<DiaryDocument doc={value.doc} attachments={value.attachments}/>:value.text?<ReadText text={value.text}/>:<p className="muted">Ainda não há texto nesta data.</p>}
     {busy&&<p className="sd-uploading" role="status">Enviando imagem… mantenha esta entrada aberta.</p>}
     {error&&<p className="date-error" role="alert">{error}</p>}
-    <ProjectAttachments entity="diário" readOnly={!editable||busy} items={value.attachments} onChange={attachments=>update(previous=>removeDiaryAttachments(previous,attachments))}/>
+    <ProjectAttachments nameForFile={file=>/^(inbox-|diary-inline-)/i.test(file.name)?"manual-"+file.name:file.name} entity="diário" readOnly={!editable||busy} items={diaryManualAttachments(value)} onChange={attachments=>update(previous=>setDiaryManualAttachments(previous,attachments))}/>
   </section>;
 }
 export default function DiaryView({entries=[],setEntries,configured,openRequest,onOpenHandled}) {

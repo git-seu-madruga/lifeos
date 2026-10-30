@@ -196,10 +196,10 @@ global.fetch=async(url,options={})=>{
  const imageMoved=moveInboxToDiary(imageSource,sourceImage.id,'2026-10-04');failInboxArchive=true;
  await assert.rejects(()=>synchronize(imageSource,imageMoved),/Falha simulada/);
  let recoveredImages=(await notionLib.readSnapshot()).state;assert.ok(recoveredImages.inbox.some(i=>i.id===sourceImage.id));assert.equal(recoveredImages.diary[0].attachments.length,2,'Destino salvo antes de arquivar origem');
- const createdBeforeRetry=creates;await synchronize(imageSource,imageMoved);assert.equal(creates,createdBeforeRetry);({state}=await notionLib.readSnapshot());assert.ok(!state.inbox.some(i=>i.id===sourceImage.id));assert.equal(state.diary[0].attachments.length,2);assert.ok(state.diary[0].attachments.every(a=>a.kind==='diary'&&a.pageId===state.diary[0].id));assert.ok(state.diary[0].text.endsWith('Texto e imagem do Inbox'));
- // A new, image-only day also receives the image as an attachment, without an inline node.
+ const createdBeforeRetry=creates;await synchronize(imageSource,imageMoved);assert.equal(creates,createdBeforeRetry);({state}=await notionLib.readSnapshot());assert.ok(!state.inbox.some(i=>i.id===sourceImage.id));assert.equal(state.diary[0].attachments.length,2);assert.ok(state.diary[0].attachments.every(a=>a.kind==='diary'&&a.pageId===state.diary[0].id));assert.ok(state.diary[0].text.includes('Texto e imagem do Inbox'));assert.ok(state.diary[0].doc.content.some(n=>n.type==='ideaImage'&&n.attrs.attachmentId===sourceImage.attachments[0].name));
+ // A new image-only day embeds the image with a backing file owned by the Diary.
  await synchronize(state,{...state,inbox:[{id:'inbox-only-image',text:'',attachments:[{id:'image-only-file',...uploaded,name:'inbox-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa.png'}]}]});
- const onlyImageBase=(await notionLib.readSnapshot()).state,onlyImageMove=moveInboxToDiary(onlyImageBase,onlyImageBase.inbox[0].id,'2026-10-05');await synchronize(onlyImageBase,onlyImageMove);({state}=await notionLib.readSnapshot());assert.equal(state.diary.find(i=>i.date==='2026-10-05').attachments.length,1);assert.equal(state.diary.find(i=>i.date==='2026-10-05').text,'');
+ const onlyImageBase=(await notionLib.readSnapshot()).state,onlyImageMove=moveInboxToDiary(onlyImageBase,onlyImageBase.inbox[0].id,'2026-10-05');await synchronize(onlyImageBase,onlyImageMove);({state}=await notionLib.readSnapshot());assert.equal(state.diary.find(i=>i.date==='2026-10-05').attachments.length,1);assert.ok(state.diary.find(i=>i.date==='2026-10-05').doc.content.some(n=>n.type==='ideaImage'));
  // Keep subsequent fixture assertions scoped to the original day.
  const clearOnlyImage={...state,diary:state.diary.filter(i=>i.date==='2026-10-04')};await synchronize(state,clearOnlyImage);({state}=await notionLib.readSnapshot());
  const emptyDiary=structuredClone(state);emptyDiary.diary[0]=require(path.join(temp,'lib/diary')).removeDiaryAttachments(emptyDiary.diary[0],[]);await synchronize(state,emptyDiary);
@@ -683,6 +683,19 @@ global.fetch=async(url,options={})=>{
    const reopened={...finished,projects:finished.projects.map(p=>p.id===project.id?{...p,status:'active'}:p)};await save(finished,reopened);assert.equal((await notionLib.readSnapshot(false,A)).state.tasks.find(t=>t.id===child.id).recurrence.state,'ended','Reopening project never resumes follow-ups');
    const beforeDelete=(await notionLib.readSnapshot(false,A)).state;await save(beforeDelete,{...beforeDelete,projects:beforeDelete.projects.filter(p=>p.id!==project.id),tasks:beforeDelete.tasks.filter(t=>t.project!==project.id)});assert.ok(!(await notionLib.readSnapshot(false,A)).state.tasks.some(t=>t.project===project.id));
   }
+ }
+
+ {
+  const A={id:'google:user-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:user-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+  const {compactSyncState}=require(path.join(temp,'lib/notionDiff')),{moveInboxToDiary}=require(path.join(temp,'lib/diary'));
+  const save=async(base,next)=>{const delta=compactSyncState(base,next);return synchronize(delta.base,delta.next,A,async()=>{},true);};
+  let state=(await notionLib.readSnapshot(false,A)).state;const name='inbox-cccccccc-cccc-cccc-cccc-cccccccccccc.png',image={id:'inline-regression-file',name,uploadId:'inline-regression-upload',uploadProof:auth.seal({user:A.id,uploadId:'inline-regression-upload',exp:Date.now()+100000})};
+  await save(state,{...state,inbox:[...state.inbox,{id:'inline-regression-inbox',text:'Imagem independente do Inbox',attachments:[image]}]});
+  state=(await notionLib.readSnapshot(false,A)).state;const source=state.inbox.find(i=>i.legacyId==='inline-regression-inbox'),target=moveInboxToDiary(state,source.id,'2026-08-18'),file=target.diary.find(i=>i.date==='2026-08-18').attachments[0];
+  const result=await save(state,target),confirmed=result.files[file.id];assert.equal(confirmed.kind,'diary');assert.notEqual(confirmed.pageId,source.id);assert.equal(rows.get(source.id).in_trash,true);
+  const GET=require(path.join(temp,'app/api/notion/attachment/route')).GET,cookie=auth.sessionCookie(A).split(';')[0],address='https://lifeos.test/api/notion/attachment?kind=diary&id='+confirmed.pageId+'&index='+confirmed.index+'&name='+encodeURIComponent(name);
+  assert.equal((await GET(new Request(address,{headers:{cookie}}))).status,302,'Diary image opens after source is archived');assert.equal((await GET(new Request(address,{headers:{cookie:auth.sessionCookie(B).split(';')[0]}}))).status,403,'Diary image remains private');
+  const oldAddress='https://lifeos.test/api/notion/attachment?kind=inbox&id='+source.id+'&index=0&name='+encodeURIComponent(name);assert.equal((await GET(new Request(oldAddress,{headers:{cookie}}))).status,404,'Deleted source stays inaccessible');
  }
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão de projeto com tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');
  fs.rmSync(temp,{recursive:true});

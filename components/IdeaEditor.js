@@ -11,15 +11,15 @@ import {prepareIdeaImage} from '../lib/ideaImages';
 const AttachmentContext=createContext([]);
 export const ideaFileUrl=file=>file?.pageId?'/api/notion/attachment?kind='+encodeURIComponent(file.kind||'someday')+'&id='+encodeURIComponent(file.pageId)+'&index='+file.index+'&name='+encodeURIComponent(file.name):file?.notion?.[file.notion.type]?.url||'';
 
-export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onError,label="Anotações da ideia",autoFocus=false}){
- const latest=useRef({attachments,onChange,onImage,onBusy,onError});latest.current={attachments,onChange,onImage,onBusy,onError};
+export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onError,label="Anotações da ideia",autoFocus=false,imagePrefix=''}){
+ const latest=useRef({attachments,onChange,onImage,onBusy,onError,imagePrefix});latest.current={attachments,onChange,onImage,onBusy,onError,imagePrefix};
  const editorRef=useRef(null),alive=useRef(true),input=useRef(null),jobs=useRef(0),[revision,setRevision]=useState(0);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  const applyFiles=async(editor,files,pos)=>{
   if(!editor||editor.isDestroyed)return;
   jobs.current++;latest.current.onBusy?.(true);
   try{for(const original of files){
-   const file=await prepareIdeaImage(original),form=new FormData();form.append('file',file,file.name);
+   const prepared=await prepareIdeaImage(original),file=latest.current.imagePrefix?new File([prepared],latest.current.imagePrefix+prepared.name,{type:prepared.type}):prepared,form=new FormData();form.append('file',file,file.name);
    const uploaded=await api('/api/notion/upload',{method:'POST',body:form});
    if(!alive.current||editor.isDestroyed)return;
    latest.current.onImage({id:'a:'+ideaUid(),name:file.name,...uploaded});
