@@ -112,10 +112,10 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
 
  const {makeFollowup,completeFollowup,followupToday}=require(path.join(folder,'lib/followups'));
  const recurringClient={id:'followup-client',title:'Publicações',status:'hold',context:'personal',priority:'medium',recurrence:makeFollowup(followupToday()),attachments:[]};
- hook.setTasks(previous=>[...previous,recurringClient]);await hook.flush();await tick();assert.equal(hook.tasks.find(t=>t.id===recurringClient.id).recurrence.state,'active');
- failure=true;hook.setTasks(previous=>previous.map(t=>t.id===recurringClient.id?completeFollowup(t,'Consulta persistida'):t));await assert.rejects(()=>hook.flush(),/Falha simulada/);
- const recurrenceDraft=await readPrivateDraft('notion-draft:'+testUser.id,testUser.draftKey);assert.equal(recurrenceDraft.next.tasks.find(t=>t.id===recurringClient.id).recurrence.history[0].note,'Consulta persistida');
- await hook.flush();await tick();assert.equal(hook.tasks.find(t=>t.id===recurringClient.id).status,'hold');assert.equal(hook.tasks.find(t=>t.id===recurringClient.id).recurrence.total,1);assert.equal(hook.pending,false);
+ hook.setTasks(previous=>[...previous,recurringClient]);await hook.flush();await tick();assert.equal(hook.tasks.find(t=>t.id===recurringClient.id).recurrence.version,2);
+ failure=true;hook.setTasks(previous=>previous.map(t=>t.id===recurringClient.id?completeFollowup(t):t));await assert.rejects(()=>hook.flush(),/Falha simulada/);
+ const recurrenceDraft=await readPrivateDraft('notion-draft:'+testUser.id,testUser.draftKey);assert.equal(recurrenceDraft.next.tasks.find(t=>t.id===recurringClient.id).recurrence.lastCheck.date,followupToday());assert.ok(!('history' in recurrenceDraft.next.tasks.find(t=>t.id===recurringClient.id).recurrence));
+ await hook.flush();await tick();assert.equal(hook.tasks.find(t=>t.id===recurringClient.id).status,'hold');assert.equal(hook.tasks.find(t=>t.id===recurringClient.id).recurrence.lastCheck.date,followupToday());assert.equal(hook.pending,false);
  // Untouched creation must not reach Notion, even during an unrelated save.
  const beforeDrafts=syncCount;
  const draftTask={id:'untouched-task',_untouchedDraft:true,title:'Nova tarefa',status:'todo',priority:'medium',context:'personal',project:null,milestone:null,due:null,start:null,followUp:null,waitingOn:'',notes:'',completedAt:null,attachments:[]};

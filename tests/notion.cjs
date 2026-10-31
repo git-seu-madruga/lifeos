@@ -659,15 +659,22 @@ global.fetch=async(url,options={})=>{
   await save(state,{...state,tasks:[...state.tasks,{...template,id:'recurring-test'}]});
   state=(await notionLib.readSnapshot(false,A)).state;let loaded=state.tasks.find(t=>t.title===template.title);assert.deepEqual(loaded.recurrence,template.recurrence);assert.equal(loaded.status,'hold');
   const readB=(await notionLib.readSnapshot(false,B)).state;assert.ok(readB.tasks.some(t=>t.id===loaded.id),'Shared follow-up visible to both users');
-  const completed=completeFollowup(loaded,'Sem novas publicações'),desired={...state,tasks:state.tasks.map(t=>t.id===loaded.id?completed:t)};
-  const createdBefore=creates;await save(state,desired);await save(state,desired);assert.equal(creates,createdBefore);let fresh=(await notionLib.readSnapshot(false,A)).state;assert.equal(fresh.tasks.find(t=>t.id===loaded.id).recurrence.total,1);assert.equal(fresh.tasks.find(t=>t.id===loaded.id).status,'hold');assert.equal(fresh.tasks.find(t=>t.id===loaded.id).due,'2020-01-01');
-  const competing=completeFollowup(loaded,'Outra consulta');await assert.rejects(()=>save(state,{...state,tasks:state.tasks.map(t=>t.id===loaded.id?competing:t)}),e=>e.status===409);
+  const completed=completeFollowup(loaded),desired={...state,tasks:state.tasks.map(t=>t.id===loaded.id?completed:t)};
+  const createdBefore=creates;await save(state,desired);await save(state,desired);assert.equal(creates,createdBefore);let fresh=(await notionLib.readSnapshot(false,A)).state;assert.ok(fresh.tasks.find(t=>t.id===loaded.id).recurrence.lastCheck.id);assert.equal(fresh.tasks.find(t=>t.id===loaded.id).status,'hold');assert.equal(fresh.tasks.find(t=>t.id===loaded.id).due,'2020-01-01');
+  const competing=completeFollowup(loaded);await assert.rejects(()=>save(state,{...state,tasks:state.tasks.map(t=>t.id===loaded.id?competing:t)}),e=>e.status===409);
   // An older client cannot set done without explicitly ending the persisted rule.
   const oldClient=structuredClone(fresh);oldClient.tasks=oldClient.tasks.map(t=>{const {recurrence,...rest}=t;return t.id===loaded.id?rest:t;});
   await assert.rejects(()=>save(oldClient,{...oldClient,tasks:oldClient.tasks.map(t=>t.id===loaded.id?{...t,status:'done',completedAt:Date.now()}:t)}),/manualmente|On hold/);
   let b=(await notionLib.readSnapshot(false,B)).state;await save(b,{...b,tasks:b.tasks.map(t=>t.id===loaded.id?{...t,locked:true}:t)},B);
   await assert.rejects(()=>save(fresh,{...fresh,tasks:fresh.tasks.map(t=>t.id===loaded.id?{...t,recurrence:{...t.recurrence,every:3}}:t)}),/bloqueada/);
   b=(await notionLib.readSnapshot(false,B)).state;await save(b,{...b,tasks:b.tasks.map(t=>t.id===loaded.id?{...t,locked:false}:t)},B);
+  // Disabling the toggle removes the program only, preserving the common task.
+  const beforeOff=(await notionLib.readSnapshot(false,B)).state,oldTask=beforeOff.tasks.find(t=>t.id===loaded.id);
+  const switchedOff={...beforeOff,tasks:beforeOff.tasks.map(t=>t.id===loaded.id?{...t,recurrence:null,status:'hold',completedAt:null}:t)};
+  await save(beforeOff,switchedOff,B);await save(beforeOff,switchedOff,B);
+  const afterOff=(await notionLib.readSnapshot(false,A)).state.tasks.find(t=>t.id===loaded.id);
+  assert.equal(afterOff.recurrence,null);assert.equal(afterOff.status,'hold');
+  for(const key of ['title','notes','due','priority','responsible','project','attachments'])assert.deepEqual(afterOff[key],oldTask[key]);
   for(const finalStatus of ['done','cancelled']){
    state=(await notionLib.readSnapshot(false,A)).state;
    const parent={id:'followup-parent-'+finalStatus,name:'Projeto follow-up '+finalStatus,status:'active',context:'personal',area:'',due:null,description:'',attachments:[],milestones:[],shared:true};
@@ -677,10 +684,10 @@ global.fetch=async(url,options={})=>{
    // Include a fresh remote child omitted by the caller, as in real partial sync.
    const remoteExtra={...template,id:'late-followup-'+finalStatus,title:'Remota '+finalStatus,project:project.id};await save(stale,{...stale,tasks:[...stale.tasks,remoteExtra]});
    failCompletionProjectWrite=true;await assert.rejects(()=>save(stale,closing),/Falha simulada/);
-   const partial=(await notionLib.readSnapshot(false,A)).state;assert.equal(partial.tasks.find(t=>t.id===child.id).recurrence.state,'ended');const completion=partial.tasks.find(t=>t.id===child.id).completedAt;
+   const partial=(await notionLib.readSnapshot(false,A)).state;assert.equal(partial.tasks.find(t=>t.id===child.id).recurrence,null);const completion=partial.tasks.find(t=>t.id===child.id).completedAt;
    await save(stale,closing);const finished=(await notionLib.readSnapshot(false,A)).state;
-   assert.equal(finished.projects.find(p=>p.id===project.id).status,finalStatus);assert.ok(finished.tasks.filter(t=>t.project===project.id).every(t=>t.status==='done'&&t.recurrence.state==='ended'));assert.equal(finished.tasks.find(t=>t.id===child.id).completedAt,completion);
-   const reopened={...finished,projects:finished.projects.map(p=>p.id===project.id?{...p,status:'active'}:p)};await save(finished,reopened);assert.equal((await notionLib.readSnapshot(false,A)).state.tasks.find(t=>t.id===child.id).recurrence.state,'ended','Reopening project never resumes follow-ups');
+   assert.equal(finished.projects.find(p=>p.id===project.id).status,finalStatus);assert.ok(finished.tasks.filter(t=>t.project===project.id).every(t=>t.status==='done'&&t.recurrence==null));assert.equal(finished.tasks.find(t=>t.id===child.id).completedAt,completion);
+   const reopened={...finished,projects:finished.projects.map(p=>p.id===project.id?{...p,status:'active'}:p)};await save(finished,reopened);assert.equal((await notionLib.readSnapshot(false,A)).state.tasks.find(t=>t.id===child.id).recurrence,null,'Reopening project never resumes follow-ups');
    const beforeDelete=(await notionLib.readSnapshot(false,A)).state;await save(beforeDelete,{...beforeDelete,projects:beforeDelete.projects.filter(p=>p.id!==project.id),tasks:beforeDelete.tasks.filter(t=>t.project!==project.id)});assert.ok(!(await notionLib.readSnapshot(false,A)).state.tasks.some(t=>t.project===project.id));
   }
  }

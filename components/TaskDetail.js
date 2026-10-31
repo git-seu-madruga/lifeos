@@ -41,7 +41,7 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
           <span className="label">Status</span>
           <div className="seg-row">
             {STATUS.filter(([k])=>!task.recurrence||k==="hold").map(([k, l]) => (
-              <button key={k} className={"subtab" + (task.status === k ? " on" : "")} disabled={!!task.recurrence&&task.recurrence.state!=='active'} onClick={() => setStatus(k)}>{l}</button>
+              <button key={k} className={"subtab" + (task.status === k ? " on" : "")} onClick={() => setStatus(k)}>{l}</button>
             ))}
           </div>
         </div>
@@ -117,9 +117,9 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
           <div className="task-followup-toggle-row"><span className="label">Acompanhamento programado (follow-up)</span><button type="button" role="switch" aria-label="Acompanhamento programado (follow-up)" aria-checked={!!task.recurrence} aria-controls={`followup-config-${task.id}`} className="task-followup-toggle" disabled={locked} onClick={()=>{
             if(locked)return;
             if(!task.recurrence)set({recurrence:makeFollowup(),status:'hold',completedAt:null});
-            else if(!task.recurrence.total||window.confirm('Desativar o follow-up e manter como tarefa comum? A programação e o histórico de acompanhamento serão removidos. Para preservar o histórico, use Encerrar acompanhamento.'))set({recurrence:null});
+            else set({recurrence:null,status:'hold',completedAt:null});
           }}><span aria-hidden="true"/></button></div>
-          {task.recurrence&&<div id={`followup-config-${task.id}`}><FollowupFields task={task} set={set}/></div>}
+          {task.recurrence&&task.status!=='done'&&<div id={`followup-config-${task.id}`}><FollowupFields task={task} set={set}/></div>}
         </div>
         <button className="danger" onClick={() => {
           if (locked)return;
