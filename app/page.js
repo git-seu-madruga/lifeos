@@ -2,8 +2,21 @@
 
 import {inboxAcceptsAttachments} from '../lib/inboxAttachments';
 import dynamic from 'next/dynamic';
-const ReferenceView=dynamic(()=>import('../components/ReferenceView'));
-const SomedayView=dynamic(()=>import('../components/SomedayView'));
+// Only the selected view is mounted; other tab bundles stay outside the initial JS.
+function LoadingView(){return <p className="empty" role="status">Carregando tela…</p>;}
+const NutritionView=dynamic(()=>import('../components/NutritionView'),{loading:LoadingView});
+const VehiclesView=dynamic(()=>import('../components/VehiclesView'),{loading:LoadingView});
+const RecadosView=dynamic(()=>import('../components/RecadosView'),{loading:LoadingView});
+const EntertainmentView=dynamic(()=>import('../components/EntertainmentView'),{loading:LoadingView});
+const WellnessView=dynamic(()=>import('../components/WellnessView'),{loading:LoadingView});
+const ShoppingView=dynamic(()=>import('../components/ShoppingView'),{loading:LoadingView});
+const TasksView=dynamic(()=>import('../components/TasksView'),{loading:LoadingView});
+const ProjectsView=dynamic(()=>import('../components/ProjectsView'),{loading:LoadingView});
+const BirthdaysView=dynamic(()=>import('../components/BirthdaysView'),{loading:LoadingView});
+const FinanceView=dynamic(()=>import('../components/FinanceView'),{loading:LoadingView});
+const DiaryView=dynamic(()=>import('../components/DiaryView'),{loading:LoadingView});
+const ReferenceView=dynamic(()=>import('../components/ReferenceView'),{loading:LoadingView});
+const SomedayView=dynamic(()=>import('../components/SomedayView'),{loading:LoadingView});
 const AreaManager=dynamic(()=>import('../components/AreaManager'));
 
 import {startupGroupForTab} from '../lib/startup';
@@ -20,30 +33,19 @@ import {useRecadoNotification} from '../lib/useRecadoNotification';
 import AccountMenu from '../components/AccountMenu';
 import QrLock from '../components/QrLock';
 import {PageActionsTarget} from "../components/PageActions";
-import NutritionView from '../components/NutritionView';
-import VehiclesView from '../components/VehiclesView';
 import {hasVehicleMaintenanceAlert} from '../lib/vehicles';
 import {habitToday} from '../lib/habits';
 import {useDateRollover} from '../lib/useDateRollover';
 import QrSessions from '../components/QrSessions';
 import BackupView from '../components/BackupView';
-import RecadosView from "../components/RecadosView";
-import EntertainmentView from "../components/EntertainmentView";
 import Login from "../components/Login";
 import ModalLayer from '../components/ModalLayer';
 import {useAppBackNavigation,useBackLayer,BackNotice} from '../lib/useBackNavigation';
-import WellnessView from '../components/WellnessView';
-import ShoppingView from '../components/ShoppingView';
 import TabIcon from '../components/TabIcon';
 import {shoppingFromInbox} from '../lib/shopping';
 import Inbox from "../components/Inbox";
 import TaskDetail from "../components/TaskDetail";
-import TasksView from "../components/TasksView";
-import ProjectsView from "../components/ProjectsView";
-import BirthdaysView from '../components/BirthdaysView';
 import {contactFromInbox,birthdaySummary,todayLocal} from '../lib/birthdays';
-import FinanceView from "../components/FinanceView";
-import DiaryView from "../components/DiaryView";
 import { normalizeTabOrder, moveTab, moveTabBefore, dateKey } from "../lib/diary";
 import Placeholder from "../components/Placeholder";
 

@@ -71,6 +71,8 @@ Se um grupo falhar, ele exibe Tentar novamente, enquanto as demais áreas contin
 
 **Rascunhos pendentes anteriores:** quando há alterações não enviadas de uma sessão anterior, essa abertura usa a leitura completa e a recuperação já existente, antes de liberar as áreas. É uma exceção intencional para preservar o texto e a verificação de conflitos. Sessões temporárias continuam sem persistência de dados privados no dispositivo.
 
+O código das telas das abas é carregado sob demanda, quando a tela é exibida, em vez de entrar todo no JavaScript inicial. Inbox, login e a estrutura de navegação continuam disponíveis no carregamento principal. Na primeira abertura de uma aba pode aparecer brevemente “Carregando tela…” enquanto seu código é obtido; voltar a uma tela já carregada reutiliza o módulo nessa sessão. Isso reduz o código inicial sem alterar a ordem de leitura dos dados ou as regras de sincronização e rascunhos.
+
 O botão Atualizar mantém a atualização completa com proteção das edições. O ganho desta mudança é disponibilizar o Inbox e as primeiras áreas mais cedo; o tempo total depende do volume de dados e do Notion. Não adiciona banco, variável ou atualização de APK. Este pacote cumulativo inclui Referência Geral, busca no Diário e todas as melhorias anteriores; mantenha a configuração do banco de Referência Geral indicada abaixo se ainda não a fez.
 
 

@@ -342,3 +342,10 @@ Widget Captura Android 1.0.3 ocupa uma linha horizontal de duas colunas, redimen
 
 - Links de arquivos no Inbox usam target=_blank, rel=noopener noreferrer e stopPropagation, sem atributo download. O navegador decide visualização/download conforme o formato e os cabeçalhos do arquivo; não criar proxy inline de documentos arbitrários na origem autenticada. Preservar endpoint privado/URL atual e revogação de blobs.
 - Imagens mantêm painel lateral com Ajustar (inicial), 100% e Abrir em outra aba. Tamanho original usa dimensões intrínsecas, remove limites max-width/max-height e permite rolagem no viewport. Clique/Enter/Espaço na imagem alterna ajustar/original; reabrir reinicia Ajustar. Controles aria-pressed/foco/teclado, sem ampliar a miniatura nem buscar/enviar outro arquivo. Alteração restrita ao Inbox.
+
+
+## Código das abas sob demanda
+
+- app/page.js declara as 13 telas principais com next/dynamic e import literal no escopo do módulo; LoadingView mostra apenas Carregando tela… com role=status. Nenhuma importação estática dessas telas no Home e nenhum preload indiscriminado de todas elas. AreaManager mantém o carregamento dinâmico anterior.
+- Inbox, login e estrutura de navegação permanecem no pacote principal. A renderização condicional existente monta somente a aba selecionada depois de seus dados estarem disponíveis; código e dados são carregamentos distintos. Não mover estado, setters, PageActionsTarget ou modais globais para dentro de componentes recriados a cada render.
+- Não alterar startupOrder, grupos, ensureLoaded, snapshot/diff, autosave, retorno ao foco, cadeados, autenticação ou política QR para dividir código. Primeiro acesso pode mostrar placeholder; módulos já carregados são reutilizados. Validar build de produção e separação real dos chunks, além das regressões de navegação e sincronização. Sem schema/variáveis/APK novo.
