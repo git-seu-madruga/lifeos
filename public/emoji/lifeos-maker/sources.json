@@ -1,0 +1,144 @@
+{
+  "collection": "LifeOS · Impressão 3D",
+  "origin": "Original images generated with OpenAI image generation for LifeOS; independent of Microsoft Fluent Emoji",
+  "created": "2026-11-03",
+  "processing": "Exported as 128x128 WebP, quality 86, alpha retained; no runtime generation",
+  "assets": [
+    {
+      "id": "art-3d-printer-fdm",
+      "file": "printer-fdm.webp",
+      "description": "Impressora 3D FDM",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "a5f37961d336c2b9ba11535eeca1124b3213f7f5f8c21ffe94e2eb434806578b",
+      "bytes": 4526
+    },
+    {
+      "id": "art-3d-filament-orange",
+      "file": "filament-orange.webp",
+      "description": "Filamento laranja",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "20476887b1fe058328494ec373068dc36a42c5b09a6427ace7c9c20a01434e4d",
+      "bytes": 3038
+    },
+    {
+      "id": "art-3d-filament-white",
+      "file": "filament-white.webp",
+      "description": "Filamento branco",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "aa2130e994386ae56ba5e7b46a981b449c2388167207e052c017356f16752f18",
+      "bytes": 2664
+    },
+    {
+      "id": "art-3d-filament-black",
+      "file": "filament-black.webp",
+      "description": "Filamento preto",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "112fda36906d484bed76c73e43a468cb4cb7acf976051cadc3e42dcd3fd411b9",
+      "bytes": 2386
+    },
+    {
+      "id": "art-3d-filament-red",
+      "file": "filament-red.webp",
+      "description": "Filamento vermelho",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "9aaf31eca1815f26957e8b19172bde2523d5d082f87eb7c33347f7b28332fb5b",
+      "bytes": 2894
+    },
+    {
+      "id": "art-3d-filament-blue",
+      "file": "filament-blue.webp",
+      "description": "Filamento azul",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "fd5f8fcdf3b1c4b333d6a193254022a71b7e798449fa71d66dd6b5647387d5fb",
+      "bytes": 3196
+    },
+    {
+      "id": "art-3d-filament-green",
+      "file": "filament-green.webp",
+      "description": "Filamento verde",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "72cf29ecd10823d3794459dad4ee44fd49ad6cfa5cad9f1800a5bcb7d7077cbc",
+      "bytes": 2962
+    },
+    {
+      "id": "art-3d-filament-purple",
+      "file": "filament-purple.webp",
+      "description": "Filamento roxo",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "f3aab31e405a81bf44bb027c0388271fefd8ce6305d612dfcff05cfa0310b70b",
+      "bytes": 2990
+    },
+    {
+      "id": "art-3d-filament-rainbow",
+      "file": "filament-rainbow.webp",
+      "description": "Filamento multicolorido",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "ce09d79afbd737755edb6a7c4fbe6eefce7d67aebb4656e15128ddaf2a8d627b",
+      "bytes": 3070
+    },
+    {
+      "id": "art-3d-material-samples",
+      "file": "material-samples.webp",
+      "description": "Amostras de filamento",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "464fd515c04841ae68b8dbc03dbd589aa434b8e8f041779fc0c49c03d065d2c9",
+      "bytes": 4986
+    },
+    {
+      "id": "art-3d-test-boat",
+      "file": "test-boat.webp",
+      "description": "Barquinho de teste 3D",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "b409b30d21a507c6ce6d0d01c81e360e082ce28fb0463b12875c06f96cd1ae82",
+      "bytes": 3222
+    },
+    {
+      "id": "art-3d-calibration-cube",
+      "file": "calibration-cube.webp",
+      "description": "Cubo de calibração XYZ",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "6c6079fb1650c317f3f3c9916bf9d7a863a93b8d6500ccc8b8ec5c89482b8646",
+      "bytes": 2940
+    },
+    {
+      "id": "art-3d-extruder-nozzle",
+      "file": "extruder-nozzle.webp",
+      "description": "Bico extrusor",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "2280fe770c5ff8eb9c8a2c4387c244a88224f02a272b19d8e640db0cdf720e9d",
+      "bytes": 2630
+    },
+    {
+      "id": "art-3d-print-bed",
+      "file": "print-bed.webp",
+      "description": "Mesa de impressão",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "ab1c0ff667000d0488143e49a59628f5eb7472ebdafd97f8e45c81b02a6b69a9",
+      "bytes": 2240
+    },
+    {
+      "id": "art-3d-digital-caliper",
+      "file": "digital-caliper.webp",
+      "description": "Paquímetro digital",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "a2f2afe5584622cbba5e3b6200a5154048a4c3739b75a4f0fc968e910077eaca",
+      "bytes": 3506
+    },
+    {
+      "id": "art-3d-printer-resin",
+      "file": "printer-resin.webp",
+      "description": "Impressora 3D de resina",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "e9a9a9e6fb0e4da3332ff69844d8f9baa243795ff9f33ec3d9b3a725ce29e0a9",
+      "bytes": 2968
+    },
+    {
+      "id": "art-3d-resin-bottle",
+      "file": "resin-bottle.webp",
+      "description": "Frasco de resina",
+      "origin": "AI-generated illustration for LifeOS; approved colorful 3D concept, transparent background",
+      "sha256": "2e3462d6fa8e613a4e1bc535014f828aacfe6cb066d5993f88f189d6e30881e0",
+      "bytes": 1948
+    }
+  ]
+}

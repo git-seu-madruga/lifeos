@@ -162,7 +162,7 @@ Widget Captura Android 1.0.3 ocupa uma linha horizontal de duas colunas, redimen
 
 ## Catálogo ampliado de ilustrações
 
-- lib/illustrations.js é o catálogo único das 359 Fluent Emoji 3D, com IDs estáveis art-*, rótulos, temas, termos de busca e caminhos locais. Arquivos WebP com transparência em public/emoji/fluent-expanded/; preservar LICENSE.txt e sources.json com revisão upstream. Não substituir valores legados nem remover arquivos anteriores.
+- lib/illustrations.js é o catálogo único: 359 Fluent Emoji 3D e 17 ilustrações LifeOS de impressão 3D, com IDs estáveis art-*, rótulos, temas, termos de busca e caminhos locais. Fluent em public/emoji/fluent-expanded/, próprios em public/emoji/lifeos-maker/, todos WebP transparentes; preservar LICENSE.txt e sources.json com revisão upstream dos originais. Não substituir valores legados nem remover arquivos anteriores.
 - IllustrationPicker atende IdeaPalette (ideias e áreas compartilhadas com Projetos), NutritionView (somente alimentos/bebidas) e HabitsView (somente catálogo de emojis; códigos legados aceitos nos dados). Busca local sem acentos, tema, escolha atual visível mesmo filtrada e grade com altura limitada. Não criar requisição externa para escolher ícones.
 - IDEA_ICONS, FOOD_ICONS e HABIT_ICONS incluem o catálogo relevante para que validação no cliente/servidor, reidratação e backup aceitem os mesmos IDs. IdeaArt/FoodImage preservam os fallbacks anteriores, inclusive fotos de produtos; HabitIcon resolve também os códigos antigos para emojis via HABIT_ILLUSTRATION_ALIASES, sem SVG. Sem migração em massa ou mudança de schema.
 - A ampliação dos seletores é autorizada; não redesenhar outras telas nem criar seleção onde não existia. Veículos mantém modelos/cores específicos; Recados mantém emojis de texto independentes.
@@ -261,6 +261,9 @@ Widget Captura Android 1.0.3 ocupa uma linha horizontal de duas colunas, redimen
 
 ## Miniaturas nos cards de Algum dia
 
+- IdeaDetail não replica a ilustração da categoria no topo da ideia aberta; manter somente Fechar alinhado à direita em sd-idea-heading. Preservar ícones das gavetas, seletor de estilo e miniatura da primeira imagem nos cards externos. Não estender a Referência Geral.
+
+
 - ideaCardPreview seleciona a primeira ideaImage disponível na ordem do documento por attachmentId = nome estável do anexo; nunca usar posição da lista de anexos ou ID efêmero como vínculo. Resolver pageId/index/nome no endpoint autenticado kind=someday, com fallback seguro HTTPS de anexos ainda sem pageId. Ignorar referências ausentes e arquivos que não aparecem no documento.
 - Retirar marcadores de imagem apenas da prévia visual, preservando ideaText, busca, conversões, documento e metadados. Cards com imagem e texto mostram ambos; só imagem dispensa texto genérico. Miniatura lazy/async, proporção preservada com object-fit:contain, falha não quebra abertura do card. Miniatura de 66×66px fica no heading ao lado do título, substituindo o ícone da categoria, sem uma segunda imagem grande abaixo. Cards sem imagem não têm ícone nem espaço vazio reservado; manter tag da área e demais informações. Ilustrações das gavetas permanecem. Não estender a mudança a Referência Geral ou gavetas de áreas sem pedido.
 
@@ -349,3 +352,10 @@ Widget Captura Android 1.0.3 ocupa uma linha horizontal de duas colunas, redimen
 - app/page.js declara as 13 telas principais com next/dynamic e import literal no escopo do módulo; LoadingView mostra apenas Carregando tela… com role=status. Nenhuma importação estática dessas telas no Home e nenhum preload indiscriminado de todas elas. AreaManager mantém o carregamento dinâmico anterior.
 - Inbox, login e estrutura de navegação permanecem no pacote principal. A renderização condicional existente monta somente a aba selecionada depois de seus dados estarem disponíveis; código e dados são carregamentos distintos. Não mover estado, setters, PageActionsTarget ou modais globais para dentro de componentes recriados a cada render.
 - Não alterar startupOrder, grupos, ensureLoaded, snapshot/diff, autosave, retorno ao foco, cadeados, autenticação ou política QR para dividir código. Primeiro acesso pode mostrar placeholder; módulos já carregados são reutilizados. Validar build de produção e separação real dos chunks, além das regressões de navegação e sincronização. Sem schema/variáveis/APK novo.
+
+
+## Ilustrações de impressão 3D
+
+- Tema printing3d em ILLUSTRATION_CATEGORIES; 17 IDs estáveis art-3d-* adicionados ao catálogo compartilhado: impressoras FDM/resina, oito cores de filamento, amostras, barquinho de teste, cubo XYZ, bico, mesa, paquímetro e frasco de resina. IDs/arquivos antigos preservados. Busca por cor, PLA/PETG, Benchy e termos maker sem acentos.
+- Assets próprios gerados por IA, independentes da Microsoft, em public/emoji/lifeos-maker: WebP128 transparente, README de origem e sources.json com hashes/tamanhos. Não alterar a licença/atribuição Fluent nem atribuir as imagens novas à Microsoft. Sem geração/serviço externo em runtime.
+- O catálogo alimenta ideias, áreas de Projetos/Algum dia, Referência e Hábitos pelas enumerações existentes; FOOD_ILLUSTRATIONS continua filtrado a alimentos. Não migrar valores, criar banco/campo nem reintroduzir a ilustração removida do topo da ideia aberta. Validar todos os IDs novos em ideias/hábitos, arquivos e renderização; build e suíte completa.
