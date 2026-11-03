@@ -78,7 +78,7 @@ O botão Atualizar mantém a atualização completa com proteção das edições
 
 Na aba Diário, Transformar em Diário aceita texto com imagens ou só imagens do Inbox. Acrescenta texto e imagens dentro do corpo da entrada de hoje, preservando o conteúdo e os arquivos que já existiam. Havendo uma entrada hoje, mantém a confirmação antes de reabrir para edição. A imagem usa o acesso privado da própria entrada do Diário, sem apontar para o Inbox arquivado.
 
-A área Anexos e referências mostra somente os arquivos incluídos manualmente. As imagens do corpo continuam armazenadas no campo Anexos do Notion como suporte ao editor, mas não ficam duplicadas nessa listagem do app. Excluir uma imagem do texto também retira seu arquivo de suporte da entrada. Arquivos manuais são preservados ao editar ou remover imagens.
+A área Anexos e referências mostra os arquivos incluídos manualmente e documentos transferidos do Inbox; imagens do Inbox vão para o corpo. As imagens do corpo continuam armazenadas no campo Anexos do Notion como suporte ao editor, mas não ficam duplicadas nessa listagem do app. Excluir uma imagem do texto também retira seu arquivo de suporte da entrada. Arquivos manuais são preservados ao editar ou remover imagens.
 
 Entradas já transferidas pela versão anterior exibem suas imagens no corpo ao reabrir, desde que os arquivos ainda estejam no campo Anexos do Diário. Isso não faz gravações em massa: o documento convertido é persistido na próxima edição. Metadados antigos que apontavam para o Inbox são substituídos pelos do Diário. Não recupera arquivos removidos do próprio Notion.
 
@@ -327,9 +327,11 @@ As datas usam **DD/MM/AAAA**, com barras automáticas e calendário alternativo.
 
 ### Inbox
 
-O mesmo campo aceita colar imagens binárias (Ctrl+V/copiar e colar), na nova entrada ou em uma já aberta, junto de texto simples. Não há editor rico, botão de arquivo ou aviso fixo. PNG/JPG/WebP/GIF, até 4 MB por imagem. A miniatura abre a imagem completa; × remove a imagem. Pode adicionar uma entrada só com imagem. Entradas com imagens podem ser transformadas em Diário: texto e imagens vão para o corpo da entrada de hoje. Para os demais destinos, Transformar fica desabilitado enquanto houver imagens; remover todas libera novamente. Imagens permanecem no Notion até remover/excluir a entrada, sujeito à lixeira e retenção do serviço, sem promessa de apagamento físico imediato.
+O campo continua sendo texto simples e aceita colar imagens binárias (Ctrl+V/copiar e colar), tanto na nova entrada quanto em uma já aberta. Um **clipe discreto** permite escolher imagens ou arquivos, inclusive vários de uma vez. Limite de **4 MB por arquivo e 100 anexos por entrada**, incluindo imagens coladas. O seletor não altera o texto digitado; arquivos acima do limite são recusados sem perder os anexos já selecionados. Imagens PNG/JPG/WebP/GIF têm miniatura e ampliação; documentos e outros formatos aparecem como links para abrir/baixar. × remove o arquivo. Pode salvar apenas anexos, sem texto.
 
-O campo **Anexos** (Arquivos e mídia) do banco Inbox será criado automaticamente. **Nome** e **Conteúdo** continuam iguais, sem texto especial ou alteração de formato. Não exige variável, novo banco ou APK. O APK Captura 1.0.4 também aceita uma imagem colada; instale a atualização separadamente. Rascunhos pendentes das imagens adicionadas são cifrados nas sessões permanentes e retomáveis após falha; sessões QR não persistem rascunhos privados.
+Ao transformar em **Tarefa, Projeto, Diário ou Algum dia**, os anexos acompanham o conteúdo. Tarefa/Projeto usam a primeira linha como título e as demais como anotações/descrição; se só houver anexos, usam o nome do primeiro arquivo como título. Algum dia mantém título na primeira linha e área obrigatória. Diário e Algum dia incluem imagens no corpo e mantêm os demais arquivos nos anexos. A cópia fica vinculada ao destino e continua acessível após arquivar o Inbox. Nas integrações sem suporte a anexos (Compras, Aniversários e Recados), a transformação fica desabilitada enquanto houver arquivos, sem descartá-los.
+
+O campo **Anexos** (Arquivos e mídia) do banco Inbox continua sendo criado automaticamente. **Nome** e **Conteúdo** não mudam de formato. Não exige variável, novo banco ou APK; o seletor de arquivos é uma função do app web/PWA, sem alterar as capacidades do widget nativo. Sessões permanentes preservam arquivos pendentes em rascunhos cifrados, inclusive depois de movê-los para o destino; sessões QR continuam sem persistência privada. Excluir segue a lixeira e retenção do Notion, sem promessa de apagamento físico imediato.
 
 No desktop, fica à esquerda; no celular, pode ser aberto/recolhido. O campo cresce com o texto. No celular, Enter cria uma nova linha e o botão Adicionar confirma. No desktop, use Shift+Enter para quebra de linha.
 
@@ -488,7 +490,7 @@ Use o ID do banco de dados antes de ?v=; o valor v é a visualização. Textos d
 | --- | --- | --- |
 | Nome | Título |  |
 | Conteúdo | Texto |  |
-| Anexos | Arquivos e mídia | Criado automaticamente para imagens coladas |
+| Anexos | Arquivos e mídia | Criado automaticamente para anexos do Inbox |
 
 ### Diário
 
@@ -1067,7 +1069,7 @@ Os testes do servidor usam serviços simulados e scripts Redis Lua reais em VM: 
 
 ### Atualização 1.0.5 — Compartilhar com LifeOS Captura
 
-O **LifeOS Captura** aparece na folha de compartilhamento do Android para links/texto simples e uma imagem por captura. No navegador, galeria ou outro app, use **Compartilhar → LifeOS Captura**. A mesma janela compacta do widget abre para revisar, acrescentar texto e confirmar em **Enviar ao Inbox**. Receber um compartilhamento não envia nada automaticamente. Imagens preservam miniatura, ampliação, remoção, limites e fila cifrada da versão 1.0.4; no LifeOS, entradas com imagem podem ir para o corpo do Diário; os demais destinos permanecem bloqueados. Links/textos preservam as conversões existentes.
+O **LifeOS Captura** aparece na folha de compartilhamento do Android para links/texto simples e uma imagem por captura. No navegador, galeria ou outro app, use **Compartilhar → LifeOS Captura**. A mesma janela compacta do widget abre para revisar, acrescentar texto e confirmar em **Enviar ao Inbox**. Receber um compartilhamento não envia nada automaticamente. Imagens preservam miniatura, ampliação, remoção, limites e fila cifrada da versão 1.0.4; no LifeOS web, imagens recebidas podem acompanhar conversões para Tarefas, Projetos, Diário e Algum dia; as integrações sem suporte a anexos permanecem bloqueadas. Links/textos preservam as conversões existentes.
 
 Títulos fornecidos pelo aplicativo de origem entram antes do texto/link, sem duplicar um título já presente. Texto vem sem formatação. Se existir rascunho, o Captura pede para acrescentar ao conteúdo atual; cancelar o mantém. Se o rascunho já tiver imagem, compartilhar outra não a substitui: envie/remova a atual e compartilhe novamente. Compartilhamentos vazios, arquivos de outros tipos, URLs de imagem sem arquivo e múltiplas imagens são recusados. Não há permissão ampla de galeria, envio automático ou acesso remoto ao conteúdo da origem.
 

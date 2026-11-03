@@ -1,4 +1,5 @@
 "use client";
+import {selectedInboxAttachments,inboxAcceptsAttachments} from '../lib/inboxAttachments';
 import LinkText, {TextLinks} from "./LinkText";
 import ModalLayer from './ModalLayer';
 import {useBackLayer} from '../lib/useBackNavigation';
@@ -19,7 +20,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
 
   const target = INBOX_TARGETS[tabId];
   const item = items.find((i) => i.id === openId);
-  const blockedImages=!!item?.attachments?.length&&target?.kind!=="diary";
+  const blockedAttachments=!!item?.attachments?.length&&!inboxAcceptsAttachments(target?.kind);
 
   useBackLayer(open,()=>setOpen(false),15);
 
@@ -35,6 +36,8 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
     catch(error){setPasteError(error.message);}
   }
 
+  function picker(attachments,save){return <label className="ghost inbox-attach" title="Adicionar imagens ou arquivos · até 4 MB por arquivo"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden="true"><path d="m8 12 6-6a3 3 0 0 1 4 4l-8 8a5 5 0 0 1-7-7l9-9M6 14l8-8"/></svg><input type="file" multiple aria-label="Adicionar anexos ao Inbox" onChange={e=>{try{const added=selectedInboxAttachments(e.target.files,attachments);if(!added.length)return;save([...attachments,...added]);setPasteError('');}catch(error){setPasteError(error.message);}e.target.value='';}}/></label>;}
+
   function remove() {
     if (!window.confirm("Excluir esta entrada do inbox? Não dá para desfazer.")) return;
     onDelete(item.id);
@@ -42,7 +45,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
   }
 
   function convert() {
-    if (!item || blockedImages || !target?.kind || onConvert(item, target.kind) === false) return;
+    if (!item || blockedAttachments || !target?.kind || onConvert(item, target.kind) === false) return;
     setOpenId(null);
   }
 
@@ -73,7 +76,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
         />
         <InboxImages items={images} onChange={setImages}/>
         {pasteError&&<p className="date-error" role="alert">{pasteError}</p>}
-        <div className="inbox-compose-actions"><p className="muted small quick-hint"><span className="desktop-inbox-hint">Enter salva · Shift+Enter nova linha</span><span className="mobile-inbox-hint">Enter cria uma nova linha</span></p><button className="primary" onClick={add} disabled={!text.trim()&&!images.length}>Adicionar</button></div>
+        <div className="inbox-compose-actions"><p className="muted small quick-hint"><span className="desktop-inbox-hint">Enter salva · Shift+Enter nova linha</span><span className="mobile-inbox-hint">Enter cria uma nova linha</span></p>{picker(images,setImages)}<button className="primary" onClick={add} disabled={!text.trim()&&!images.length}>Adicionar</button></div>
         {items.length === 0 && <p className="muted small inbox-empty">Inbox vazio.</p>}
         <ul className="inbox-list">
           {items.map((i) => (
@@ -87,7 +90,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
           <div className="panel" role="dialog" aria-modal="true" aria-label="Entrada do inbox" onClick={(e) => e.stopPropagation()}>
             <div className="panel-head">
               <h2 className="inbox-title grow">Entrada do inbox</h2>
-              <button className="ghost" onClick={() => setOpenId(null)}>Fechar</button>
+              {picker(item.attachments||[],attachments=>onUpdate(item.id,item.text,attachments))}<button className="ghost" onClick={() => setOpenId(null)}>Fechar</button>
             </div>
             <div className="field">
               <span className="label">Conteúdo</span>
@@ -95,9 +98,9 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
             </div>
             <InboxImages items={item.attachments||[]} onChange={attachments=>onUpdate(item.id,item.text,attachments)}/>
             {pasteError&&<p className="date-error" role="alert">{pasteError}</p>}
-            {target&&!blockedImages&&<p className="muted small">{tabId === "habitos" ? "Para criar um hábito, use + Novo hábito na tela Hábitos." : target.kind === "diary" ? "O texto será acrescentado ao Diário de hoje e as imagens serão incluídas dentro do texto, no próprio Diário." : target.kind === "someday" ? "Primeira linha: título da ideia. Demais linhas: conteúdo. Escolha a área para concluir a transformação; o contexto pode ser ajustado no editor." : target.kind === "recado" ? "Primeira linha: título do recado. Demais linhas: mensagem. A entrada permanece no Inbox até o envio ser concluído." : target.kind === "shopping" ? "Primeira linha: nome da lista. Separe os itens nas linhas seguintes (Enter no celular ou Shift + Enter no computador)." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>}
+            {target&&!blockedAttachments&&<p className="muted small">{tabId === "habitos" ? "Para criar um hábito, use + Novo hábito na tela Hábitos." : target.kind === "diary" ? "O texto e as imagens serão acrescentados ao Diário de hoje. Os demais arquivos ficarão nos anexos da entrada." : target.kind === "someday" ? "Primeira linha: título da ideia. Demais linhas: conteúdo. Escolha a área para concluir a transformação; o contexto pode ser ajustado no editor." : target.kind === "recado" ? "Primeira linha: título do recado. Demais linhas: mensagem. A entrada permanece no Inbox até o envio ser concluído." : target.kind === "shopping" ? "Primeira linha: nome da lista. Separe os itens nas linhas seguintes (Enter no celular ou Shift + Enter no computador)." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>}
             <div className="inbox-actions">
-              {tabId !== "habitos" && target && <button className="primary" disabled={!target.kind||blockedImages} title={blockedImages?"Remova as imagens para transformar esta entrada":undefined} onClick={convert}>
+              {tabId !== "habitos" && target && <button className="primary" disabled={!target.kind||blockedAttachments} title={blockedAttachments?"Esta integração não aceita anexos. Remova os arquivos ou escolha outra aba.":undefined} onClick={convert}>
                 Transformar em {target.label}{target.kind ? "" : " (em breve)"}
               </button>}
               <button className="danger" onClick={remove}>Excluir</button>

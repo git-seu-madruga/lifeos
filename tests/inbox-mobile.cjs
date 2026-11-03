@@ -1,5 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('fs'),path=require('path'),swc=require('next/dist/build/swc'),React=require('react');
-const folder=path.resolve('.inbox-test');const files=['components/Inbox.js','components/InboxImages.js','lib/inboxImages.js','components/AutoTextarea.js','components/ModalLayer.js','lib/backdropGesture.js','components/LinkText.js','lib/useBackNavigation.js','lib/editingGuard.js','lib/backNavigation.js','lib/inboxInput.js','lib/nav.js'];
+const folder=path.resolve('.inbox-test');const files=['components/Inbox.js','components/InboxImages.js','lib/inboxImages.js','lib/inboxAttachments.js','components/AutoTextarea.js','components/ModalLayer.js','lib/backdropGesture.js','components/LinkText.js','lib/useBackNavigation.js','lib/editingGuard.js','lib/backNavigation.js','lib/inboxInput.js','lib/nav.js'];
 for(const file of files){const dest=path.join(folder,file);fs.mkdirSync(path.dirname(dest),{recursive:true});fs.writeFileSync(dest,swc.transformSync(fs.readFileSync(file,'utf8'),{jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'automatic'}},target:'es2022'},module:{type:'commonjs'}}).code);}
 const saved={useState:React.useState,useRef:React.useRef,useEffect:React.useEffect},oldWindow=global.window;const slots=[];let index=0,mobile=true,added=[];
 React.useState=initial=>{const i=index++;if(!(i in slots))slots[i]=initial;return [slots[i],value=>slots[i]=typeof value==='function'?value(slots[i]):value];};React.useRef=value=>({current:value});React.useEffect=()=>{};global.window={matchMedia:()=>({matches:mobile})};
@@ -37,10 +37,27 @@ try{
   const show=()=>{index=0;return Inbox({items:[current],tabId:tab,onConvert(){count++;},onUpdate(id,text,attachments){current={...current,text,attachments};}});};
   let view=show();walk(view,n=>n.props?.className==='inbox-item').props.onClick();view=show();
   const button=walk(view,n=>n.type==='button'&&Array.isArray(n.props.children)&&n.props.children[0]==='Transformar em ');
-  if(button){assert.equal(button.props.disabled,tab!=='diario');button.props.onClick();assert.equal(count,tab==='diario'?1:0);}
+  if(button){assert.equal(button.props.disabled,!['diario','tarefas','projetos','algumdia'].includes(tab));button.props.onClick();assert.equal(count,['diario','tarefas','projetos','algumdia'].includes(tab)?1:0);}
   const images=walk(view,n=>n.type?.name==='InboxImages'&&n.props.items===current.attachments);images.props.onChange([]);view=show();
   const unlocked=walk(view,n=>n.type==='button'&&Array.isArray(n.props.children)&&n.props.children[0]==='Transformar em ');if(unlocked&&unlocked.props.title===undefined)assert.equal(unlocked.props.disabled,!require(path.join(folder,'lib/nav')).INBOX_TARGETS[tab]?.kind);
  }
+ // A discrete picker accepts mixed files, preserves text and clears invalid selection.
+ const attachmentsApi=require(path.join(folder,'lib/inboxAttachments'));
+ const pdf=new File(['%PDF-test'],'documento.pdf',{type:'application/pdf'});
+ assert.equal(attachmentsApi.inboxAttachmentLabel(attachmentsApi.selectedInboxAttachments([pdf])[0]),'documento.pdf');
+ assert.throws(()=>attachmentsApi.selectedInboxAttachments([new File([new Uint8Array(4*1024*1024+1)],'big.pdf')]),/4 MB/);
+ assert.throws(()=>attachmentsApi.selectedInboxAttachments([pdf],Array(100).fill(files[0])),/100 anexos/);
+ assert.notEqual(attachmentsApi.selectedInboxAttachments([pdf])[0].name,attachmentsApi.selectedInboxAttachments([pdf])[0].name);
+ slots.length=0;let savedEntry;
+ const fileComposer=()=>{index=0;return Inbox({items:[],tabId:'tarefas',onAdd:(text,attachments)=>savedEntry={text,attachments}});};
+ let composerTree=fileComposer();input(composerTree).props.onChange({target:{value:'Manter texto'}});composerTree=fileComposer();
+ const pick=walk(composerTree,n=>n.type==='input'&&n.props.type==='file');assert.ok(pick.props.multiple);
+ const selection={files:[pdf,png],value:'file'};pick.props.onChange({target:selection});assert.equal(selection.value,'');
+ composerTree=fileComposer();assert.equal(input(composerTree).props.value,'Manter texto');
+ walk(composerTree,n=>n.type==='button'&&n.props.children==='Adicionar').props.onClick();assert.equal(savedEntry.attachments.length,2);assert.equal(savedEntry.attachments[0].file,pdf);assert.equal(savedEntry.text,'Manter texto');
+ // Files render as downloadable references, never as broken images.
+ slots.length=0;index=0;const FilePreview=require(path.join(folder,'components/InboxImages')).InboxImageThumbnail({item:savedEntry.attachments[0]});
+ const filePreview=FilePreview.type(FilePreview.props);assert.ok(walk(filePreview,n=>n.type==='a'&&n.props.download==='documento.pdf'));assert.equal(walk(filePreview,n=>n.type==='img'),null);
  // The list thumbnail opens the full image on the first click without opening the entry.
  slots.length=0;index=0;const Preview=require(path.join(folder,'components/InboxImages')).InboxImageThumbnail({item:files[0]});
  index=0;let preview=Preview.type(Preview.props);let stopped=false;walk(preview,n=>n.props?.['aria-label']==='Ampliar imagem').props.onClick({stopPropagation(){stopped=true;}});index=0;preview=Preview.type(Preview.props);assert.ok(stopped);assert.ok(walk(preview,n=>n.props?.role==='dialog'&&n.props['aria-label']==='Imagem do Inbox'));

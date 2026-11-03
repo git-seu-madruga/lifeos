@@ -1,5 +1,6 @@
 "use client";
 
+import {inboxAcceptsAttachments} from '../lib/inboxAttachments';
 import dynamic from 'next/dynamic';
 const ReferenceView=dynamic(()=>import('../components/ReferenceView'));
 const SomedayView=dynamic(()=>import('../components/SomedayView'));
@@ -142,7 +143,7 @@ export default function Home() {
   useEffect(()=>{setSelected(null);setAreasOpen(false);setShoppingSelected(null);setShoppingCreating(false);setShoppingInbox(null);setContactOpen(null);setDiaryOpen(null);setNewTaskId(null);setRecadoInbox(null);setSomedayOpen(null);setSomedayInbox(null);setSomedayInboxArea('');},[remote.user?.id,remote.user?.sessionId]);
   function convertInbox(item, kind) {
     item=inbox.find(entry=>entry.id===item.id);if(!item)return false;
-    if(item.attachments?.length&&kind!=="diary")return false;
+    if(item.attachments?.length&&!inboxAcceptsAttachments(kind))return false;
     if(remote.isTabReady&&!remote.isTabReady(tabId)){remote.prioritizeTab(tabId);window.alert('Esta aba ainda está carregando. Aguarde para transformar a entrada. O texto continua no Inbox.');return false;}
     if(kind==="someday"){
       if(!remote.somedayConfigured){window.alert('Configure o banco Algum dia no Notion. O texto continua no Inbox.');return false;}
@@ -177,25 +178,11 @@ export default function Home() {
       setTabId("diario");
       return true;
     }
-    const [first, ...rest] = item.text.trim().split("\n");
-    const notes = rest.join("\n").trim();
-    const ctx = context === "all" ? "personal" : context;
-    const newId = uid(kind === "task" ? "t" : "pr");
-    if (kind === "task") {
-      setTasks((prev) => [...prev, {
-        id: newId, _createdAt:Date.now(), title: first, status: "todo", due: null, start: null,
-        priority: "medium", context: ctx, project: null, milestone: null, attachments: [], notes,
-        followUp: null, waitingOn: "",
-      }]);
-      setNewTaskId(newId); // abre o detalhe para completar os campos
-    } else if (kind === "project") {
-      const status = { ativos: "active", pausados: "paused", concluidos: "done", cancelados: "cancelled" }[subId] || "active";
-      setProjects((prev) => [...prev, { id: newId, name: first, status, area: "", context: ctx, due: null, description: notes, milestones: [] }]);
-      setSelected(newId); // abre o projeto para completar os campos
-    } else {
-      return;
-    }
-    deleteInbox(item.id);
+    if(!['task','project'].includes(kind))return false;
+    const ctx=context==='all'?'personal':context,status={ativos:'active',pausados:'paused',concluidos:'done',cancelados:'cancelled'}[subId]||'active';
+    try{const id=remote.convertInboxToPlanning(item.id,kind,ctx,status);if(kind==='task')setNewTaskId(id);else setSelected(id);return true;}
+    catch(error){window.alert(error.message);return false;}
+
   }
 
   function confirmSomedayInbox(){

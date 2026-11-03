@@ -2,7 +2,7 @@
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
 const swc=require('next/dist/build/swc'),React=require('react');
 const folder=path.resolve('.client-test');fs.mkdirSync(path.join(folder,'lib'),{recursive:true});
-for(const name of ['followups.js','tasks.js','diary.js','startup.js','reference.js','illustrations.js','someday.js','vehicleImportRunner.js','vehicles.js','useNotionState.js','editingGuard.js','notionDiff.js','entryDrafts.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
+for(const name of ['inboxAttachments.js','followups.js','tasks.js','diary.js','startup.js','reference.js','illustrations.js','someday.js','vehicleImportRunner.js','vehicles.js','useNotionState.js','editingGuard.js','notionDiff.js','entryDrafts.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
 require('fake-indexeddb/auto');
 const windowListeners=new Map(),documentListeners=new Map();
 const listen=(dispatchers,listeners,name,fn)=>{if(!listeners.has(name))listeners.set(name,new Set());listeners.get(name).add(fn);dispatchers.set(name,event=>{for(const listener of [...(listeners.get(name)||[])])listener(event);});};
@@ -28,14 +28,14 @@ global.fetch=async(url,options={})=>{
  if(url==='/api/session'){sessionQueries++;return Response.json({authenticated:sessionAuthenticated,configured:true,user:sessionAuthenticated?testUser:null});}
  if(url.startsWith('/api/notion?group=')){const group=new URL(url,'https://lifeos.test').searchParams.get('group');stageRequests.push(group);const snapshot={...structuredClone(remote),_startupGroup:group,_routingVersion:stageVersions.get(group)||remote._routingVersion||''};if(stageGates.has(group))await stageGates.get(group);if(stageFailures.get(group)){stageFailures.set(group,stageFailures.get(group)-1);return Response.json({error:'Falha em '+group},{status:502});}return Response.json(snapshot);}
  if(url==='/api/notion'){readCount++;const snapshot=structuredClone(remote);if(readGate)await readGate;if(readFailure){readFailure=false;return Response.json({error:'Consulta indisponível'},{status:502});}return Response.json(snapshot);}
- if(url==='/api/notion/upload'){uploadCount++;return Response.json({uploadId:'uploaded-file',name:'ref.txt'});}
+ if(url==='/api/notion/upload'){uploadCount++;return Response.json({uploadId:'uploaded-file',name:options.body.get('file').name});}
  if(url==='/api/notion/sync'){
   syncCount++;if(gate)await gate;
   if(failure){failure=false;return Response.json({error:'Falha simulada'},{status:502});}
   const {next,base,partial}=JSON.parse(options.body),bindings={},files={},taskCompletions={};syncBodies.push(structuredClone({next,base}));
   for(const item of [...(next.reference||[]),...(next.someday||[]),...(next.mediaSections||[]),...(next.media||[]),...next.projects,...next.projects.flatMap(project=>project.milestones),...next.tasks,...next.inbox,...next.diary,...(next.shopping || []),...next.categories,...next.transactions,...(next.habits||[]),...(next.habitLogs||[]),...(next.vehicles||[]),...(next.wellness||[]),...(next.cycle||[]),...(next.nutrition||[])]){
    bindings[item.id]=item._notionId||`remote-${item.id}`;
-   for(const file of item.attachments||[])if(file.uploadId)files[file.id]={id:file.id,name:file.name,notion:{type:'file',name:file.name,file:{url:'https://files.test/ref'}},pageId:bindings[item.id],index:0,kind:(next.reference||[]).includes(item)?'reference':(next.media||[]).includes(item)?'media':next.inbox.includes(item)?'inbox':next.diary.includes(item)?'diary':next.tasks.includes(item)?'tasks':'projects',url:'https://files.test/ref'};
+   for(const file of item.attachments||[])if(file.uploadId)files[file.id]={id:file.id,name:file.name,notion:{type:'file',name:file.name,file:{url:'https://files.test/ref'}},pageId:bindings[item.id],index:0,kind:(next.reference||[]).includes(item)?'reference':(next.someday||[]).includes(item)?'someday':(next.media||[]).includes(item)?'media':next.inbox.includes(item)?'inbox':next.diary.includes(item)?'diary':next.tasks.includes(item)?'tasks':'projects',url:'https://files.test/ref'};
   }
   if(normalizeCompletionDates)next.tasks=next.tasks.map(task=>{const completedAt=task.completedAt?Math.floor(task.completedAt/60000)*60000:null;taskCompletions[task.id]={status:task.status,completedAt};return {...task,completedAt};});
   if(partial){for(const kind of Object.keys(next)){const ids=new Set([...(base[kind]||[]),...next[kind]].map(item=>item.id));remote[kind]=[...(remote[kind]||[]).filter(item=>!ids.has(item.id)),...next[kind]];}}else remote={...next,user:testUser};return Response.json({bindings,files,taskCompletions});
@@ -110,6 +110,17 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  const diaryImageDraft=await readPrivateDraft('notion-draft:'+testUser.id,testUser.draftKey),pendingDiary=diaryImageDraft.next.diary.find(i=>i.date==='2026-10-30');assert.equal(await pendingDiary.attachments[0].file.text(),'pending image bytes');
  await hook.flush();await tick();assert.equal(hook.diary.find(i=>i.date==='2026-10-30').attachments[0].kind,'diary');assert.equal(hook.pending,false);
 
+ // Pending files move atomically into Tasks/Projects and survive encrypted recovery.
+ for(const kind of ['task','project']){
+  const file=new File(['pdf bytes '+kind],'nota.pdf',{type:'application/pdf'}),sourceId='file-to-'+kind;
+  hook.setInbox(previous=>[...previous,{id:sourceId,text:'Título '+kind+'\nDescrição preservada',attachments:[{id:'pending-'+kind,name:'inbox-file-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-nota.pdf',file}]}]);await tick();
+  const id=hook.convertInboxToPlanning(sourceId,kind,'personal','active');await tick();const collection=kind==='task'?'tasks':'projects';
+  assert.ok(!hook.inbox.some(r=>r.id===sourceId));assert.equal(hook[collection].find(r=>r.id===id).attachments[0].file,file);
+  failure=true;await assert.rejects(()=>hook.flush(),/Falha simulada/);
+  const draft=await readPrivateDraft('notion-draft:'+testUser.id,testUser.draftKey);assert.equal(await draft.next[collection].find(r=>r.id===id).attachments[0].file.text(),'pdf bytes '+kind);
+  await hook.flush();await tick();assert.equal(hook[collection].find(r=>r.id===id).attachments[0].kind,collection);assert.equal(hook.pending,false);
+ }
+
  const {makeFollowup,completeFollowup,followupToday}=require(path.join(folder,'lib/followups'));
  const recurringClient={id:'followup-client',title:'Publicações',status:'hold',context:'personal',priority:'medium',recurrence:makeFollowup(followupToday()),attachments:[]};
  hook.setTasks(previous=>[...previous,recurringClient]);await hook.flush();await tick();assert.equal(hook.tasks.find(t=>t.id===recurringClient.id).recurrence.version,2);
@@ -178,6 +189,10 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  await assert.rejects(()=>hook.flush(),/Falha simulada/);await tick();
  const conversionDraft=await readPrivateDraft('notion-draft:'+testUser.id,testUser.draftKey);assert.ok(conversionDraft.base.inbox.some(i=>i.id===somedayInbox.id));assert.ok(!conversionDraft.next.inbox.some(i=>i.id===somedayInbox.id));assert.ok(conversionDraft.next.someday.some(i=>i.id===movedIdeaId));
  await hook.flush();await tick();assert.equal(hook.pending,false);assert.equal(remote.inbox.some(i=>i.id===somedayInbox.id),false);assert.equal(remote.someday.filter(i=>i.id===movedIdeaId).length,1);
+ // Pending documents in Algum dia retain their bytes and destination binding too.
+ const ideaFile=new File(['someday pdf bytes'],'ideia.pdf',{type:'application/pdf'}),ideaSource={id:'inbox-pending-pdf',text:'Consultar documento\nDescrição',attachments:[{id:'idea-file',name:'inbox-file-cccccccc-cccc-cccc-cccc-cccccccccccc-ideia.pdf',file:ideaFile}]};
+ hook.setInbox(previous=>[...previous,ideaSource]);await tick();const fileIdeaId=hook.convertInboxToSomeday(ideaSource.id,ideaArea.data.uid);await tick();failure=true;await assert.rejects(()=>hook.flush(),/Falha simulada/);
+ const fileIdeaDraft=await readPrivateDraft('notion-draft:'+testUser.id,testUser.draftKey);assert.equal(await fileIdeaDraft.next.someday.find(r=>r.id===fileIdeaId).attachments[0].file.text(),'someday pdf bytes');await hook.flush();await tick();assert.equal(hook.pending,false);assert.equal(hook.someday.find(r=>r.id===fileIdeaId).attachments[0].kind,'someday');
  // Conversion can happen while the original Inbox save is already in flight.
  const inflightInbox={id:'inbox-flight-to-idea',text:'Ideia durante envio\nTexto preservado',createdAt:Date.now()};let releaseInbox;
  gate=new Promise(resolve=>releaseInbox=resolve);hook.setInbox(previous=>[...previous,inflightInbox]);const savingInbox=hook.flush();await tick();

@@ -643,7 +643,7 @@ global.fetch=async(url,options={})=>{
   const get=require(path.join(temp,'app/api/notion/attachment/route')).GET;const url='https://lifeos.test/api/notion/attachment?kind=inbox&id='+loaded.id+'&index=0&name='+name;
   const cookieA=auth.sessionCookie(A).split(';')[0],cookieB=auth.sessionCookie(B).split(';')[0];assert.equal((await get(new Request(url,{headers:{cookie:cookieA}}))).status,302);assert.equal((await get(new Request(url,{headers:{cookie:cookieB}}))).status,403);assert.equal((await get(new Request(url))).status,401);
   await save(state,{...state,inbox:state.inbox.map(i=>i.id===loaded.id?{...i,text:'Texto simples **literal**'}:i)});state=(await notionLib.readSnapshot(false,A)).state;loaded=state.inbox.find(i=>i.id===loaded.id);assert.equal(loaded.attachments[0].name,name);assert.equal(loaded.text,'Texto simples **literal**');
-  const bad={...entry,id:'inbox-wrong-format',attachments:[{...entry.attachments[0],name:'document.pdf'}]};await assert.rejects(()=>save(state,{...state,inbox:[...state.inbox,bad]}),/Imagem do Inbox inválida/);
+  const bad={...entry,id:'inbox-wrong-format',attachments:[{...entry.attachments[0],name:'document.pdf'}]};await assert.rejects(()=>save(state,{...state,inbox:[...state.inbox,bad]}),/Anexo do Inbox inválido/);
   const changed=structuredClone(state);changed.inbox=changed.inbox.map(i=>i.id===loaded.id?{...i,attachments:[]}:i);const row=rows.get(loaded.id),original=structuredClone(row.properties.Anexos);row.properties.Anexos={type:'files',files:[{name:'inbox-bbbbbbbb.png',type:'external',external:{url:'https://files.notion.test/replacement.png'}}]};await assert.rejects(()=>save(state,changed),e=>e.status===409);row.properties.Anexos=original;
   await save(state,{...state,inbox:state.inbox.filter(i=>i.id!==loaded.id)});state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.inbox.some(i=>i.id===loaded.id),false);assert.equal(rows.get(loaded.id).in_trash,true);assert.equal((await get(new Request(url,{headers:{cookie:cookieA}}))).status,404);
  }
@@ -703,6 +703,32 @@ global.fetch=async(url,options={})=>{
   const GET=require(path.join(temp,'app/api/notion/attachment/route')).GET,cookie=auth.sessionCookie(A).split(';')[0],address='https://lifeos.test/api/notion/attachment?kind=diary&id='+confirmed.pageId+'&index='+confirmed.index+'&name='+encodeURIComponent(name);
   assert.equal((await GET(new Request(address,{headers:{cookie}}))).status,302,'Diary image opens after source is archived');assert.equal((await GET(new Request(address,{headers:{cookie:auth.sessionCookie(B).split(';')[0]}}))).status,403,'Diary image remains private');
   const oldAddress='https://lifeos.test/api/notion/attachment?kind=inbox&id='+source.id+'&index=0&name='+encodeURIComponent(name);assert.equal((await GET(new Request(oldAddress,{headers:{cookie}}))).status,404,'Deleted source stays inaccessible');
+ }
+ {
+  // Mixed Inbox files move independently of the archived source, for every supported destination.
+  process.env.NOTION_SOMEDAY_DATABASE_ID=databases.someday;
+  const A={id:'google:user-A',email:'periclesbernardes@gmail.com',name:'Péricles'},B={id:'google:user-B',email:'leticiacost3@gmail.com',name:'Letícia'};
+  const {compactSyncState}=require(path.join(temp,'lib/notionDiff')),{moveInboxToPlanning}=require(path.join(temp,'lib/inboxAttachments')),{moveInboxToDiary}=require(path.join(temp,'lib/diary')),{moveInboxToSomeday,makeArea}=require(path.join(temp,'lib/someday'));
+  const save=async(base,next)=>{const delta=compactSyncState(base,next);return synchronize(delta.base,delta.next,A,async()=>{},true);};
+  for(const kind of ['task','project','diary','someday']){
+   let state=(await notionLib.readSnapshot(false,A)).state;
+   const attachments=['pdf','png'].map((ext,index)=>{const uploadId='mixed-'+kind+'-'+ext;return {id:uploadId,name:'inbox-file-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa-'+kind+'.'+ext,uploadId,uploadProof:auth.seal({user:A.id,uploadId,exp:Date.now()+100000})};});
+   const area=makeArea('Mixed '+kind),entry={id:'mixed-inbox-'+kind,text:'Entrada '+kind+'\nConteúdo preservado',attachments};
+   await save(state,{...state,someday:[...(state.someday||[]),area],inbox:[...state.inbox,entry]});state=(await notionLib.readSnapshot(false,A)).state;
+   const source=state.inbox.find(r=>r.legacyId===entry.id),savedArea=state.someday.find(r=>r.name===area.name);
+   const moved=kind==='diary'?{state:moveInboxToDiary(state,source.id,'2026-09-19')}:kind==='someday'?moveInboxToSomeday(state,source.id,savedArea.data.uid):moveInboxToPlanning(state,source.id,kind);
+   const collection=kind==='task'?'tasks':kind==='project'?'projects':kind==='diary'?'diary':'someday';
+   const target=kind==='diary'?moved.state.diary.find(r=>r.date==='2026-09-19'):moved.state[collection].find(r=>r.id===moved.id);
+   assert.equal(target.attachments.length,2);assert.ok(target.attachments.every(f=>!f.pageId&&!f.kind));
+   const result=await save(state,moved.state);await save(state,moved.state);assert.equal(rows.get(source.id).in_trash,true);
+   const GET=require(path.join(temp,'app/api/notion/attachment/route')).GET;
+   for(const file of target.attachments){const confirmed=result.files[file.id];assert.equal(confirmed.kind,collection);assert.notEqual(confirmed.pageId,source.id);const address='https://lifeos.test/api/notion/attachment?kind='+collection+'&id='+confirmed.pageId+'&index='+confirmed.index+'&name='+encodeURIComponent(file.name);
+    assert.equal((await GET(new Request(address,{headers:{cookie:auth.sessionCookie(A).split(';')[0]}}))).status,302);
+    assert.equal((await GET(new Request(address,{headers:{cookie:auth.sessionCookie(B).split(';')[0]}}))).status,403);
+   }
+   const loaded=(await notionLib.readSnapshot(false,A)).state[collection].find(r=>r.id===result.bindings[target.id]);assert.equal(loaded.attachments.length,2);
+   if(kind==='diary'||kind==='someday'){const doc=kind==='diary'?loaded.doc:loaded.data.doc;assert.equal(JSON.stringify(doc).match(/ideaImage/g)?.length,1,'Only images become inline nodes; PDFs stay attachments');}
+  }
  }
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão de projeto com tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');
  fs.rmSync(temp,{recursive:true});
