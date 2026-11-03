@@ -22,9 +22,10 @@ const {diffState,hasChanges}=require(path.join(temp,'lib/notionDiff'));
 process.env.NOTION_DIARY_DATABASE_ID='diary-test-db';
 process.env.NOTION_INBOX_DATABASE_ID='inbox-test-db';
 process.env.NOTION_FINANCE_CATEGORIES_DATABASE_ID='finance-categories-test';process.env.NOTION_FINANCE_TRANSACTIONS_DATABASE_ID='finance-transactions-test';
-const databases={reference:'reference-test',someday:'someday-test',nutrition:"nutrition-test",vehicles:"vehicles-test",wellness:"wellness-test",cycle:"cycle-test",mediaSections:"media-sections-test",media:"media-test",habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
+const databases={recados:'recados-test',reference:'reference-test',someday:'someday-test',nutrition:"nutrition-test",vehicles:"vehicles-test",wellness:"wellness-test",cycle:"cycle-test",mediaSections:"media-sections-test",media:"media-test",habits:'habits-test',habitLogs:'habit-logs-test',shopping:'shopping-test',contacts:'contacts-test',categories:'finance-categories-test',transactions:'finance-transactions-test',diary:'diary-test-db',inbox:'inbox-test-db',projects:'3ec530f0-f112-80d5-9097-ea21f9ce45d7',milestones:'3ed530f0-f112-80e0-b1e5-f2a861954669',tasks:'3ec530f0-f112-803b-a108-f7778cdee362'};
 const sourceIds=Object.fromEntries(Object.keys(databases).map(k=>[k,randomUUID()]));
 const specs={
+ recados:{Nome:'title',Data:'date',Remetente:'rich_text',Destinatário:'rich_text',Mensagem:'rich_text',Imagem:'files','Enviado em':'date',Lido:'checkbox','Lido em':'date'},
  reference:{Nome:"title",Tipo:"rich_text",Dados:"rich_text",Anexos:"files"},
  someday:{Nome:"title",Tipo:"rich_text",Contexto:"select",Dados:"rich_text",Anexos:"files"},
  nutrition:{Nome:"title",Data:"date",Tipo:"rich_text",Dados:"rich_text"},
@@ -77,7 +78,7 @@ global.fetch=async(url,options={})=>{
  if(route.startsWith('/data_sources/')){
   const id=route.split('/')[2],kind=kindBySource(id);assert.ok(kind);
   if(route.endsWith('/query')){
-   const matches=(row,filter)=>{if(!filter)return true;if(filter.or)return filter.or.some(f=>matches(row,f));if(filter.and)return filter.and.every(f=>matches(row,f));const value=row.properties[filter.property];if(filter.rich_text)return filter.rich_text.contains!=null?notionLib.plain(value?.rich_text).includes(filter.rich_text.contains):notionLib.plain(value?.rich_text)===filter.rich_text.equals;if(filter.date)return value?.date?.start===filter.date.equals;if(filter.relation)return (value?.relation||[]).some(p=>p.id===filter.relation.contains);throw Error('Filtro de teste não suportado');};
+   const matches=(row,filter)=>{if(!filter)return true;if(filter.or)return filter.or.some(f=>matches(row,f));if(filter.and)return filter.and.every(f=>matches(row,f));const value=row.properties[filter.property];if(filter.rich_text)return filter.rich_text.contains!=null?notionLib.plain(value?.rich_text).includes(filter.rich_text.contains):notionLib.plain(value?.rich_text)===filter.rich_text.equals;if(filter.date){const day=value?.date?.start;return filter.date.on_or_after?day>=filter.date.on_or_after:filter.date.before?day<filter.date.before:day===filter.date.equals;}if(filter.relation)return (value?.relation||[]).some(p=>p.id===filter.relation.contains);throw Error('Filtro de teste não suportado');};
    const list=[...rows.values()].filter(row=>row.parent.data_source_id===id&&!row.in_trash&&matches(row,body.filter));
    const start=body.start_cursor?Number(body.start_cursor):0,size=paginate?1:100,end=start+size;
    return reply({results:list.slice(start,end),has_more:end<list.length,next_cursor:end<list.length?String(end):null});
@@ -729,6 +730,21 @@ global.fetch=async(url,options={})=>{
    const loaded=(await notionLib.readSnapshot(false,A)).state[collection].find(r=>r.id===result.bindings[target.id]);assert.equal(loaded.attachments.length,2);
    if(kind==='diary'||kind==='someday'){const doc=kind==='diary'?loaded.doc:loaded.data.doc;assert.equal(JSON.stringify(doc).match(/ideaImage/g)?.length,1,'Only images become inline nodes; PDFs stay attachments');}
   }
+ }
+
+ // Full Recados round-trip uses automatic Documento, real encode/decode and protected image URLs.
+ {
+  const A={id:'google:test-pericles',email:'periclesbernardes@gmail.com'},B={id:'google:test-leticia',email:'leticiacost3@gmail.com'};
+  process.env.NOTION_RECADOS_DATABASE_ID=databases.recados;
+  const service=require(path.join(temp,'lib/server/recados')),today=require(path.join(temp,'lib/recados')).recadoToday();
+  const imageApi=require(path.join(temp,'app/api/recados/image/route')),form=new FormData();form.append('file',new File([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1cAAAAASUVORK5CYII=','base64')],'colada.png',{type:'image/png'}));
+  const uploadResponse=await imageApi.POST(new Request('https://lifeos.test/api/recados/image',{method:'POST',headers:{origin:'https://lifeos.test',cookie:auth.sessionCookie(A).split(';')[0]},body:form}));assert.equal(uploadResponse.status,200);const uploaded=await uploadResponse.json();
+  const doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Com carinho',marks:[{type:'bold'}]},{type:'ideaEmoji',attrs:{id:'art-3d-filament-rainbow'}}]},{type:'ideaImage',attrs:{attachmentId:'colada.png',alt:'Imagem colada'}}]},input={date:today,title:'Recado rico',doc,text:require(path.join(temp,'lib/someday')).ideaText(doc),attachments:[uploaded]};
+  const first=await service.sendRecado(A,input);assert.deepEqual(first.doc,doc);assert.ok(sources.recados.properties.Documento);assert.equal(first.attachments[0].pageId,first.id);assert.equal(first.attachments[0].kind,'recados');assert.equal((await service.sendRecado(A,input)).id,first.id);
+  const received=(await service.listRecados(B,today.slice(0,7))).items.find(item=>item.id===first.id);assert.deepEqual(received.doc,doc);assert.equal(received.text,input.text);const read=await service.markRecadoRead(B,first.id);assert.deepEqual(read.doc,doc);assert.equal(read.read,true);
+  const GET=require(path.join(temp,'app/api/notion/attachment/route')).GET,address='https://lifeos.test/api/notion/attachment?kind=recados&id='+first.id+'&index=0&name=colada.png';
+  for(const user of [A,B])assert.equal((await GET(new Request(address,{headers:{cookie:auth.sessionCookie(user).split(';')[0]}}))).status,302);
+  assert.equal((await GET(new Request(address))).status,401);
  }
  console.log('PASSOU: autenticação, origem, schemas, criação e vínculos, reenvio sem duplicação, edição parcial, conflitos, conclusão, limites de datas, upload/remover anexos, paginação, escopo de acesso, exclusão de projeto com tarefas e Inbox (múltiplas linhas, edição, conflitos e conversão recuperada após falha).');
  fs.rmSync(temp,{recursive:true});

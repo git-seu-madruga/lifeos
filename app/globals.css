@@ -840,3 +840,9 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 
 /* Inbox: compact file picker, alongside the existing actions. */
 .inbox-attach{position:relative;flex:none;display:inline-flex;align-items:center;justify-content:center;width:30px;height:30px;padding:5px;color:var(--muted);cursor:pointer}.inbox-attach:hover{color:var(--blue)}.inbox-attach:focus-within{outline:2px solid var(--blue);outline-offset:2px}.inbox-attach input{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}.inbox-file{display:flex;align-items:center;gap:6px;max-width:100%;min-width:0;font-size:12px}.inbox-file a{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}.inbox-file button{flex:none;padding:2px 6px}.inbox-images:has(.inbox-file){flex-wrap:wrap}
+
+/* Inline catalog emoji stays in the text flow, independently of block images. */
+.sd-prose img.sd-inline-emoji{display:inline-block;width:1.65em;height:1.65em;max-width:none;object-fit:contain;vertical-align:middle;margin:0 .12em;}
+.recado-copy .sd-prose{min-height:0;padding:0;white-space:normal;}
+.recados-grid>*,.recados-right,.recado-card .sd-editor{min-width:0;}
+.recado-card .sd-prose{overflow-wrap:anywhere;}

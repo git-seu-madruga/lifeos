@@ -6,23 +6,26 @@ import StarterKit from '@tiptap/starter-kit';
 import FileHandler from '@tiptap/extension-file-handler';
 import {api} from '../lib/api';
 import {emptyIdeaDoc,safeIdeaUrl,ideaUid} from '../lib/someday';
+import IllustrationPicker from './IllustrationPicker';
+import {ILLUSTRATIONS,illustrationById} from '../lib/illustrations';
 import {prepareIdeaImage} from '../lib/ideaImages';
 
 const AttachmentContext=createContext([]);
-export const ideaFileUrl=file=>file?.pageId?'/api/notion/attachment?kind='+encodeURIComponent(file.kind||'someday')+'&id='+encodeURIComponent(file.pageId)+'&index='+file.index+'&name='+encodeURIComponent(file.name):file?.notion?.[file.notion.type]?.url||'';
+export const ideaFileUrl=file=>file?.previewUrl|| (file?.pageId?'/api/notion/attachment?kind='+encodeURIComponent(file.kind||'someday')+'&id='+encodeURIComponent(file.pageId)+'&index='+file.index+'&name='+encodeURIComponent(file.name):file?.notion?.[file.notion.type]?.url||'');
 
-export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onError,label="Anotações da ideia",autoFocus=false,imagePrefix=''}){
- const latest=useRef({attachments,onChange,onImage,onBusy,onError,imagePrefix});latest.current={attachments,onChange,onImage,onBusy,onError,imagePrefix};
- const editorRef=useRef(null),alive=useRef(true),input=useRef(null),jobs=useRef(0),[revision,setRevision]=useState(0);
+export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onError,label="Anotações da ideia",autoFocus=false,imagePrefix='',emojiPicker=false,disabled=false,uploadEndpoint='/api/notion/upload',retainImageFiles=false,maxImages=100}){
+ const latest=useRef({attachments,onChange,onImage,onBusy,onError,imagePrefix,uploadEndpoint,retainImageFiles,maxImages,disabled});latest.current={attachments,onChange,onImage,onBusy,onError,imagePrefix,uploadEndpoint,retainImageFiles,maxImages,disabled};
+ const editorRef=useRef(null),alive=useRef(true),input=useRef(null),jobs=useRef(0),[revision,setRevision]=useState(0),[emojiOpen,setEmojiOpen]=useState(false);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  const applyFiles=async(editor,files,pos)=>{
-  if(!editor||editor.isDestroyed)return;
+  if(!editor||editor.isDestroyed||latest.current.disabled)return;
   jobs.current++;latest.current.onBusy?.(true);
   try{for(const original of files){
+   if(latest.current.attachments.length>=latest.current.maxImages)throw new Error(`Use até ${latest.current.maxImages} imagens.`);
    const prepared=await prepareIdeaImage(original),file=latest.current.imagePrefix?new File([prepared],latest.current.imagePrefix+prepared.name,{type:prepared.type}):prepared,form=new FormData();form.append('file',file,file.name);
-   const uploaded=await api('/api/notion/upload',{method:'POST',body:form});
+   const uploaded=await api(latest.current.uploadEndpoint,{method:'POST',body:form});
    if(!alive.current||editor.isDestroyed)return;
-   latest.current.onImage({id:'a:'+ideaUid(),name:file.name,...uploaded});
+   latest.current.onImage({id:'a:'+ideaUid(),name:file.name,...uploaded,...(latest.current.retainImageFiles?{file}:{})});
    const node={type:'ideaImage',attrs:{attachmentId:file.name,alt:original.name==='image.png'?'Imagem colada':original.name.slice(0,300)}};
    // Do not reuse a paste position after awaiting the network: typing may have moved it.
    editor.chain().focus().insertContent([node,{type:'paragraph'}]).run();
@@ -41,17 +44,19 @@ export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onEr
  };
  const editor=useEditor({
   immediatelyRender:false,
+  editable:!disabled,
   autofocus:autoFocus?'end':false,
   extensions:[
+   Node.create({name:'ideaEmoji',group:'inline',inline:true,atom:true,addAttributes(){return {id:{default:''}};},parseHTML(){return [{tag:'img[data-lifeos-emoji]',getAttrs:el=>({id:el.getAttribute('data-lifeos-emoji')})}];},renderHTML({node}){const art=illustrationById(node.attrs.id);return ['img',{'data-lifeos-emoji':art?.id||'',class:'sd-inline-emoji',src:art?.src||'',alt:art?.label||'Emoji',title:art?.label||'Emoji',width:28,height:28}];}}),
    StarterKit.configure({heading:{levels:[2,3]},codeBlock:false,code:false,link:{openOnClick:true,protocols:['https'],defaultProtocol:'https',isAllowedUri:url=>!!safeIdeaUrl(url),HTMLAttributes:{target:'_blank',rel:'noopener noreferrer'}},trailingNode:false}),
    Node.create({name:'ideaImage',group:'block',atom:true,draggable:false,addAttributes(){return {attachmentId:{default:''},alt:{default:''}};},parseHTML(){return [{tag:'figure[data-idea-image]'}];},renderHTML({HTMLAttributes}){return ['figure',mergeAttributes(HTMLAttributes,{'data-idea-image':''})];},addNodeView(){return ReactNodeViewRenderer(({node,deleteNode})=>{
     const files=useContext(AttachmentContext),file=files.find(a=>a.name===node.attrs.attachmentId),url=ideaFileUrl(file);
-    return <NodeViewWrapper className="sd-inline-image" contentEditable={false}>{url?<img src={url} alt={node.attrs.alt} loading="lazy"/>:<span>Imagem enviada · salvando referência no Notion…</span>}<button type="button" className="sd-node-remove" aria-label="Retirar imagem do texto" onClick={deleteNode}>×</button>{node.attrs.alt&&<small>{node.attrs.alt}</small>}</NodeViewWrapper>;
+    return <NodeViewWrapper className="sd-inline-image" contentEditable={false}>{url?<img src={url} alt={node.attrs.alt} loading="lazy"/>:<span>Imagem enviada · salvando referência no Notion…</span>}<button type="button" className="sd-node-remove" aria-label="Retirar imagem do texto" onClick={()=>{if(!latest.current.disabled)deleteNode();}}>×</button>{node.attrs.alt&&<small>{node.attrs.alt}</small>}</NodeViewWrapper>;
    });}}),
    Node.create({name:'ideaBookmark',group:'block',atom:true,draggable:false,addAttributes(){return Object.fromEntries(['id','url','title','description','image'].map(k=>[k,{default:''}]));},parseHTML(){return [{tag:'div[data-idea-bookmark]'}];},renderHTML({HTMLAttributes}){return ['div',mergeAttributes(HTMLAttributes,{'data-idea-bookmark':''})];},addNodeView(){return ReactNodeViewRenderer(({node,getPos})=>{
     const a=node.attrs;return <NodeViewWrapper className="sd-bookmark" contentEditable={false}>
      <a href={safeIdeaUrl(a.url)||undefined} target="_blank" rel="noopener noreferrer">{a.image&&<img src={'/api/notion/link-preview?image='+encodeURIComponent(a.image)} alt="" loading="lazy" onError={event=>{event.currentTarget.hidden=true;}}/>}<span><strong>{a.title||a.url}</strong>{a.description&&<small>{a.description}</small>}<em>{(()=>{try{return new URL(a.url).hostname;}catch{return '';}})()}</em></span></a>
-     <button type="button" className="sd-node-remove" aria-label="Manter apenas o link" title="Manter apenas o link" onClick={()=>{const position=getPos(),active=editorRef.current;if(typeof position!=='number'||!active||active.isDestroyed)return;active.commands.insertContentAt({from:position,to:position+node.nodeSize},{type:'paragraph',content:[{type:'text',text:a.url,marks:[{type:'link',attrs:{href:a.url}}]}]});}}>↗</button>
+     <button type="button" className="sd-node-remove" aria-label="Manter apenas o link" title="Manter apenas o link" onClick={()=>{if(latest.current.disabled)return;const position=getPos(),active=editorRef.current;if(typeof position!=='number'||!active||active.isDestroyed)return;active.commands.insertContentAt({from:position,to:position+node.nodeSize},{type:'paragraph',content:[{type:'text',text:a.url,marks:[{type:'link',attrs:{href:a.url}}]}]});}}>↗</button>
     </NodeViewWrapper>;
    });}}),
    FileHandler.configure({allowedMimeTypes:['image/jpeg','image/png','image/webp','image/gif'],onPaste:(editor,files)=>applyFiles(editor,files),onDrop:(editor,files,pos)=>applyFiles(editor,files,pos)}),
@@ -65,16 +70,19 @@ export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onEr
   onSelectionUpdate:()=>setRevision(n=>n+1),
  });
  editorRef.current=editor;
+ useEffect(()=>{if(editor&&!editor.isDestroyed)editor.setEditable(!disabled,false);},[disabled,editor]);
  useEffect(()=>{if(editor&&!editor.isDestroyed&&JSON.stringify(editor.getJSON())!==JSON.stringify(doc||emptyIdeaDoc()))editor.commands.setContent(doc||emptyIdeaDoc(),{emitUpdate:false});},[doc,editor]);
  if(!editor)return <p className="muted">Abrindo editor…</p>;
- const tool=(label,action,active=false)=> <button type="button" key={label} title={label} aria-label={label} aria-pressed={active} onMouseDown={e=>e.preventDefault()} onClick={action}>{label}</button>;
+ const tool=(label,action,active=false)=> <button type="button" disabled={disabled} key={label} title={label} aria-label={label} aria-pressed={active} onMouseDown={e=>e.preventDefault()} onClick={action}>{label}</button>;
  return <div className="sd-editor">
   <div className="sd-editor-tools" role="toolbar" aria-label="Formatação das anotações">
    {tool('Negrito',()=>editor.chain().focus().toggleBold().run(),editor.isActive('bold'))}{tool('Itálico',()=>editor.chain().focus().toggleItalic().run(),editor.isActive('italic'))}
    {tool('Lista',()=>editor.chain().focus().toggleBulletList().run(),editor.isActive('bulletList'))}{tool('Título',()=>editor.chain().focus().toggleHeading({level:2}).run(),editor.isActive('heading'))}
    {tool('Imagem',()=>input.current.click())}{tool('Link',()=>{const url=window.prompt('Cole um endereço HTTPS para adicionar a prévia:');if(url&&!safeIdeaUrl(url))latest.current.onError('Use um endereço HTTPS válido.');else if(url)preview(editor,url);})}
+   {emojiPicker&&tool('Emojis',()=>setEmojiOpen(open=>!open),emojiOpen)}
    <input hidden ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onChange={e=>{applyFiles(editor,Array.from(e.target.files||[]));e.target.value='';}}/>
   </div>
+  {emojiPicker&&emojiOpen&&<IllustrationPicker ids={ILLUSTRATIONS.map(art=>art.id)} onChange={id=>{if(!disabled)editor.chain().focus().insertContent({type:'ideaEmoji',attrs:{id}}).run();setEmojiOpen(false);}}/>}
   <AttachmentContext.Provider value={attachments}><EditorContent editor={editor}/></AttachmentContext.Provider>
   <small className="sd-editor-hint">Cole imagens ou links. Enter cria um parágrafo; Shift + Enter quebra a linha.</small>
  </div>;

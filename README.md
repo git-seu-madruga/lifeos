@@ -397,7 +397,7 @@ Salvar uma cópia da capa no Notion vem marcado; o arquivo vai para Capa. Desmar
 
 ### Recados
 
-Um recado de cada conta para a outra por dia, considerando America/Sao_Paulo. Texto obrigatório, título opcional, emojis e uma imagem JPG/PNG/WebP/GIF até 4 MB. Não há envio retroativo nem edição após o envio. A confirmação de envio permite revisar antes de salvar definitivamente.
+Um recado de cada conta para a outra por dia, considerando America/Sao_Paulo. Título opcional e mensagem rica com negrito, itálico, títulos, listas, links e imagens inseridas no corpo por colagem ou pelo botão Imagem. O botão **Emojis** abre o pacote completo de 376 ilustrações, com pesquisa e temas; a escolha é inserida na posição do cursor. Emojis comuns do teclado continuam aceitos. Até 12.000 caracteres na mensagem, 100 imagens e 4 MB por imagem enviada (JPEG/PNG/WebP são reduzidos localmente; GIF mantém a animação). Não há envio retroativo nem edição após o envio. A confirmação de envio permite revisar antes de salvar definitivamente. A formatação fica no campo **Documento**, criado automaticamente no banco existente; **Mensagem** mantém a projeção de texto e **Imagem** armazena as imagens do corpo. Recados antigos de texto simples com uma imagem continuam legíveis. Nas sessões Google, o rascunho rico e as imagens são recuperados do armazenamento cifrado; sessões QR mantêm apenas a memória da página.
 
 Somente o destinatário marca como lido; o app salva também o horário. O calendário permite reler dias anteriores. Use o campo MM/AAAA, o seletor visual de mês e ano ou as setas para navegar; HOJE volta ao mês e dia atuais. O coração do cabeçalho indica somente o recebido de hoje não lido. Abertura/retorno ao foco e atualização manual verificam o aviso, sem varredura periódica em segundo plano. Um recado que chegar enquanto você permanece no app será reconhecido na próxima atualização ou retorno ao foco.
 
@@ -643,8 +643,9 @@ Baixe **modelo-despesas-lifeos.csv** no importador selecionando o tipo Manutenç
 | Data | Data |  |
 | Remetente | Texto |  |
 | Destinatário | Texto |  |
-| Mensagem | Texto |  |
-| Imagem | Arquivos e mídia |  |
+| Mensagem | Texto | Texto da mensagem para consulta |
+| Documento | Texto | JSON rico; acrescentado automaticamente pelo app |
+| Imagem | Arquivos e mídia | Imagens do corpo; preserva as antigas |
 | Enviado em | Data |  |
 | Lido | Caixa de seleção |  |
 | Lido em | Data |  |

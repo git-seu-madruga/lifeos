@@ -1,8 +1,9 @@
 import React from 'react';
+import {illustrationById} from '../lib/illustrations';
 import {safeIdeaUrl} from '../lib/someday';
 // Read-only rendering shares the editor's document format without editable nodes.
-const fileUrl=file=>file?.pageId?'/api/notion/attachment?kind=diary&id='+encodeURIComponent(file.pageId)+'&index='+file.index+'&name='+encodeURIComponent(file.name):safeIdeaUrl(file?.notion?.[file.notion.type]?.url||'');
-export default function DiaryDocument({doc,attachments=[]}){
+const fileUrl=(file,kind)=>file?.pageId?'/api/notion/attachment?kind='+encodeURIComponent(kind)+'&id='+encodeURIComponent(file.pageId)+'&index='+file.index+'&name='+encodeURIComponent(file.name):safeIdeaUrl(file?.notion?.[file.notion.type]?.url||'');
+export default function DiaryDocument({doc,attachments=[],kind='diary'}){
  function render(node,key){
   const children=(node.content||[]).map((child,i)=>render(child,i));
   if(node.type==='text'){
@@ -16,9 +17,10 @@ export default function DiaryDocument({doc,attachments=[]}){
    }
    return <React.Fragment key={key}>{text}</React.Fragment>;
   }
+  if(node.type==='ideaEmoji'){const art=illustrationById(node.attrs?.id);return art?<img className="sd-inline-emoji" key={key} src={art.src} alt={art.label} title={art.label} width="28" height="28" loading="lazy"/>:null;}
   if(node.type==='ideaImage'){
-   const url=fileUrl(attachments.find(a=>a.name===node.attrs?.attachmentId));
-   return url?<figure className="sd-inline-image" key={key}><a href={url} target="_blank" rel="noopener noreferrer"><img src={url} alt={node.attrs?.alt||'Imagem do Diário'} loading="lazy"/></a>{node.attrs?.alt&&<figcaption>{node.attrs.alt}</figcaption>}</figure>:null;
+   const url=fileUrl(attachments.find(a=>a.name===node.attrs?.attachmentId),kind);
+   return url?<figure className="sd-inline-image" key={key}><a href={url} target="_blank" rel="noopener noreferrer"><img src={url} alt={node.attrs?.alt||(kind==='recados'?'Imagem do recado':'Imagem do Diário')} loading="lazy"/></a>{node.attrs?.alt&&<figcaption>{node.attrs.alt}</figcaption>}</figure>:null;
   }
   if(node.type==='ideaBookmark'){
    const a=node.attrs||{},url=safeIdeaUrl(a.url);if(!url)return null;
