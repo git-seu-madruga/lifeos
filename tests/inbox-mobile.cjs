@@ -55,11 +55,21 @@ try{
  const selection={files:[pdf,png],value:'file'};pick.props.onChange({target:selection});assert.equal(selection.value,'');
  composerTree=fileComposer();assert.equal(input(composerTree).props.value,'Manter texto');
  walk(composerTree,n=>n.type==='button'&&n.props.children==='Adicionar').props.onClick();assert.equal(savedEntry.attachments.length,2);assert.equal(savedEntry.attachments[0].file,pdf);assert.equal(savedEntry.text,'Manter texto');
- // Files render as downloadable references, never as broken images.
+ // Files open in a new tab without forcing download, never as broken images.
  slots.length=0;index=0;const FilePreview=require(path.join(folder,'components/InboxImages')).InboxImageThumbnail({item:savedEntry.attachments[0]});
- const filePreview=FilePreview.type(FilePreview.props);assert.ok(walk(filePreview,n=>n.type==='a'&&n.props.download==='documento.pdf'));assert.equal(walk(filePreview,n=>n.type==='img'),null);
+ const filePreview=FilePreview.type(FilePreview.props);const fileLink=walk(filePreview,n=>n.type==='a');assert.equal(fileLink.props.target,'_blank');assert.equal(fileLink.props.download,undefined);assert.ok(fileLink.props.rel.includes('noopener'));let linkStopped=false;fileLink.props.onClick({stopPropagation(){linkStopped=true;}});assert.equal(linkStopped,true);assert.equal(walk(filePreview,n=>n.type==='img'),null);
  // The list thumbnail opens the full image on the first click without opening the entry.
  slots.length=0;index=0;const Preview=require(path.join(folder,'components/InboxImages')).InboxImageThumbnail({item:files[0]});
  index=0;let preview=Preview.type(Preview.props);let stopped=false;walk(preview,n=>n.props?.['aria-label']==='Ampliar imagem').props.onClick({stopPropagation(){stopped=true;}});index=0;preview=Preview.type(Preview.props);assert.ok(stopped);assert.ok(walk(preview,n=>n.props?.role==='dialog'&&n.props['aria-label']==='Imagem do Inbox'));
+ // Opening a thumbnail starts fitted; original size and fitting are explicit and keyboard accessible.
+ const imageRender=()=>{index=0;return Preview.type(Preview.props);};
+ assert.ok(walk(preview,n=>n.props?.className==='inbox-image-viewport'));
+ walk(preview,n=>n.props?.['aria-label']==='Ver imagem no tamanho original (100%)').props.onClick();preview=imageRender();
+ assert.ok(walk(preview,n=>n.props?.className==='inbox-image-viewport original'));
+ assert.equal(walk(preview,n=>n.props?.['aria-label']==='Ver imagem no tamanho original (100%)').props['aria-pressed'],true);
+ const newTab=walk(preview,n=>n.type==='a'&&n.props.children==='Abrir em outra aba');assert.equal(newTab.props.target,'_blank');assert.equal(newTab.props.download,undefined);
+ walk(preview,n=>n.type==='button'&&n.props.children==='Ajustar').props.onClick();preview=imageRender();assert.ok(walk(preview,n=>n.props?.className==='inbox-image-viewport'));
+ const zoomImage=walk(preview,n=>n.type==='img'&&n.props.role==='button');let zoomKeyPrevented=false;zoomImage.props.onKeyDown({key:'Enter',preventDefault(){zoomKeyPrevented=true;}});preview=imageRender();assert.equal(zoomKeyPrevented,true);assert.ok(walk(preview,n=>n.props?.className==='inbox-image-viewport original'));
+ walk(preview,n=>n.type==='button'&&n.props.children==='Fechar').props.onClick();preview=imageRender();walk(preview,n=>n.props?.['aria-label']==='Ampliar imagem').props.onClick({stopPropagation(){}});preview=imageRender();assert.ok(walk(preview,n=>n.props?.className==='inbox-image-viewport'),'Reopening starts fitted again');
  console.log('PASSOU: Inbox mobile aceita quebras de linha e botão Adicionar; desktop mantém atalhos; recolher preserva o texto.');
 }finally{Object.assign(React,saved);if(oldWindow===undefined)delete global.window;else global.window=oldWindow;fs.rmSync(folder,{recursive:true,force:true});}

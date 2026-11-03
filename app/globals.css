@@ -829,7 +829,7 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 .inbox-image-remove{position:absolute;right:0;top:0;min-width:28px;min-height:28px;padding:2px;background:var(--panel,#152032);border-radius:50%}
 .inbox-image-full{width:min(1100px,96vw);max-width:96vw}
 .inbox-image-full .panel-head{justify-content:flex-end}
-.inbox-image-full>img{display:block;max-width:100%;max-height:80dvh;object-fit:contain;margin:auto}
+.inbox-image-tools{flex-wrap:wrap;gap:8px}.inbox-image-tools [aria-pressed="true"]{color:var(--blue);border-color:var(--blue)}.inbox-image-viewport{overflow:auto;max-width:100%;max-height:calc(100dvh - 150px);overscroll-behavior:contain}.inbox-image-viewport img{display:block;max-width:100%;max-height:calc(100dvh - 170px);width:auto;height:auto;object-fit:contain;margin:auto;cursor:zoom-in}.inbox-image-viewport.original img{max-width:none;max-height:none;cursor:zoom-out;margin:0}.inbox-image-viewport img:focus-visible{outline:2px solid var(--blue);outline-offset:-2px}
 
 /* Idea cards use a small image beside the title, without a category icon. */
 .sd-card-image{display:block;width:66px;height:66px;flex-shrink:0;object-fit:contain;border-radius:12px;background:#0e1219}
