@@ -1,0 +1,31 @@
+const assert=require('node:assert/strict'),fs=require('fs'),path=require('path'),swc=require('next/dist/build/swc'),{execFileSync}=require('node:child_process');
+const root=fs.mkdtempSync(path.join(process.cwd(),'.privacy-test-'));
+const compile=(source,target)=>{fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,swc.transformSync(fs.readFileSync(source,'utf8'),{jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);};
+const savedEnv={...process.env};
+(async()=>{try{
+ const files=execFileSync('git',['ls-files'],{encoding:'utf8'}).split('\n').filter(Boolean);
+ const mail=/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,uuid=/\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b/gi;
+ for(const name of files.filter(name=>/^(app|components|lib)\//.test(name)&&name.endsWith('.js'))){
+  const content=fs.readFileSync(name,'utf8');assert.equal(content.match(mail),null,'No account email in runtime source: '+name);
+  assert.equal(content.match(uuid),null,'No installation UUID in runtime source: '+name);
+ }
+ assert.doesNotMatch(fs.readFileSync('android-capture/app/build.gradle','utf8'),/https:\/\/[^'"\s]+\./,'Android has no installed origin default');
+ for(const line of fs.readFileSync('.env.example','utf8').split('\n'))if(/^[A-Z][A-Z0-9_]+=/.test(line))assert.equal(line.split('=').slice(1).join('='),'','Template values stay empty');
+ process.env.NOTION_TOKEN='test';process.env.GOOGLE_CLIENT_ID='client';process.env.GOOGLE_CLIENT_SECRET='test';process.env.LIFEOS_APP_URL='https://privacy.example.invalid';process.env.LIFEOS_SESSION_SECRET='p'.repeat(40);process.env.LIFEOS_ALLOWED_GOOGLE_EMAILS='account-a@example.invalid,account-b@example.invalid';process.env.LIFEOS_LEGACY_OWNER_EMAIL='account-a@example.invalid';process.env.LIFEOS_ACCOUNT_NAMES='["Nome privado A","Nome privado B"]';delete process.env.LIFEOS_CYCLE_OWNER_EMAIL;
+ compile('lib/server/auth.js',path.join(root,'lib/server/auth.js'));compile('app/api/session/route.js',path.join(root,'app/api/session/route.js'));compile('lib/sharing.js',path.join(root,'lib/sharing.js'));compile('lib/wellness.js',path.join(root,'lib/wellness.js'));compile('lib/habits.js',path.join(root,'lib/habits.js'));compile('lib/illustrations.js',path.join(root,'lib/illustrations.js'));
+ fs.writeFileSync(path.join(root,'lib/server/qrAuth.js'),'exports.qrSessionStatus=async()=>({status:2,lastSeen:1});');
+ const auth=require(path.join(root,'lib/server/auth')),GET=require(path.join(root,'app/api/session/route')).GET;
+ const anon=await GET(new Request(process.env.LIFEOS_APP_URL+'/api/session')),anonymous=await anon.json();assert.equal(anonymous.user,null);assert.equal(anonymous.authenticated,false);assert.doesNotMatch(JSON.stringify(anonymous),/account-a|account-b|Nome privado/);assert.equal(anon.headers.get('Cache-Control'),'no-store');
+ const user={id:'google:privacy-a',email:'account-a@example.invalid',name:'Sessão A'},cookie=auth.sessionCookie(user).split(';')[0],request=new Request(process.env.LIFEOS_APP_URL+'/api/session',{headers:{cookie}});
+ const response=await GET(request),data=await response.json();assert.equal(data.authenticated,true);assert.equal(response.headers.get('Cache-Control'),'no-store');assert.deepEqual(data.user.participants,[{email:'account-a@example.invalid',name:'Nome privado A'},{email:'account-b@example.invalid',name:'Nome privado B'}]);assert.equal(data.user.cycleSubject,'account-b@example.invalid');
+ await assert.rejects(()=>auth.authorizeLive(new Request(request.url)),error=>error.status===401);
+ const locked=await GET(new Request(request.url,{headers:{cookie:auth.temporaryCookie(user,'q'.repeat(48),Date.now()+60000).split(';')[0]}})),lockedUser=(await locked.json()).user;assert.equal(lockedUser.locked,true);assert.equal(lockedUser.participants,undefined);assert.equal(lockedUser.cycleSubject,undefined);
+ const {participantsFor,responsibleName}=require(path.join(root,'lib/sharing'));assert.equal(participantsFor(null).length,0);assert.equal(participantsFor(data.user).length,2);assert.equal(responsibleName(data.user.email,participantsFor(data.user)),'Nome privado A');assert.equal(participantsFor({email:'other@example.invalid'}).length,1,'Directory is per user, never a mutable global');
+ const wellness=require(path.join(root,'lib/wellness')),day=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Sao_Paulo',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()),entry=wellness.updateCycleChoice([],day,'menstruation','Sim',data.user.cycleSubject)[0];assert.equal(wellness.validateWellness(entry,'cycle',auth.cycleSubjectEmail()),'');assert.ok(wellness.validateWellness({...entry,data:{...entry.data,subject:user.email}},'cycle',auth.cycleSubjectEmail()));
+ process.env.LIFEOS_CYCLE_OWNER_EMAIL='outsider@example.invalid';assert.throws(()=>auth.cycleSubjectEmail(),error=>error.status===503);delete process.env.LIFEOS_CYCLE_OWNER_EMAIL;
+ if(process.argv.includes('--build')){
+  const directory=path.resolve('.next/static');assert.ok(fs.existsSync(directory),'Build first');let count=0;
+  const visit=dir=>{for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const name=path.join(dir,entry.name);if(entry.isDirectory())visit(name);else if(/\.(js|json|html|map)$/.test(name)){count++;const text=fs.readFileSync(name,'utf8');assert.equal(text.match(mail),null,'No account addresses in public build: '+name);for(const sentinel of ['PrivateNameSentinelA','PrivateNameSentinelB','private-install.example.invalid'])assert.ok(!text.includes(sentinel),'Private config leaked: '+name);}}};visit(directory);assert.ok(count>0);console.log('PASSOU: '+count+' arquivos estáticos sem emails de contas ou configuração privada de teste.');
+ }
+ console.log('PASSOU: fontes sem identidades fixas, modelo vazio, sessão anônima sem diretório, diretório autenticado/no-store, QR bloqueado e titular do ciclo protegida.');
+}finally{for(const name of Object.keys(process.env))if(!(name in savedEnv))delete process.env[name];Object.assign(process.env,savedEnv);fs.rmSync(root,{recursive:true,force:true});}})().catch(error=>{console.error(error);process.exitCode=1;});

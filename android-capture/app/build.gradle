@@ -1,4 +1,6 @@
 plugins { id 'com.android.application' }
+def lifeosUrl = System.getenv('LIFEOS_APP_URL') ?: project.findProperty('lifeosUrl') ?: ''
+if (!lifeosUrl || !lifeosUrl.startsWith('https://')) throw new GradleException('Informe a origem HTTPS em LIFEOS_APP_URL ou -PlifeosUrl antes de compilar.')
 android {
     namespace 'app.lifeos.capture'
     compileSdk 35
@@ -8,7 +10,7 @@ android {
         targetSdk 35
         versionCode 6
         versionName '1.0.5'
-        buildConfigField 'String', 'LIFEOS_URL', '"https://lifeos-two-kohl-18.vercel.app"'
+        buildConfigField 'String', 'LIFEOS_URL', groovy.json.JsonOutput.toJson(lifeosUrl.toString())
     }
     buildFeatures { buildConfig true }
     compileOptions { sourceCompatibility JavaVersion.VERSION_17; targetCompatibility JavaVersion.VERSION_17 }

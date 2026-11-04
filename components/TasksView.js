@@ -164,7 +164,7 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
                       </button>
                       <span className="row-meta">
                         {t.recurrence&&<span className="chip followup-chip" title={followupLabel(t.recurrence)}>Follow-up</span>}
-                        {t.shared&&<SharedBadge responsible={t.responsible}/>}
+                        {t.shared&&<SharedBadge user={user} responsible={t.responsible}/>}
                         {(t.attachments || []).length > 0 && <span className="muted small" title="Anexos">📎 {t.attachments.length}</span>}
                         {t.project && <button className="proj" onClick={() => onOpenProject(t.project)} title="Abrir projeto">{pn(t.project)}</button>}
                         <span className={`prio prio-${t.priority}`}>{PRIO_LABEL[t.priority]}</span>

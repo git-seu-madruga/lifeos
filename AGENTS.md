@@ -8,7 +8,7 @@ Estas orientações valem para todo o repositório. Pedidos posteriores do usuá
 - Prepare implementação, revisão e verificações antes de solicitar aprovação. Cada commit no GitHub precisa de confirmação explícita do usuário; aprovação de um commit não autoriza os seguintes. Commit/deploy não decorrem automaticamente de preparar um ZIP. Após publicação autorizada, confirme o resultado da Vercel antes de anunciar sucesso.
 - `README.md` é o guia de instalação, configuração e uso atual; este arquivo contém contratos de manutenção. Atualize os dois quando necessário, substituindo informações superadas em vez de acumular notas de versões. Não crie novos guias INSTRUCOES-*.md.
 - Documentação pública e `.env.example` não devem conter nomes/emails reais das contas, domínio instalado, IDs reais de bancos, históricos pessoais, placas, custos de uma importação particular, credenciais ou material de assinatura. Use papéis genéricos e campos vazios. Preserve licenças e atribuições de terceiros. Limpar arquivos atuais não reescreve o histórico Git.
-- Não remova configurações ou fallbacks legados do código para limpar documentação. Alterações de identidade, acesso, domínio, bancos e roteamento exigem trabalho específico; não altere os valores efetivos do ambiente.
+- A remoção de fallbacks reais foi solicitada: Projetos/Marcos/Tarefas agora usam somente variáveis privadas/roteamento. Confirme os três IDs no ambiente antes de publicar essa mudança; nunca reintroduza IDs fixos para resolver configuração ausente. Alterações de identidade, acesso, domínio, bancos e roteamento exigem trabalho específico; não altere os valores efetivos do ambiente.
 
 ## Estrutura e dependências
 
@@ -151,3 +151,11 @@ Next.js 15, React 19, App Router, Notion, Upstash Redis, autenticação Google e
 - Cobrir privacidade/compartilhamento, cadeados, formato legado, incrementos/drafts, falha parcial/replay, arquivos de destino após exclusão do Inbox e formatação isolada. Nova falha ou mudança justifica repetir checks; não ampliar indefinidamente após passarem sem nova causa.
 - Entrega cumulativa em ZIP quando aplicável, código em `lifeos/`; importações privadas, se incluídas por autorização do usuário, ficam separadas em `Importacao/` e nunca são enviadas ao GitHub. Incluir `.env.example` sanitizado; excluir dependências, caches, ambientes reais, credenciais, APKs e assinatura. Verificar integridade e bytes alterados do pacote.
 - Informar resultado, validação, alterações necessárias de schema/variáveis e limites materiais. Documentação sozinha não exige executar testes de produção ou rebuild de APK. Respeitar a confirmação por commit e a confirmação do provedor após deploy.
+
+
+## Identidades somente após autenticação
+
+- Responsáveis vêm de participants na resposta autenticada: participantsFor(user), sem array global de contas nem cache mutável entre sessões. O servidor valida responsáveis com allowedEmails(), nunca com a lista recebida do cliente. Labels/Recados usam nomes autenticados e fallbacks genéricos.
+- accountDirectory e cycleSubjectEmail ficam em lib/server/auth.js, leem apenas variáveis privadas e são adicionados por sessionDetails após autorização. Anônimo retorna user:null; QR bloqueado não recebe diretório. LIFEOS_ACCOUNT_NAMES é opcional (objeto por email/lista ordenada); LIFEOS_CYCLE_OWNER_EMAIL é opcional e deve ser conta autorizada, padrão a conta diferente da principal. Identidade do ciclo legado é preservada, sem reescrever registros.
+- Nomes, emails, domínio instalado e IDs reais não devem aparecer em fontes, fixtures, bundles ou arquivos públicos. Testes usam identidades fictícias; atribuições legítimas de assets continuam intactas. Android recebe a origem por ambiente/parâmetro de build, sem valor padrão; não prometer ocultar a origem dentro de um APK que a utiliza.
+- Executar testes de sessão anônima/autenticada, responsáveis e titular do ciclo, conflitos/acesso, varredura de fonte e bundle de produção. Produção e histórico Git só mudam mediante publicação/autorização específica.

@@ -4,10 +4,10 @@ const saved={useState:React.useState,useEffect:React.useEffect,useRef:React.useR
 const walk=(n,out=[])=>{if(Array.isArray(n))n.forEach(v=>walk(v,out));else if(n?.props){out.push(n);walk(n.props.children,out);}return out;};
 (async()=>{try{
  const {patchTask}=require(path.join(root,'lib/tasks')),Detail=require(path.join(root,'components/TaskDetail')).default;
- const task={id:'t1',title:'Conteúdo importante',notes:'Anotação',status:'todo',priority:'medium',context:'personal',project:null,attachments:[],shared:true,responsible:'periclesbernardes@gmail.com',locked:true};
+ const task={id:'t1',title:'Conteúdo importante',notes:'Anotação',status:'todo',priority:'medium',context:'personal',project:null,attachments:[],shared:true,responsible:'primary.example@gmail.com',locked:true};
  assert.equal(patchTask(task,{title:'Acidente'}),task);assert.equal(patchTask(task,{status:'done'}),task);assert.equal(patchTask(task,{locked:false}).locked,false);assert.equal(patchTask({...task,locked:undefined},{title:'Permitido'}).title,'Permitido');
  React.useRef=v=>({current:v});React.useEffect=()=>{};React.useState=v=>[v,()=>{}];
- let updates=[],removed=0,closed=0;const nodes=walk(Detail({task,projects:[],user:{email:'leticiacost3@gmail.com'},update:(id,patch)=>updates.push(patch),onDelete(){removed++;},onClose(){closed++;}}));
+ let updates=[],removed=0,closed=0;const nodes=walk(Detail({task,projects:[],user:{email:'secondary.example@gmail.com'},update:(id,patch)=>updates.push(patch),onDelete(){removed++;},onClose(){closed++;}}));
  assert.equal(nodes.find(n=>n.type==='fieldset').props.disabled,true);assert.equal(nodes.find(n=>n.type?.name==='EntryTitle').props.readOnly,true);assert.equal(nodes.find(n=>n.type?.name==='PlanningDescription').props.readOnly,true);
  const lock=nodes.find(n=>n.props.className==='ghost task-edit-lock');assert.equal(lock.props['aria-pressed'],true);assert.equal(lock.props.disabled,false);lock.props.onClick();assert.deepEqual(updates,[{locked:false}],'Usuário diferente do responsável também desbloqueia');updates=[];
  nodes.find(n=>n.type?.name==='EntryTitle').props.onChange({target:{value:'Acidente'}});nodes.find(n=>n.type?.name==='PlanningDescription').props.onChange({notes:'Acidente',doc:null});nodes.find(n=>n.type==='button'&&n.props.children==='Concluída').props.onClick();nodes.find(n=>n.type==='button'&&n.props.children==='Excluir tarefa').props.onClick();assert.equal(updates.length,0);assert.equal(removed,0);nodes.find(n=>n.type==='button'&&n.props.children==='Fechar').props.onClick();assert.equal(closed,1);

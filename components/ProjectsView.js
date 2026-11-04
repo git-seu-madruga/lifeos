@@ -5,7 +5,7 @@ import {useDateRollover} from '../lib/useDateRollover';
 import PageActions from "./PageActions";
 import SharingFields from "./SharingFields";
 import SharedBadge from "./SharedBadge";
-import {RESPONSIBLES} from "../lib/sharing";
+import {participantsFor} from "../lib/sharing";
 import EntryTitle from "./EntryTitle";
 import PlanningDescription from "./PlanningDescription";
 import DateInput from "./DateInput";
@@ -43,6 +43,7 @@ function Bar({ pct }) {
 }
 
 export default function ProjectsView({ user, tasks, setTasks, projects, setProjects, context, sub, selected, onSelect, areas=[], areasConfigured=false, onManageAreas, onLockState }) {
+  const people=participantsFor(user);
   const [descriptionBusy,setDescriptionBusy]=useState(false);
   const [taskBusy,setTaskBusy]=useState(false);
   const [openId, setOpenId] = useState(null);
@@ -152,7 +153,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
   }
   function addTask() {
     if (!nt.title.trim()) return;
-    if(project.shared&&!RESPONSIBLES.some(p=>p.email===nt.responsible)){setProjectError("Escolha o responsável pela nova tarefa.");return;}
+    if(project.shared&&!people.some(p=>p.email===nt.responsible)){setProjectError("Escolha o responsável pela nova tarefa.");return;}
     updateProject(project.id,{_untouchedDraft:false});
     setTasks((prev) => [...prev, {
       id: uid("t"), _createdAt:Date.now(), shared:!!project.shared,responsible:project.shared?nt.responsible:'', title: nt.title.trim(), status: "todo", due: null, priority: "medium", context: project.context,
@@ -167,7 +168,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
         onChange={() => updateTask(t.id, t.status === "done" ? { status: "todo" } : { status: "done" })} />
       <button className="row-title" onClick={() => setOpenId(t.id)}>{t.title?.trim()||"Sem título"}</button>
       <span className="row-meta">{t.recurrence&&<><span className="chip">Follow-up</span><span className={"due due-"+followupDateInfo(t,today).tone}>{followupDateInfo(t,today).text}</span></>}
-        {t.shared&&<SharedBadge responsible={t.responsible}/>}<span className="chip">{STATUS_LABEL[t.status]}</span>
+        {t.shared&&<SharedBadge user={user} responsible={t.responsible}/>}<span className="chip">{STATUS_LABEL[t.status]}</span>
       </span>
     </li>
   );
@@ -225,7 +226,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
           <button key={k} role="tab" aria-selected={view === k} className={"subtab" + (view === k ? " on" : "")} onClick={() => setView(k)}>{l}</button>
         ))}
       </div>
-      {view === "quadro" && <ProjectBoard milestones={ms} tasks={pts} onMove={(id, mid) => updateTask(id, { milestone: mid })} onOpen={setOpenId} />}
+      {view === "quadro" && <ProjectBoard user={user} milestones={ms} tasks={pts} onMove={(id, mid) => updateTask(id, { milestone: mid })} onOpen={setOpenId} />}
       {view === "cronograma" && <ProjectGantt milestones={ms} tasks={pts} project={project} onOpen={setOpenId} />}
       {view === "lista" && (
       <ol className="mslist">
@@ -262,7 +263,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
           <option value="">Sem marco</option>
           {ms.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
         </select>
-        {project.shared&&<select required aria-label="Responsável pela nova tarefa" value={nt.responsible} onChange={e=>setNt({...nt,responsible:e.target.value})}><option value="" disabled>Escolha o responsável…</option>{RESPONSIBLES.map(p=><option key={p.email} value={p.email}>{p.name}</option>)}</select>}
+        {project.shared&&<select required aria-label="Responsável pela nova tarefa" value={nt.responsible} onChange={e=>setNt({...nt,responsible:e.target.value})}><option value="" disabled>Escolha o responsável…</option>{people.map(p=><option key={p.email} value={p.email}>{p.name}</option>)}</select>}
         <button className="ghost" onClick={addTask} disabled={!nt.title.trim()||(project.shared&&!nt.responsible)}>+ Tarefa</button>
       </div>
 

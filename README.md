@@ -16,7 +16,7 @@ Este guia descreve o código do pacote atual. Preparar arquivos não publica uma
 
 Ao atualizar uma instalação existente, aguarde **Salvo no Notion**, preserve bancos e variáveis e publique o conjunto completo de arquivos. Se o código vier em um ZIP com a pasta `lifeos/`, o conteúdo dela vai na raiz do repositório. Arquivos de importação pessoais devem permanecer fora do repositório. Não publique `node_modules`, `.next`, ambientes locais, chaves ou arquivos de assinatura.
 
-Não altere IDs, proprietário legado, segredo de sessão ou roteamento de uma instalação existente apenas para seguir um exemplo. Há fallbacks de bancos legados no código; configure os IDs explicitamente para uma instalação nova. Os exemplos deste guia não identificam nenhuma instalação real.
+Não altere IDs, proprietário legado, segredo de sessão ou roteamento de uma instalação existente apenas para seguir um exemplo. Os bancos de Projetos, Marcos e Tarefas exigem IDs explícitos no ambiente do servidor; não há IDs de instalação como fallback no código. Os exemplos deste guia não identificam nenhuma instalação real.
 
 ### Variáveis do servidor
 
@@ -28,6 +28,8 @@ Não altere IDs, proprietário legado, segredo de sessão ou roteamento de uma i
 | `LIFEOS_SESSION_SECRET` | Segredo aleatório com pelo menos 32 caracteres; prefira 64 |
 | `LIFEOS_ALLOWED_GOOGLE_EMAILS` | Exatamente duas contas autorizadas, separadas por vírgula |
 | `LIFEOS_LEGACY_OWNER_EMAIL` | Uma das contas autorizadas, responsável por registros privados antigos sem proprietário e pelo backup |
+| `LIFEOS_ACCOUNT_NAMES` | Opcional: objeto JSON de nomes por email ou lista de nomes na ordem das contas autorizadas; mantido somente no servidor |
+| `LIFEOS_CYCLE_OWNER_EMAIL` | Opcional: conta autorizada titular do ciclo; por padrão, a conta diferente da principal |
 | `UPSTASH_REDIS_REST_URL`, `UPSTASH_REDIS_REST_TOKEN` | Redis dedicado, com acesso de escrita |
 | `NOTION_BACKUP_PAGE_ID` | Página comum, vazia e autorizada, para armazenar cópias; não é um banco |
 | `IGDB_CLIENT_ID`, `IGDB_CLIENT_SECRET` | Credenciais Twitch/IGDB para a busca de jogos |
@@ -103,7 +105,7 @@ Pessoal/Trabalho é classificação, não controle de acesso. Projetos, Tarefas,
 
 Projetos compartilhados tornam seus marcos e tarefas compartilhados. Cada tarefa compartilhada exige um responsável válido; o responsável não limita quem pode editar. Tornar um registro privado devolve o acesso ao proprietário original, com confirmação. Registros privados antigos sem proprietário pertencem à conta configurada como principal.
 
-O login Google usa cookie HttpOnly e sessão de sete dias. No computador público, prefira **Entrar com QR Code**: aprove no celular autenticado, confira o código nas duas telas e autorize explicitamente. O QR é de uso único e dura dois minutos. A sessão temporária dura até uma hora, bloqueia após dez minutos sem interação e é desbloqueada pelo código original somente naquele navegador. Cinco erros encerram a sessão. Desbloquear ou usar **Bloquear sessão** não estende a validade absoluta. A conta Google pode consultar e revogar computadores autorizados.
+Identidades e nomes são obtidos da configuração privada em respostas autenticadas, com cache desabilitado; não ficam embutidos no JavaScript público. Os nomes opcionais preservam a apresentação dos responsáveis; sem eles, o app usa o nome da sessão ou a parte local do email. O login Google usa cookie HttpOnly e sessão de sete dias. No computador público, prefira **Entrar com QR Code**: aprove no celular autenticado, confira o código nas duas telas e autorize explicitamente. O QR é de uso único e dura dois minutos. A sessão temporária dura até uma hora, bloqueia após dez minutos sem interação e é desbloqueada pelo código original somente naquele navegador. Cinco erros encerram a sessão. Desbloquear ou usar **Bloquear sessão** não estende a validade absoluta. A conta Google pode consultar e revogar computadores autorizados.
 
 Sessões QR não leem nem gravam rascunhos persistentes no dispositivo. Pendências ficam na memória enquanto a página continua aberta; fechar, recarregar ou expirar a sessão pode perdê-las. Sessões Google usam rascunhos cifrados. Aguarde a confirmação de salvamento antes de sair; o app não apaga arquivos que o usuário tenha baixado no computador.
 
@@ -213,13 +215,15 @@ Limites: arquivos hospedados no Notion até 20 MB; não inclui todo o workspace,
 
 ## LifeOS Captura para Android
 
-O aplicativo complementar e o widget criam entradas no Inbox privado; não mostram seu conteúdo nem acessam as demais abas. A versão do projeto é 1.0.5, `versionCode` 6, Android 8.0+; o domínio é definido por `LIFEOS_URL` na compilação, sem valor real publicado neste guia.
+O aplicativo complementar e o widget criam entradas no Inbox privado; não mostram seu conteúdo nem acessam as demais abas. A versão do projeto é 1.0.5, `versionCode` 6, Android 8.0+; a origem é fornecida por `LIFEOS_APP_URL` no ambiente de compilação ou pelo parâmetro Gradle `-PlifeosUrl`. Não há origem de instalação como padrão no código; ela é necessária para compilar e fica incluída no APK resultante, que precisa se comunicar com o servidor.
 
 Faça o pareamento pelo menu do LifeOS em uma sessão Google, confira o código e autorize o aparelho. Credenciais do Captura duram até 90 dias e podem ser revogadas; não são sessões web. Sessões QR não autorizam novos aparelhos.
 
 Texto e uma imagem podem ser colados no campo de captura. Links/texto e uma imagem também podem chegar pelo menu **Compartilhar** do Android. Revise e confirme: receber um compartilhamento não envia sozinho. O widget abre a janela compacta; continua sem seletor de arquivos genéricos. O suporte à colagem depende do teclado e do app de origem fornecerem a imagem, não apenas um endereço.
 
 O envio usa fila local cifrada e WorkManager. Só uma confirmação do servidor retira a entrada da fila. Relógio indica pendência, check verde indica confirmação e o widget não revela o conteúdo. Respostas ambíguas não são reenviadas cegamente; confira o Inbox e use as opções de resgate/tentativa quando necessário. Rede, bateria e manutenção podem adiar o processamento sem apagar pendências.
+
+A instalação web existente precisa ter `NOTION_PROJECTS_DATABASE_ID`, `NOTION_MILESTONES_DATABASE_ID` e `NOTION_TASKS_DATABASE_ID` configurados antes de publicar a remoção dos fallbacks. Essa mudança não altera bancos, proprietários ou registros.
 
 Para atualizar o APK, preserve `applicationId`, chave de assinatura e use `versionCode` crescente. Não publique a chave, senha ou pacote privado de assinatura. O código está em `android-capture/`; use JDK 17, SDK 35 e as versões fixadas no projeto. Na compilação release, forneça `LIFEOS_KEYSTORE` e `LIFEOS_STORE_PASSWORD` somente no ambiente local e execute `./gradlew :app:assembleRelease` dentro dessa pasta. Alterar o domínio exige nova compilação Android; mudanças exclusivamente web não exigem novo APK por padrão.
 

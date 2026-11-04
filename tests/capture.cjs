@@ -5,7 +5,7 @@ const root=path.resolve('.capture-test');
 for(const folder of ['lib','app/api/capture']){
  const compile=dir=>{for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const p=path.join(dir,entry.name);if(entry.isDirectory()){compile(p);continue;}if(!p.endsWith('.js'))continue;const target=path.join(root,p);fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,swc.transformSync(fs.readFileSync(p,'utf8'),{jsc:{parser:{syntax:'ecmascript',jsx:true},target:'es2022'},module:{type:'commonjs'}}).code);}};compile(folder);
 }
-process.env.NOTION_TOKEN='test';process.env.GOOGLE_CLIENT_ID='test';process.env.GOOGLE_CLIENT_SECRET='test';process.env.LIFEOS_SESSION_SECRET='x'.repeat(48);process.env.LIFEOS_APP_URL='https://lifeos.test';process.env.LIFEOS_ALLOWED_GOOGLE_EMAILS='periclesbernardes@gmail.com,leticiacost3@gmail.com';process.env.LIFEOS_LEGACY_OWNER_EMAIL='periclesbernardes@gmail.com';process.env.UPSTASH_REDIS_REST_URL='https://redis.test';process.env.UPSTASH_REDIS_REST_TOKEN='write-test';
+process.env.NOTION_TOKEN='test';process.env.GOOGLE_CLIENT_ID='test';process.env.GOOGLE_CLIENT_SECRET='test';process.env.LIFEOS_SESSION_SECRET='x'.repeat(48);process.env.LIFEOS_APP_URL='https://lifeos.test';process.env.LIFEOS_ALLOWED_GOOGLE_EMAILS='primary.example@gmail.com,secondary.example@gmail.com';process.env.LIFEOS_LEGACY_OWNER_EMAIL='primary.example@gmail.com';process.env.UPSTASH_REDIS_REST_URL='https://redis.test';process.env.UPSTASH_REDIS_REST_TOKEN='write-test';
 let now=Date.now();const originalNow=Date.now,originalFetch=global.fetch;Date.now=()=>now;const store=new Map(),sets=new Map(),ttls=new Map();
 function redis(args){const [command,key,...rest]=args.map(String);if(ttls.has(key)&&ttls.get(key)<=now){store.delete(key);sets.delete(key);ttls.delete(key);}switch(command.toUpperCase()){
  case 'GET':return store.get(key)||null;
@@ -25,7 +25,7 @@ global.fetch=async(url,options)=>{assert.equal(url,'https://redis.test');const c
 
 const {randomUUID,createHash}=require('node:crypto');
 const auth=require(path.join(root,'lib/server/auth')),capture=require(path.join(root,'lib/server/capture')),route=require(path.join(root,'app/api/capture/device/route')),inboxRoute=require(path.join(root,'app/api/capture/inbox/route'));
-const principal={id:'google:p',name:'Péricles',email:'periclesbernardes@gmail.com'},other={id:'google:l',name:'Letícia',email:'leticiacost3@gmail.com'};
+const principal={id:'google:p',name:'Principal',email:'primary.example@gmail.com'},other={id:'google:l',name:'Secundária',email:'secondary.example@gmail.com'};
 const request=(cookie='',input,headers={})=>new Request('https://lifeos.test/api/capture/device',{method:input?'POST':'GET',headers:{cookie,origin:'https://lifeos.test',...headers},...(input?{body:JSON.stringify(input)}:{})});
 const dataOf=start=>{const url=new URL(start.url),params=new URLSearchParams(url.hash.slice(1));return {id:params.get('id'),token:params.get('token')};};
 const digest=v=>createHash('sha256').update(v).digest('hex');
@@ -88,7 +88,7 @@ global.fetch=async(url,options={})=>{
  store.set('lifeos:maintenance:v1',JSON.stringify({id:'backup'}));await assert.rejects(capture.captureInbox(native,{id:randomUUID(),text:'Durante backup'}),e=>e.status===423);store.delete('lifeos:maintenance:v1');
  await assert.rejects(capture.captureInbox(native,{id:randomUUID(),text:'a'.repeat(10001)}),e=>e.status===400);
  await assert.rejects(capture.captureStatus(request('',undefined,{authorization:'Bearer '+start.id+'.'+'b'.repeat(64)})),e=>e.status===401);
- const secretB='b'.repeat(64),startB=await capture.startCapture(request(),{secretHash:digest(secretB),device:'Android Letícia'}),proofB=dataOf(startB);await capture.approveCapture(other,startB.id,proofB.token,true);const nativeB=request('',undefined,{authorization:'Bearer '+startB.id+'.'+secretB});await capture.captureInbox(nativeB,{id:item.id,text:'Da Letícia',userId:principal.id});assert.equal([...pages.values()].at(-1).properties['LifeOS Usuário'].rich_text[0].text.content,other.id,'Proprietário vem da credencial e IDs iguais são isolados por conta');
+ const secretB='b'.repeat(64),startB=await capture.startCapture(request(),{secretHash:digest(secretB),device:'Android Secundária'}),proofB=dataOf(startB);await capture.approveCapture(other,startB.id,proofB.token,true);const nativeB=request('',undefined,{authorization:'Bearer '+startB.id+'.'+secretB});await capture.captureInbox(nativeB,{id:item.id,text:'Da Secundária',userId:principal.id});assert.equal([...pages.values()].at(-1).properties['LifeOS Usuário'].rich_text[0].text.content,other.id,'Proprietário vem da credencial e IDs iguais são isolados por conta');
 
  const image={mime:'image/png',base64:'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1cAAAAASUVORK5CYII='};
  const photo={id:randomUUID(),text:'',image};const uploads=uploadCount;assert.equal((await capture.captureInbox(native,photo)).saved,true);assert.equal(uploadCount,uploads+1);let row=[...pages.values()].at(-1);assert.equal(row.properties.Anexos.files[0].name,'inbox-'+photo.id+'.png');assert.equal(row.properties['LifeOS Usuário'].rich_text[0].text.content,principal.id);
