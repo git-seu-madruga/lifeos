@@ -37,6 +37,20 @@ const api=require(path.join(root,'lib/server/recados'));
   const render=()=>{si=ri=0;return view.default({user:a});};let tree=render(),editor=find(tree,node=>node.props?.label==='Texto do recado');assert.ok(editor.props.emojiPicker);assert.equal(editor.props.uploadEndpoint,'/api/recados/image');
   editor.props.onImage({...image,file:new File(['photo'],'foto.webp',{type:'image/webp'})});editor.props.onChange(richDoc);tree=render();editor=find(tree,node=>node.props?.label==='Texto do recado');assert.deepEqual(editor.props.doc,richDoc);assert.equal(states[8].length,1,'Image remains in draft before the next render');
   const removed={type:'doc',content:[richDoc.content[0]]};editor.props.onChange(removed);render();assert.equal(states[8].length,0,'Removing image removes its backing file');
+  // A confirmed send must remove Inbox exactly once even if local draft cleanup fails.
+  const originalFetch=global.fetch,originalWindow=global.window;let sentInbox=[],cleanup=0,requests=0;
+  try{
+   global.window={confirm:()=>true};global.fetch=async()=>{requests++;return Response.json({item:{id:'sent-ui',date:today,sender:a.email}});};
+   // useDateRollover owns ref 0; the Recados draft session owns ref 3.
+   refs[3].current={saveNow:async()=>{cleanup++;return false;}};
+   states[13]=true;states[14]=true;states[16]='inbox-entry';
+   si=ri=0;tree=view.default({user:a,onInboxSent:id=>sentInbox.push(id)});
+   const sendButton=find(tree,node=>node.type==='button'&&node.props.className==='recado-send'&&String(node.props.children).includes('Enviar'));
+   assert.ok(sendButton);assert.equal(sendButton.props.disabled,false);await sendButton.props.onClick();
+   assert.equal(requests,1);assert.equal(cleanup,1);assert.deepEqual(sentInbox,['inbox-entry']);assert.equal(states[6],'');assert.equal(states[12],'');assert.equal(states[10],false);assert.ok(states[3].some(item=>item.id==='sent-ui'));
+   states[3]=[];states[6]='Cannot send unread draft';states[14]=false;tree=render();const blocked=find(tree,node=>node.type==='button'&&node.props.className==='recado-send'&&String(node.props.children).includes('Enviar'));assert.equal(blocked.props.disabled,true);await blocked.props.onClick();assert.equal(requests,1,'Handler also blocks sending before draft recovery');
+  }finally{global.fetch=originalFetch;global.window=originalWindow;}
+
  }finally{Object.assign(React,hooks);}
  // Rich drafts retain encrypted image bytes, document and signed upload metadata after reload.
  const {indexedDB}=require('fake-indexeddb');global.indexedDB=indexedDB;

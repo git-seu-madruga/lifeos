@@ -1,14 +1,17 @@
-const assert=require('node:assert/strict'),fs=require('fs'),path=require('path'),swc=require('next/dist/build/swc'),{execFileSync}=require('node:child_process');
+const assert=require('node:assert/strict'),fs=require('fs'),path=require('path'),swc=require('next/dist/build/swc');
 const root=fs.mkdtempSync(path.join(process.cwd(),'.privacy-test-'));
 const compile=(source,target)=>{fs.mkdirSync(path.dirname(target),{recursive:true});fs.writeFileSync(target,swc.transformSync(fs.readFileSync(source,'utf8'),{jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);};
 const savedEnv={...process.env};
 (async()=>{try{
- const files=execFileSync('git',['ls-files'],{encoding:'utf8'}).split('\n').filter(Boolean);
+ const files=[];const collect=dir=>{for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const name=path.join(dir,entry.name);if(entry.isDirectory())collect(name);else files.push(name);}};for(const dir of ['app','components','lib'])collect(dir);
+ const secrets=/(?:-----BEGIN (?:RSA |EC |OPENSSH )?PRIVATE KEY-----|\bgh[pousr]_[A-Za-z0-9]{30,}\b|\bgithub_pat_[A-Za-z0-9_]{40,}\b|\b(?:ntn_|secret_)[A-Za-z0-9]{32,}\b)/;
  const mail=/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,uuid=/\b[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}\b/gi;
  for(const name of files.filter(name=>/^(app|components|lib)\//.test(name)&&name.endsWith('.js'))){
   const content=fs.readFileSync(name,'utf8');assert.equal(content.match(mail),null,'No account email in runtime source: '+name);
   assert.equal(content.match(uuid),null,'No installation UUID in runtime source: '+name);
+  assert.ok(!secrets.test(content),'No recognizable private key/service token in source: '+name);
  }
+ for(const name of ['README.md','AGENTS.md','package.json','vercel.json','.github/workflows/verify.yml','.github/dependabot.yml'])assert.ok(!secrets.test(fs.readFileSync(name,'utf8')),'No recognizable secret in public configuration: '+name);
  assert.doesNotMatch(fs.readFileSync('android-capture/app/build.gradle','utf8'),/https:\/\/[^'"\s]+\./,'Android has no installed origin default');
  for(const line of fs.readFileSync('.env.example','utf8').split('\n'))if(/^[A-Z][A-Z0-9_]+=/.test(line))assert.equal(line.split('=').slice(1).join('='),'','Template values stay empty');
  process.env.NOTION_TOKEN='test';process.env.GOOGLE_CLIENT_ID='client';process.env.GOOGLE_CLIENT_SECRET='test';process.env.LIFEOS_APP_URL='https://privacy.example.invalid';process.env.LIFEOS_SESSION_SECRET='p'.repeat(40);process.env.LIFEOS_ALLOWED_GOOGLE_EMAILS='account-a@example.invalid,account-b@example.invalid';process.env.LIFEOS_LEGACY_OWNER_EMAIL='account-a@example.invalid';process.env.LIFEOS_ACCOUNT_NAMES='["Nome privado A","Nome privado B"]';delete process.env.LIFEOS_CYCLE_OWNER_EMAIL;
@@ -25,7 +28,7 @@ const savedEnv={...process.env};
  process.env.LIFEOS_CYCLE_OWNER_EMAIL='outsider@example.invalid';assert.throws(()=>auth.cycleSubjectEmail(),error=>error.status===503);delete process.env.LIFEOS_CYCLE_OWNER_EMAIL;
  if(process.argv.includes('--build')){
   const directory=path.resolve('.next/static');assert.ok(fs.existsSync(directory),'Build first');let count=0;
-  const visit=dir=>{for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const name=path.join(dir,entry.name);if(entry.isDirectory())visit(name);else if(/\.(js|json|html|map)$/.test(name)){count++;const text=fs.readFileSync(name,'utf8');assert.equal(text.match(mail),null,'No account addresses in public build: '+name);for(const sentinel of ['PrivateNameSentinelA','PrivateNameSentinelB','private-install.example.invalid'])assert.ok(!text.includes(sentinel),'Private config leaked: '+name);}}};visit(directory);assert.ok(count>0);console.log('PASSOU: '+count+' arquivos estáticos sem emails de contas ou configuração privada de teste.');
+  const visit=dir=>{for(const entry of fs.readdirSync(dir,{withFileTypes:true})){const name=path.join(dir,entry.name);if(entry.isDirectory())visit(name);else if(/\.(js|json|html|map)$/.test(name)){count++;const text=fs.readFileSync(name,'utf8');assert.ok(!secrets.test(text),'No recognizable secret in public build: '+name);assert.equal(text.match(mail),null,'No account addresses in public build: '+name);for(const sentinel of ['PrivateNameSentinelA','PrivateNameSentinelB','private-install.example.invalid'])assert.ok(!text.includes(sentinel),'Private config leaked: '+name);}}};visit(directory);assert.ok(count>0);console.log('PASSOU: '+count+' arquivos estáticos sem emails de contas ou configuração privada de teste.');
  }
  console.log('PASSOU: fontes sem identidades fixas, modelo vazio, sessão anônima sem diretório, diretório autenticado/no-store, QR bloqueado e titular do ciclo protegida.');
 }finally{for(const name of Object.keys(process.env))if(!(name in savedEnv))delete process.env[name];Object.assign(process.env,savedEnv);fs.rmSync(root,{recursive:true,force:true});}})().catch(error=>{console.error(error);process.exitCode=1;});

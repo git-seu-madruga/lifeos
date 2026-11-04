@@ -11,7 +11,7 @@ Este guia descreve o código do pacote atual. Preparar arquivos não publica uma
 1. Instale as dependências com `npm ci`. Preserve `package-lock.json` e as versões do editor Tiptap.
 2. Configure as variáveis do servidor usando `.env.example` como lista de referência. Para desenvolvimento, use um arquivo local de ambiente; na Vercel, use as configurações do projeto. Não publique os valores reais.
 3. Crie os bancos necessários no Notion, autorize a integração e configure os IDs correspondentes. Use o ID do banco, não o da visualização após `?v=`. Bancos opcionais sem configuração não devem ser tratados como coleções vazias graváveis.
-4. Configure o login Google e o Redis conforme abaixo. Execute `npm test` e `npm run build` antes da publicação.
+4. Configure o login Google e o Redis conforme abaixo. Execute `npm run verify` antes da publicação.
 5. Após o deploy confirmado, recarregue a página ou feche e reabra o PWA. O botão **Atualizar** relê dados; ele não garante a troca do código de uma página já aberta.
 
 Ao atualizar uma instalação existente, aguarde **Salvo no Notion**, preserve bancos e variáveis e publique o conjunto completo de arquivos. Se o código vier em um ZIP com a pasta `lifeos/`, o conteúdo dela vai na raiz do repositório. Arquivos de importação pessoais devem permanecer fora do repositório. Não publique `node_modules`, `.next`, ambientes locais, chaves ou arquivos de assinatura.
@@ -237,8 +237,15 @@ Para atualizar o APK, preserve `applicationId`, chave de assinatura e use `versi
 | `npm run dev` | Desenvolvimento local |
 | `npm test` | Suíte de domínio, interface simulada, sincronização e servidor com serviços simulados |
 | `npm run build` | Build Next de produção |
+| `npm run verify` | Testes, build e privacidade do bundle, nessa ordem; interrompe na primeira falha |
 | `npm run test:android-queue` | Testes host da fila/worker Android; requer JDK 17 |
 | `npm run test:android-share` | Testes host de compartilhamento Android; requer JDK 17 |
+
+A Vercel usa `vercel.json` para instalar pelo lockfile com dependências de teste e executar `npm run verify` antes de publicar. No GitHub, `.github/workflows/verify.yml` executa a mesma verificação em pushes para main e pull requests, com token somente de leitura e sem segredos de produção. Os testes recebem ambiente separado, sem as variáveis privadas dos serviços; o build conserva a configuração normal. O scanner funciona mesmo quando o pacote de deploy não inclui `.git`. Essas verificações reduzem regressões; não equivalem a uma auditoria completa de segurança.
+
+O Dependabot consulta npm e GitHub Actions semanalmente e propõe atualizações por pull request, agrupando o Tiptap. Nenhuma atualização é aplicada automaticamente. Alertas de vulnerabilidades, secret scanning e proteção de branch dependem das opções habilitadas no próprio repositório; os arquivos de CI não ativam essas configurações administrativas.
+
+Rascunhos de Recados continuam cifrados nas sessões Google. Falha de leitura bloqueia edição/envio e gravação local até recuperar o rascunho; falha de salvamento mantém o texto aberto e oferece nova tentativa. As gravações são ordenadas, inclusive na limpeza após envio, e ao sair da aba a gravação pendente é iniciada. Fechar o navegador antes da conclusão ainda pode interromper a operação. Sessões QR continuam apenas em memória.
 
 A arquitetura e as regras de manutenção ficam em `AGENTS.md`; os schemas efetivos, em `lib/server/notion.js`. Não use serviços de produção para gerar registros de teste. Testes simulados e build não comprovam funcionamento em um aparelho real.
 
