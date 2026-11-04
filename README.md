@@ -138,6 +138,8 @@ O destino é salvo antes de arquivar o Inbox. Suas referências de arquivo passa
 
 ### Projetos, tarefas e follow-up
 
+Na aba Tarefas, o seletor de atribuição oferece somente projetos ativos. Pausados, concluídos e cancelados não são novas opções; um vínculo existente com esses projetos permanece visível como referência desabilitada, sem alteração automática do histórico. A inclusão de tarefas diretamente dentro de um projeto permanece disponível nos quatro status.
+
 Novas entradas focam o título; um rascunho intocado é descartado ao fechar. Projetos têm marcos, prazo final, status e anexos. O prazo de um marco não pode ultrapassar o do projeto; marcos são referências de cronograma, sem atraso próprio. Concluir ou cancelar um projeto com pendências exige confirmação e conclui tarefas/marcos abertos, incluindo follow-ups. Excluir o projeto exclui seus filhos. Reabrir não reabre automaticamente tarefas ou acompanhamentos. Tarefas de projetos pausados ficam visíveis somente dentro do projeto até sua retomada.
 
 **Descrição** do projeto e **Anotações** da tarefa usam editor rico: títulos, negrito/itálico, listas, links HTTPS com prévia, imagens coladas/enviadas e o catálogo completo de emojis. Textos antigos são apresentados como parágrafos literais, sem migração em massa. Documentos aceitam até 30.000 caracteres e 80.000 de JSON, sujeitos aos limites de anexos. Imagens do corpo usam Anexos como suporte; arquivos manuais permanecem na lista própria. Remover uma imagem do texto remove somente seu arquivo de suporte.

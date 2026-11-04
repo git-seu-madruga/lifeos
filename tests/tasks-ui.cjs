@@ -76,5 +76,23 @@ try{
  }
  tasks.push({id:'unrelated',title:'Avulsa',status:'todo',priority:'medium',context:'personal',project:null});const beforeDelete=tasks.length;approve=false;projectTree().find(e=>e.type==='button'&&e.props.children==='Excluir projeto').props.onClick();assert.equal(projectList.length,1);assert.equal(tasks.length,beforeDelete,'Cancelar exclusão preserva tarefas');approve=true;projectTree().find(e=>e.type==='button'&&e.props.children==='Excluir projeto').props.onClick();assert.equal(projectList.length,0);assert.deepEqual(tasks.map(t=>t.id),['unrelated']);assert.ok(message.includes('todas as suas tarefas')&&message.includes('Cancelado ou Concluído'));
  const Brand=require(path.join(folder,'components/Brand')).default;const notice=renderToStaticMarkup(React.createElement(Brand,{notice:true})),normal=renderToStaticMarkup(React.createElement(Brand));assert.ok(notice.includes('brand-heart')&&notice.includes('Life')&&notice.includes('brand-os'));assert.ok(!normal.includes('<button'),'Logo comum não tem ação');
+ // Assignment offers only active projects; direct project creation remains available in all statuses.
+ {
+  const Detail=require(path.join(folder,'components/TaskDetail')).default;
+  const choices=['active','paused','done','cancelled'].map(status=>({id:status,name:status,status,context:'personal',shared:false,milestones:[]}));
+  let patches=[];const task={id:'assign',title:'Atribuir',status:'todo',priority:'medium',context:'personal',notes:'',attachments:[],project:null};
+  const select=(item=task)=>{index=0;return walk(Detail({user,task:item,projects:choices,update:(id,patch)=>patches.push(patch),onClose(){}})).find(node=>node.props['aria-label']==='Projeto da tarefa');};
+  const picker=select();assert.deepEqual(walk(picker).filter(node=>node.type==='option').map(node=>node.props.value),['','active']);
+  for(const status of ['paused','done','cancelled'])picker.props.onChange({target:{value:status}});assert.equal(patches.length,0,'Hidden closed project cannot be assigned by invoking the handler');
+  picker.props.onChange({target:{value:'active'}});assert.equal(patches.at(-1).project,'active');
+  for(const status of ['paused','done','cancelled']){patches=[];const linked=select({...task,project:status}),current=walk(linked).find(node=>node.type==='option'&&node.props.value===status);assert.equal(linked.props.value,status);assert.equal(current.props.disabled,true);assert.equal(patches.length,0,'Opening preserves the historical link');linked.props.onChange({target:{value:''}});assert.equal(patches.at(-1).project,null);}
+ }
+ // Adding inside a paused/completed/cancelled project is an intentional, supported action.
+ for(const status of ['paused','done','cancelled']){
+  slots=[];let created=[],internalProjects=[{id:'inside-'+status,name:'Projeto direto',status,context:'personal',shared:false,area:'',due:null,description:'',milestones:[],attachments:[]}];
+  const inside=()=>{index=0;return walk(ProjectView({user,tasks:created,setTasks:fn=>created=fn(created),projects:internalProjects,setProjects:fn=>internalProjects=fn(internalProjects),context:'all',sub:'ativos',selected:internalProjects[0].id,onSelect(){}}));};
+  inside().find(node=>node.props['aria-label']==='Título da nova tarefa').props.onChange({target:{value:'Incluída diretamente'}});
+  inside().find(node=>node.type==='button'&&node.props.children==='+ Tarefa').props.onClick();assert.equal(created.length,1);assert.equal(created[0].project,internalProjects[0].id);assert.equal(internalProjects[0].status,status,'Direct creation does not reopen the project');
+ }
  console.log('PASSOU: tarefas intocadas descartadas sem acúmulo, área da linha abre tarefa sem título, projeto independente, responsável padrão e logo normal sem ação.');
 }finally{Object.assign(React,saved);fs.rmSync(folder,{recursive:true,force:true});}

@@ -22,6 +22,8 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
   const locked=!!task.locked,lockError=useTaskLock(task,onLockState);
   const set = (patch) => {if(!locked)update(task.id, patch);};
   const proj = projects.find((p) => p.id === task.project);
+  const assignableProjects = projects.filter(p=>p.status==='active');
+  const unavailableProject = proj && proj.status!=='active';
 
   function setStatus(s) {
     const p = { status: s };
@@ -92,12 +94,14 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
         <div className="field-row">
           <div className="field">
             <span className="label">Projeto</span>
-            <select value={task.project || ""} onChange={(e) => {
-              const p = projects.find((x) => x.id === e.target.value);
+            <select aria-label="Projeto da tarefa" value={task.project || ""} onChange={(e) => {
+              const p = assignableProjects.find((x) => x.id === e.target.value);
+              if(e.target.value&&!p)return;
               set({ project: p ? p.id : null, milestone: null, ...(p ? { context: p.context,shared:!!p.shared,responsible:p.shared?(task.responsible||user?.email):'' } : {}) });
             }}>
               <option value="">Sem projeto</option>
-              {projects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
+              {unavailableProject&&<option value={proj.id} disabled>{proj.name} ({{paused:'pausado',done:'concluído',cancelled:'cancelado'}[proj.status]||'indisponível'} · vínculo atual)</option>}
+              {assignableProjects.map((p) => <option key={p.id} value={p.id}>{p.name}</option>)}
             </select>
           </div>
           {task.project && (
