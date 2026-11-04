@@ -50,12 +50,13 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
   const [quick, setQuick] = useState(null);
   const [proj, setProj] = useState("all");
   const [collapsed, setCollapsed] = useState({ done: true });
+  const [taskBusy,setTaskBusy]=useState(false);
   const [openId, setOpenId] = useState(null);
   const [createdId,setCreatedId]=useState(null);
   const [today,setToday]=useState(followupToday);useDateRollover(today,setToday);
 
   useEffect(()=>()=>setTasks(previous=>previous.filter(task=>!task._untouchedDraft)),[setTasks]);
-  function closeTask(){setTasks(previous=>previous.filter(task=>!(task.id===openId&&task._untouchedDraft)));setOpenId(null);setCreatedId(null);}
+  function closeTask(){if(taskBusy)return;setTasks(previous=>previous.filter(task=>!(task.id===openId&&task._untouchedDraft)));setOpenId(null);setCreatedId(null);}
 
   const byProject = sub === "projeto";
   const pn = (id) => projects.find((p) => p.id === id)?.name || "";
@@ -179,7 +180,7 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
         );
       })}
 
-      <ModalLayer open={!!current} onClose={closeTask}>{current && <TaskDetail onLockState={onLockState} user={user} key={current.id} newEntry={current.id===createdId} task={current} projects={projects} update={update} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={closeTask} />}</ModalLayer>
+      <ModalLayer open={!!current} onClose={closeTask}>{current && <TaskDetail onBusy={setTaskBusy} onLockState={onLockState} user={user} key={current.id} newEntry={current.id===createdId} task={current} projects={projects} update={update} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={closeTask} />}</ModalLayer>
     </section>
   );
 }

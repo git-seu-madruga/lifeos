@@ -4,17 +4,21 @@ import {makeFollowup} from '../lib/followups';
 import {useTaskLock} from "../lib/useTaskLock";
 import SharingFields from "./SharingFields";
 import EntryTitle from "./EntryTitle";
-import LinkText, {TextLinks} from "./LinkText";
-import ProjectAttachments from "./ProjectAttachments";
+import {TextLinks} from "./LinkText";
+import PlanningDescription from "./PlanningDescription";
+import {useRef,useState} from "react";
 import DateInput from "./DateInput";
 
 import { addDaysISO } from "../lib/dates";
 
 const STATUS = [["todo", "Não iniciada"], ["doing", "Em andamento"], ["hold", "On hold / Follow-up"], ["done", "Concluída"]];
 
-export default function TaskDetail({ user, task, projects, update, onDelete, onClose, onLockState, newEntry=false }) {
+export default function TaskDetail({ user, task, projects, update, onDelete, onClose, onLockState, newEntry=false,onBusy }) {
 
 
+  const [busy,setBusy]=useState(false),jobs=useRef(false);
+  function uploading(value){jobs.current=value;setBusy(value);onBusy?.(value);}
+  const close=()=>{if(!jobs.current)onClose();};
   const locked=!!task.locked,lockError=useTaskLock(task,onLockState);
   const set = (patch) => {if(!locked)update(task.id, patch);};
   const proj = projects.find((p) => p.id === task.project);
@@ -26,11 +30,11 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
   }
 
   return (
-    <div className="overlay" onClick={onClose}>
+    <div className="overlay" onClick={close}>
       <aside className="panel" role="dialog" aria-modal="true" aria-label="Detalhes da tarefa" onClick={(e) => e.stopPropagation()}>
         <div className="panel-head">
           <EntryTitle key={task.id} newEntry={newEntry} placeholder="Nova tarefa" className="panel-title" readOnly={locked} value={task.title} onChange={(e) => set({ title: e.target.value })} aria-label="Título" />
-          <div className="task-panel-actions"><button type="button" className="ghost task-edit-lock" aria-pressed={locked} aria-label={locked?'Desbloquear edição da tarefa':'Bloquear edição da tarefa'} title={locked?'Desbloquear edição':'Bloquear edição'} onClick={()=>update(task.id,{locked:!locked})}><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/>{locked?<path d="M8 10V6a4 4 0 0 1 8 0v4"/>:<path d="M8 10V6a4 4 0 0 1 8 0"/>}<path d="M12 15v2"/></svg></button><button className="ghost" onClick={onClose}>Fechar</button></div>
+          <div className="task-panel-actions"><button type="button" className="ghost task-edit-lock" aria-pressed={locked} aria-label={locked?'Desbloquear edição da tarefa':'Bloquear edição da tarefa'} title={locked?'Desbloquear edição':'Bloquear edição'} disabled={busy} onClick={()=>update(task.id,{locked:!locked})}><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><rect x="5" y="10" width="14" height="11" rx="2"/>{locked?<path d="M8 10V6a4 4 0 0 1 8 0v4"/>:<path d="M8 10V6a4 4 0 0 1 8 0"/>}<path d="M12 15v2"/></svg></button><button className="ghost" disabled={busy} onClick={close}>Fechar</button></div>
         </div>
 
         {locked&&<p className="task-lock-notice" role="status">Edição bloqueada. Use o cadeado para desbloquear.</p>}
@@ -107,12 +111,7 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
           )}
         </div>
 
-        <ProjectAttachments key={task.id} entity="tarefa" readOnly={locked} items={task.attachments || []} onChange={(attachments) => set({ attachments })} />
-
-        <div className="field">
-          <span className="label">Anotações</span>
-          <textarea className="search notes" rows={4} value={task.notes} placeholder="Texto livre (na versão real, o conteúdo da página)" onChange={(e) => set({ notes: e.target.value })} /><TextLinks text={task.notes}/>
-        </div>
+        <PlanningDescription key={task.id} item={task} kind="tasks" readOnly={locked} onBusy={uploading} onChange={set}/>
         <div className="task-followup-section">
           <div className="task-followup-toggle-row"><span className="label">Acompanhamento programado (follow-up)</span><button type="button" role="switch" aria-label="Acompanhamento programado (follow-up)" aria-checked={!!task.recurrence} aria-controls={`followup-config-${task.id}`} className="task-followup-toggle" disabled={locked} onClick={()=>{
             if(locked)return;
@@ -122,7 +121,7 @@ export default function TaskDetail({ user, task, projects, update, onDelete, onC
           {task.recurrence&&task.status!=='done'&&<div id={`followup-config-${task.id}`}><FollowupFields task={task} set={set}/></div>}
         </div>
         <button className="danger" onClick={() => {
-          if (locked)return;
+          if (locked||busy)return;
           if (!window.confirm("Excluir esta tarefa? Não dá para desfazer.")) return;
           onDelete(task.id);
           onClose();

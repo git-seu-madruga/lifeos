@@ -65,17 +65,17 @@ try{
  const justChecked=tasks.find(t=>t.id==='today'),historyBefore=JSON.stringify(justChecked.recurrence.lastCheck);
  rowCheck('today').props.onChange();assert.equal(JSON.stringify(tasks.find(t=>t.id==='today').recurrence.lastCheck),historyBefore,'Repeated click cannot add a check');
  // Simulate the day state delivered by useDateRollover while this view stays mounted.
- slots[7]=justChecked.recurrence.next;
+ const taskDaySlot=slots.findIndex(value=>value===today);assert.ok(taskDaySlot>=0);slots[taskDaySlot]=justChecked.recurrence.next;
  assert.equal(rowCheck('today').props.checked,false);assert.equal(rowCheck('today').props.disabled,false);
  assert.equal(JSON.stringify(tasks.find(t=>t.id==='today').recurrence.lastCheck),historyBefore);
- slots[7]=today;
+ slots[taskDaySlot]=today;
  projects=projects.map(p=>({...p,status:'active'}));assert.equal(render().filter(n=>n.type==='li').length,5,'Resuming project restores both kinds');projects=projects.map(p=>({...p,status:'paused'}));nodes=render();nodes.find(n=>n.props['aria-label']==='Buscar').props.onChange({target:{value:'Oculta'}});assert.equal(render().filter(n=>n.type==='li').length,0,'Paused tasks stay hidden during search');
  // The same details editor configures type, interval and manual lifecycle.
  slots=[];cursor=0;const Detail=require(path.join(folder,'components/TaskDetail')).default;let update;
  nodes=walk(Detail({task:{...ordinary,title:'Normal',notes:'',context:'personal',priority:'medium'},projects:[],update:(id,p)=>{update=p;},onClose(){}}));nodes.find(n=>n.props.role==='switch').props.onClick();assert.equal(update.status,'hold');assert.equal(update.recurrence.version,2);
  assert.ok(!nodes.some(n=>n.props['aria-label']==='Tipo da tarefa'));assert.equal(nodes.find(n=>n.props.role==='switch').props['aria-checked'],false);
  slots=[];cursor=0;const configured=base(today),configuredNodes=walk(Detail({task:configured,projects:[],update:(id,p)=>{update=p;},onClose(){}}));const fupToggle=configuredNodes.find(n=>n.props.role==='switch');assert.equal(fupToggle.props['aria-checked'],true);
- assert.ok(configuredNodes.findIndex(n=>n.type==='textarea'&&n.props.value===configured.notes)<configuredNodes.findIndex(n=>n.type?.name==='FollowupFields'),'Main task fields precede all recurrence fields');
+ assert.ok(configuredNodes.findIndex(n=>n.type?.name==='PlanningDescription'&&n.props.item===configured)<configuredNodes.findIndex(n=>n.type?.name==='FollowupFields'),'Main task fields precede all recurrence fields');
  fupToggle.props.onClick();assert.deepEqual(update,{recurrence:null,status:'hold',completedAt:null},'Disabling recurrence preserves the base task fields and status');
  const checkedTask=f.completeFollowup(configured,today);assert.equal(checkedTask.recurrence.version,2);slots=[];cursor=0;const afterCheck=walk(Detail({task:checkedTask,projects:[],update(){},onClose(){}}));assert.equal(afterCheck.find(n=>n.props.role==='switch').props['aria-checked'],true,'A check never turns the toggle off');
  slots=[];cursor=0;const lockedDetail=walk(Detail({task:{...configured,locked:true},projects:[],update(){throw Error('Locked toggle wrote');},onClose(){}}));assert.equal(lockedDetail.find(n=>n.props.role==='switch').props.disabled,true);lockedDetail.find(n=>n.props.role==='switch').props.onClick();
@@ -101,7 +101,7 @@ try{
  const projectCheck=id=>walk(projectTree().find(n=>n.type==='li'&&n.key===id)).find(n=>n.type==='input'&&n.props.type==='checkbox');
  assert.equal(projectCheck('project-receipt').props.checked,true);assert.equal(projectCheck('project-receipt').props.disabled,true);
  assert.equal(projectCheck('project-ordinary').props.checked,false);
- slots[1]=checkedTask.recurrence.next;
+ const projectDaySlot=slots.findIndex(value=>value===today);assert.ok(projectDaySlot>=0);slots[projectDaySlot]=checkedTask.recurrence.next;
  assert.equal(projectCheck('project-receipt').props.checked,false);assert.equal(projectCheck('project-receipt').props.disabled,false);
  tasks[0]={...tasks[0],locked:true};assert.equal(projectCheck('project-receipt').props.disabled,true);
  console.log('PASSOU: follow-ups em On hold, recorrência após consulta/calendário fixo, dias da semana, meses/bissexto, idempotência, prazo informativo, check sem histórico, toggle de desativação, bloqueio, pausa de projetos, filtros e ciclo manual.');

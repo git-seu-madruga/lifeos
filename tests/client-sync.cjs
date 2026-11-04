@@ -202,7 +202,18 @@ const tick=()=>new Promise(resolve=>setTimeout(resolve,5));
  const importRows=Array.from({length:12},(_,i)=>({id:'batch-'+i,type:'entry',name:'Abastecimento',date:'2026-10-01',data:{uid:'batch-'+i,vehicle:testVehicle.data.uid,category:'fuel',fuel:true,full:true,km:1000+i,liters:10,amount:5000,importSourceId:'source-'+i}}));
  const importProgress=[],importBefore=syncCount;await hook.importVehicles(importRows,p=>importProgress.push(p));await tick();assert.equal(syncCount-importBefore,3,'Fuel importer uses three incremental writes for twelve entries');assert.equal(hook.pending,false);assert.equal(remote.vehicles.filter(r=>r.type==='entry').length,12);assert.ok(hook.vehicles.filter(r=>r.type==='entry').every(r=>r._notionId));assert.equal(importProgress.at(-1).done,12);
  await hook.importVehicles(importRows);await tick();assert.equal(syncCount-importBefore,3,'Repeating a completed import needs no extra writes');
+ // Rich planning documents and image bytes survive a failed save in encrypted drafts.
+ {
+  const doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Texto rico',marks:[{type:'bold'}]},{type:'ideaEmoji',attrs:{id:'art-3d-filament-blue'}}]},{type:'ideaImage',attrs:{attachmentId:'planning-inline-draft.webp',alt:'Foto'}}]},text=require(path.join(folder,'lib/someday')).ideaText(doc);
+  const image={id:'rich-draft-image',name:'planning-inline-draft.webp',file:new File(['rich-image-bytes'],'planning-inline-draft.webp',{type:'image/webp'})};
+  hook.setProjects(previous=>[...previous,{id:'rich-draft-project',name:'Projeto rico',status:'active',context:'personal',area:'',due:null,milestones:[],description:text,doc,attachments:[image]}]);
+  hook.setTasks(previous=>[...previous,{id:'rich-draft-task',title:'Tarefa rica',status:'todo',priority:'medium',context:'personal',project:'rich-draft-project',notes:text,doc,attachments:[{...image,id:'rich-draft-task-image'}]}]);
+  failure=true;await assert.rejects(()=>hook.flush(),/Falha simulada/);await tick();const draft=await readPrivateDraft('notion-draft:'+testUser.id,testUser.draftKey);
+  for(const [kind,id] of [['projects','rich-draft-project'],['tasks','rich-draft-task']]){const item=draft.next[kind].find(item=>item.id===id);assert.deepEqual(item.doc,doc);assert.equal(await item.attachments[0].file.text(),'rich-image-bytes');}
+  failure=false;await hook.flush();await tick();assert.equal(hook.pending,false);for(const [kind,id] of [['projects','rich-draft-project'],['tasks','rich-draft-task']])assert.deepEqual(remote[kind].find(item=>item.id===id).doc,doc);
+ }
  await hook.logout();await tick();assert.equal(hook.authenticated,false);assert.equal(hook.ready,false);
+
  // Editors can dispose untouched drafts after logout cleared the account state.
  for(const setter of ['setProjects','setTasks','setInbox','setDiary','setShopping','setContacts','setHabits','setFinance','setEntertainment','setWellness','setVehicles']){
   assert.doesNotThrow(()=>hook[setter](()=>{throw Error('Stale editor must not edit a closed session');}));

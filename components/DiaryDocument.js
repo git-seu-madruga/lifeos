@@ -20,7 +20,7 @@ export default function DiaryDocument({doc,attachments=[],kind='diary'}){
   if(node.type==='ideaEmoji'){const art=illustrationById(node.attrs?.id);return art?<img className="sd-inline-emoji" key={key} src={art.src} alt={art.label} title={art.label} width="28" height="28" loading="lazy"/>:null;}
   if(node.type==='ideaImage'){
    const url=fileUrl(attachments.find(a=>a.name===node.attrs?.attachmentId),kind);
-   return url?<figure className="sd-inline-image" key={key}><a href={url} target="_blank" rel="noopener noreferrer"><img src={url} alt={node.attrs?.alt||(kind==='recados'?'Imagem do recado':'Imagem do Diário')} loading="lazy"/></a>{node.attrs?.alt&&<figcaption>{node.attrs.alt}</figcaption>}</figure>:null;
+   return url?<figure className="sd-inline-image" key={key}><a href={url} target="_blank" rel="noopener noreferrer"><img src={url} alt={node.attrs?.alt||(kind==='recados'?'Imagem do recado':kind==='diary'?'Imagem do Diário':'Imagem da descrição')} loading="lazy"/></a>{node.attrs?.alt&&<figcaption>{node.attrs.alt}</figcaption>}</figure>:null;
   }
   if(node.type==='ideaBookmark'){
    const a=node.attrs||{},url=safeIdeaUrl(a.url);if(!url)return null;

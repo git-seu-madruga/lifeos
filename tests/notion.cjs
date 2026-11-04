@@ -732,6 +732,31 @@ global.fetch=async(url,options={})=>{
   }
  }
 
+
+ // Rich planning descriptions round-trip separately from their plain-text projection.
+ {
+  const A={id:'google:test-pericles',email:'periclesbernardes@gmail.com'},B={id:'google:test-leticia',email:'leticiacost3@gmail.com'};
+  const text=require(path.join(temp,'lib/someday')).ideaText,GET=require(path.join(temp,'app/api/notion/attachment/route')).GET;
+  const base={projects:[],tasks:[],inbox:[],diary:[]},next={...base,projects:[{id:'rich-project',name:'Projeto rico',status:'active',context:'personal',area:'',due:null,shared:false,milestones:[],description:'',attachments:[]}],tasks:[{id:'rich-task',title:'Tarefa rica',status:'todo',priority:'medium',context:'personal',shared:false,responsible:'',project:'rich-project',milestone:null,notes:'',attachments:[]}]};
+  for(const kind of ['projects','tasks']){
+   const item=next[kind][0],uploadId='rich-'+kind,name='planning-inline-'+kind+'.webp';item.attachments=[{id:uploadId,name,uploadId,uploadProof:auth.seal({user:A.id,uploadId,exp:Date.now()+100000})}];
+   item.doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Planejar com carinho',marks:[{type:'bold'}]},{type:'ideaEmoji',attrs:{id:'art-3d-filament-green'}}]},{type:'ideaImage',attrs:{attachmentId:name,alt:'Imagem da descrição'}}]};item[kind==='tasks'?'notes':'description']=text(item.doc);
+  }
+  const result=await synchronize(base,next,A);await synchronize(base,next,A);
+  const loaded={projects:[],tasks:[],inbox:[],diary:[]};
+  for(const kind of ['projects','tasks']){
+   assert.ok(sources[kind].properties.Documento);const saved=notionLib.decode(kind,rows.get(result.bindings[next[kind][0].id]),await notionLib.schema(kind));loaded[kind]=[{...saved,...(kind==='projects'?{milestones:[]}:{})}];assert.deepEqual(saved.doc,next[kind][0].doc);assert.equal(saved[kind==='tasks'?'notes':'description'],text(saved.doc));
+   const url='https://lifeos.test/api/notion/attachment?kind='+kind+'&id='+saved.id+'&index=0&name='+saved.attachments[0].name;
+   assert.equal((await GET(new Request(url,{headers:{cookie:auth.sessionCookie(A).split(';')[0]}}))).status,302);assert.equal((await GET(new Request(url,{headers:{cookie:auth.sessionCookie(B).split(';')[0]}}))).status,403);
+  }
+  const shared=structuredClone(loaded);shared.projects[0].shared=true;shared.tasks[0].shared=true;shared.tasks[0].responsible=A.email;await synchronize(loaded,shared,A);
+  for(const kind of ['projects','tasks']){const saved=shared[kind][0],url='https://lifeos.test/api/notion/attachment?kind='+kind+'&id='+saved.id+'&index=0&name='+saved.attachments[0].name;assert.equal((await GET(new Request(url,{headers:{cookie:auth.sessionCookie(B).split(';')[0]}}))).status,302);}
+  const formatted=structuredClone(shared);for(const kind of ['projects','tasks'])formatted[kind][0].doc.content[0].content[0].marks=[{type:'italic'}];await synchronize(shared,formatted,B);await synchronize(shared,formatted,B);
+  for(const kind of ['projects','tasks'])assert.deepEqual(notionLib.decode(kind,rows.get(formatted[kind][0].id),await notionLib.schema(kind)).doc,formatted[kind][0].doc);
+  const conflict=structuredClone(shared);conflict.tasks[0].doc.content[0].content[0].marks=[{type:'strike'}];await assert.rejects(()=>synchronize(shared,conflict,A),/Documento.*alterado/);
+  const invalid=structuredClone(formatted);invalid.tasks[0].doc.content[1].attrs.attachmentId='missing.png';await assert.rejects(()=>synchronize(formatted,invalid,A),/sem anexo/);
+  const locked=structuredClone(formatted);locked.tasks[0].locked=true;await synchronize(formatted,locked,B);const attempted=structuredClone(locked);attempted.tasks[0].doc.content[0].content[0].marks=[{type:'bold'}];await assert.rejects(()=>synchronize(locked,attempted,A),/bloqueada/);
+ }
  // Full Recados round-trip uses automatic Documento, real encode/decode and protected image URLs.
  {
   const A={id:'google:test-pericles',email:'periclesbernardes@gmail.com'},B={id:'google:test-leticia',email:'leticiacost3@gmail.com'};

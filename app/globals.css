@@ -846,3 +846,10 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 .recado-copy .sd-prose{min-height:0;padding:0;white-space:normal;}
 .recados-grid>*,.recados-right,.recado-card .sd-editor{min-width:0;}
 .recado-card .sd-prose{overflow-wrap:anywhere;}
+
+.planning-description{min-width:0;width:100%;margin:16px 0;}
+.planning-description .sd-prose{min-height:140px;overflow-wrap:anywhere;}
+.planning-description .diary-document{min-height:0;padding:0;}
+.planning-description .sd-editor-tools{flex-wrap:wrap;}
+.planning-description .sd-editor-hint{display:block;padding:8px 12px;}
+.planning-legacy{white-space:pre-wrap;overflow-wrap:anywhere;}

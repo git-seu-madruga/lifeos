@@ -7,8 +7,7 @@ import SharingFields from "./SharingFields";
 import SharedBadge from "./SharedBadge";
 import {RESPONSIBLES} from "../lib/sharing";
 import EntryTitle from "./EntryTitle";
-import LinkText, {TextLinks} from "./LinkText";
-import ProjectAttachments from "./ProjectAttachments";
+import PlanningDescription from "./PlanningDescription";
 import DateInput from "./DateInput";
 
 import { patchTask, closeProjectTask, newestCompleted, oldestInserted, taskDate } from "../lib/tasks";
@@ -44,13 +43,15 @@ function Bar({ pct }) {
 }
 
 export default function ProjectsView({ user, tasks, setTasks, projects, setProjects, context, sub, selected, onSelect, areas=[], areasConfigured=false, onManageAreas, onLockState }) {
+  const [descriptionBusy,setDescriptionBusy]=useState(false);
+  const [taskBusy,setTaskBusy]=useState(false);
   const [openId, setOpenId] = useState(null);
   const [today,setToday]=useState(followupToday);useDateRollover(today,setToday);
   const [createdProjectId,setCreatedProjectId]=useState(null);
   useEffect(()=>()=>setProjects(previous=>previous.filter(project=>!project._untouchedDraft)),[setProjects]);
   // A seleção também pode ser fechada pelas abas e filtros externos ao editor.
   useEffect(()=>{setProjects(previous=>previous.filter(project=>!project._untouchedDraft||project.id===selected));},[selected,setProjects]);
-  function closeProject(){setProjects(previous=>previous.filter(project=>!(project.id===selected&&project._untouchedDraft)));setCreatedProjectId(null);onSelect(null);}
+  function closeProject(){if(descriptionBusy||taskBusy)return;setProjects(previous=>previous.filter(project=>!(project.id===selected&&project._untouchedDraft)));setCreatedProjectId(null);onSelect(null);}
   const [view, setView] = useState("lista");
   const [nt, setNt] = useState({ title: "", ms: "", ctx: null, responsible:"" });
 
@@ -81,6 +82,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
     setProjects(prev => prev.map(p => p.id === id ? next : p));
   }
   function deleteProject() {
+    if(descriptionBusy||taskBusy)return;
     if(tasks.some(t=>t.project===project.id&&t.locked)){setProjectError("Desbloqueie as tarefas deste projeto e aguarde o salvamento antes de excluí-lo.");return;}
     const count = tasks.filter(t => t.project === project.id).length;
     if (!window.confirm(`Excluir “${project.name}”, seus marcos, anexos e todas as suas tarefas (${count} carregadas)? Tarefas concluídas e follow-ups também serão excluídos. Não dá para desfazer no app. Para preservar o histórico, use Cancelado ou Concluído.`)) return;
@@ -202,9 +204,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
           <DateInput className="search" min={project.milestones.map(m => m.due).filter(Boolean).sort().at(-1)} value={project.due || ""} onChange={(e) => updateProject(project.id, { due: e.target.value || null })} />
         </div>
       </div>
-      <div className="field"><span className="label">Descrição</span>
-        <textarea className="search notes" rows={2} value={project.description} onChange={(e) => updateProject(project.id, { description: e.target.value })} /><TextLinks text={project.description}/>
-      </div>
+      <PlanningDescription key={project.id} item={project} kind="projects" onBusy={setDescriptionBusy} onChange={patch=>updateProject(project.id,patch)}/>
 
       {projectError && <p className="date-error" role="alert">{projectError}</p>}
 
@@ -266,10 +266,9 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
         <button className="ghost" onClick={addTask} disabled={!nt.title.trim()||(project.shared&&!nt.responsible)}>+ Tarefa</button>
       </div>
 
-      <ProjectAttachments key={project.id} items={project.attachments || []} onChange={(attachments) => updateProject(project.id, { attachments })} />
       <button className="danger" onClick={deleteProject}>Excluir projeto</button>
 
-      <ModalLayer open={!!openTask} onClose={()=>setOpenId(null)}>{openTask && <TaskDetail onLockState={onLockState} user={user} key={openTask.id} task={openTask} projects={projects} update={updateTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setOpenId(null)} />}</ModalLayer>
+      <ModalLayer open={!!openTask} onClose={()=>{if(!taskBusy)setOpenId(null);}}>{openTask && <TaskDetail onBusy={setTaskBusy} onLockState={onLockState} user={user} key={openTask.id} task={openTask} projects={projects} update={updateTask} onDelete={(id) => setTasks((prev) => prev.filter((t) => t.id !== id))} onClose={() => setOpenId(null)} />}</ModalLayer>
     </section>
   );
 }
