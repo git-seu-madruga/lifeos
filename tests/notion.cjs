@@ -411,6 +411,13 @@ global.fetch=async(url,options={})=>{
   const secondPressure={...measurement,id:'another-pressure',data:{systolic:120,diastolic:70,bpm:60}};
   await save(a,{...a,wellness:[...a.wellness,measurement,secondPressure]},A);
   assert.equal((await notionLib.readSnapshot(false,A)).state.wellness.filter(p=>p.type==='pressure').length,2);
+  // A partial failure may leave the destination saved, but retry must never duplicate it.
+  a=(await notionLib.readSnapshot(false,A)).state;await save(a,{...a,inbox:[...a.inbox,{id:'inbox-pressure-server',text:'130 68 55',createdAt:Date.now(),attachments:[]}]},A);
+  const pressureBase=(await notionLib.readSnapshot(false,A)).state,pressureSource=pressureBase.inbox.find(item=>item.text==='130 68 55'),pressureMove=require(path.join(temp,'lib/wellness')).moveInboxToPressure(pressureBase,pressureSource.id),callsBeforePressure=calls.length;
+  failInboxArchive=true;await assert.rejects(()=>save(pressureBase,pressureMove.state,A),/arquivar Inbox/);const partialPressure=(await notionLib.readSnapshot(false,A)).state;assert.ok(partialPressure.inbox.some(item=>item.id===pressureSource.id));assert.equal(partialPressure.wellness.filter(item=>item.data.systolic===130&&item.data.diastolic===68&&item.data.bpm===55).length,1);
+  const pressureCalls=calls.slice(callsBeforePressure),createdIndex=pressureCalls.findIndex(call=>call.route==='/pages'&&call.method==='POST'),archivedIndex=pressureCalls.findIndex(call=>call.method==='PATCH'&&call.body?.in_trash);assert.ok(createdIndex>=0&&archivedIndex>createdIndex,'Save pressure before archiving Inbox');
+  const createdCount=creates;await save(pressureBase,pressureMove.state,A);assert.equal(creates,createdCount);const pressureSaved=(await notionLib.readSnapshot(false,A)).state;assert.equal(pressureSaved.inbox.some(item=>item.id===pressureSource.id),false);assert.equal(pressureSaved.wellness.filter(item=>item.data.systolic===130&&item.data.diastolic===68&&item.data.bpm===55).length,1);assert.equal((await notionLib.readSnapshot(false,B)).state.wellness.length,0);
+
 
  }
 

@@ -130,6 +130,7 @@ O Inbox mantém texto simples, colagem de imagens e um clipe discreto para escol
 | Algum dia | Primeira linha como título, demais como conteúdo; exige escolha de uma área; imagens entram no corpo |
 | Compras | Primeira linha como lista, demais como itens; lista de mesmo nome recebe os itens no início |
 | Aniversários | Primeira linha como nome, segunda como data |
+| Bem-estar (pressão) | Botão Transformar em medida de pressão: somente três inteiros separados por um único espaço, na ordem sistólica diastólica BPM (ex.: `130 68 55`). Cria diretamente uma nova medição de hoje em Brasília, sem formulário. Texto adicional, outros separadores, quebras de linha, anexos ou valores fora dos limites de validação mantêm a entrada intacta |
 | Recados | Primeira linha como título, demais como mensagem de hoje; Inbox só é removido após envio confirmado |
 
 Anexos acompanham conversões para Tarefas, Projetos, Diário e Algum dia. As demais integrações ficam desabilitadas quando há arquivos. Não há conversão direta para Referência Geral. Em tarefas/projetos, arquivos convertidos continuam como anexos; não são automaticamente transformados em imagens inline.
@@ -162,6 +163,8 @@ O Diário tem uma entrada por data e conta. Entradas existentes abrem bloqueadas
 Algum dia abre gavetas das áreas existentes. **Mostrar todos** fica ao lado de **Gerenciar áreas**; a pesquisa procura ideias de qualquer área/contexto. A área é obrigatória para salvar. A ideia aberta não repete a ilustração da categoria; no card externo, a primeira imagem do conteúdo pode ser miniatura. O catálogo de áreas também atende Projetos, preservando vínculos ao renomear ou ocultar. Transformar uma ideia em tarefa/projeto cria uma cópia de texto e anexos e preserva o original; não promete preservar o documento rico nessa conversão.
 
 Referência Geral é uma biblioteca privada de materiais de consulta, com categorias independentes, pesquisa, favoritos, editor rico e anexos. Não é uma lista de tarefas, projetos ou ideias futuras.
+
+Referência Geral e Algum dia usam a mesma largura disponível e espaçamentos de gavetas/cards. Em ambas, favoritos, Mostrar todos e gerenciamento ficam na barra da pesquisa, à direita no desktop e em uma única linha de botões abaixo da pesquisa nas telas menores. Os catálogos e as funções de cada aba permanecem independentes.
 
 ### Bem-estar, hábitos e alimentação
 

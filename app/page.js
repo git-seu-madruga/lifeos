@@ -43,6 +43,7 @@ import ModalLayer from '../components/ModalLayer';
 import {useAppBackNavigation,useBackLayer,BackNotice} from '../lib/useBackNavigation';
 import TabIcon from '../components/TabIcon';
 import {shoppingFromInbox} from '../lib/shopping';
+import {pressureFromInbox} from '../lib/wellness';
 import Inbox from "../components/Inbox";
 import TaskDetail from "../components/TaskDetail";
 import {contactFromInbox,birthdaySummary,todayLocal} from '../lib/birthdays';
@@ -147,7 +148,12 @@ export default function Home() {
   function convertInbox(item, kind) {
     item=inbox.find(entry=>entry.id===item.id);if(!item)return false;
     if(item.attachments?.length&&!inboxAcceptsAttachments(kind))return false;
+    if(kind==='pressure'&&!pressureFromInbox(item))return false;
     if(remote.isTabReady&&!remote.isTabReady(tabId)){remote.prioritizeTab(tabId);window.alert('Esta aba ainda está carregando. Aguarde para transformar a entrada. O texto continua no Inbox.');return false;}
+    if(kind==='pressure'){
+      try{return remote.convertInboxToPressure(item.id);}
+      catch(error){window.alert(error.message);return false;}
+    }
     if(kind==="someday"){
       if(!remote.somedayConfigured){window.alert('Configure o banco Algum dia no Notion. O texto continua no Inbox.');return false;}
       setSomedayInbox(item);setSomedayInboxArea('');return true;

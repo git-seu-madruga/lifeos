@@ -1,4 +1,5 @@
 "use client";
+import {pressureFromInbox} from '../lib/wellness';
 import {selectedInboxAttachments,inboxAcceptsAttachments} from '../lib/inboxAttachments';
 import LinkText, {TextLinks} from "./LinkText";
 import ModalLayer from './ModalLayer';
@@ -20,6 +21,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
 
   const target = INBOX_TARGETS[tabId];
   const item = items.find((i) => i.id === openId);
+  const blockedPressure=target?.kind==='pressure'&&!pressureFromInbox(item);
   const blockedAttachments=!!item?.attachments?.length&&!inboxAcceptsAttachments(target?.kind);
 
   useBackLayer(open,()=>setOpen(false),15);
@@ -45,7 +47,7 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
   }
 
   function convert() {
-    if (!item || blockedAttachments || !target?.kind || onConvert(item, target.kind) === false) return;
+    if (!item || blockedAttachments || blockedPressure || !target?.kind || onConvert(item, target.kind) === false) return;
     setOpenId(null);
   }
 
@@ -98,9 +100,9 @@ export default function Inbox({ items, tabId, onAdd, onUpdate, onDelete, onConve
             </div>
             <InboxImages items={item.attachments||[]} onChange={attachments=>onUpdate(item.id,item.text,attachments)}/>
             {pasteError&&<p className="date-error" role="alert">{pasteError}</p>}
-            {target&&!blockedAttachments&&<p className="muted small">{tabId === "habitos" ? "Para criar um hábito, use + Novo hábito na tela Hábitos." : target.kind === "diary" ? "O texto e as imagens serão acrescentados ao Diário de hoje. Os demais arquivos ficarão nos anexos da entrada." : target.kind === "someday" ? "Primeira linha: título da ideia. Demais linhas: conteúdo. Escolha a área para concluir a transformação; o contexto pode ser ajustado no editor." : target.kind === "recado" ? "Primeira linha: título do recado. Demais linhas: mensagem. A entrada permanece no Inbox até o envio ser concluído." : target.kind === "shopping" ? "Primeira linha: nome da lista. Separe os itens nas linhas seguintes (Enter no celular ou Shift + Enter no computador)." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>}
+            {target&&!blockedAttachments&&<p className="muted small">{tabId === "habitos" ? "Para criar um hábito, use + Novo hábito na tela Hábitos." : target.kind === "pressure" ? "Use exatamente três números separados por um espaço: sistólica diastólica BPM (ex.: 130 68 55). Ao transformar, a medição será registrada hoje, sem abrir formulário." : target.kind === "diary" ? "O texto e as imagens serão acrescentados ao Diário de hoje. Os demais arquivos ficarão nos anexos da entrada." : target.kind === "someday" ? "Primeira linha: título da ideia. Demais linhas: conteúdo. Escolha a área para concluir a transformação; o contexto pode ser ajustado no editor." : target.kind === "recado" ? "Primeira linha: título do recado. Demais linhas: mensagem. A entrada permanece no Inbox até o envio ser concluído." : target.kind === "shopping" ? "Primeira linha: nome da lista. Separe os itens nas linhas seguintes (Enter no celular ou Shift + Enter no computador)." : target.kind === "contact" ? "Primeira linha: nome. Segunda linha: DD/MM ou DD/MM/AAAA. O ano é opcional." : "Ao transformar, a primeira linha vira o título e o restante vira anotação."}</p>}
             <div className="inbox-actions">
-              {tabId !== "habitos" && target && <button className="primary" disabled={!target.kind||blockedAttachments} title={blockedAttachments?"Esta integração não aceita anexos. Remova os arquivos ou escolha outra aba.":undefined} onClick={convert}>
+              {tabId !== "habitos" && target && <button className="primary" disabled={!target.kind||blockedAttachments||blockedPressure} title={blockedAttachments?"Esta integração não aceita anexos. Remova os arquivos ou escolha outra aba.":undefined} onClick={convert}>
                 Transformar em {target.label}{target.kind ? "" : " (em breve)"}
               </button>}
               <button className="danger" onClick={remove}>Excluir</button>
