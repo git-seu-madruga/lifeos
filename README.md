@@ -168,6 +168,8 @@ Referência Geral e Algum dia usam a mesma largura disponível e espaçamentos d
 
 ### Bem-estar, hábitos e alimentação
 
+O rodapé do gráfico de pressão mostra as médias de sistólica, diastólica e BPM dos dias efetivamente exibidos no formato `Média: 129/68 mmHg, 57 bpm`, arredondado para inteiros como os valores do gráfico. O modo padrão considera os últimos 12 dias com medições; Histórico considera todo o período mostrado. Cada dia tem o mesmo peso, usando os valores das médias diárias plotadas. Ocultar BPM também oculta sua média.
+
 Bem-estar reúne registros pessoais, medidas e hábitos; o ciclo usa a regra de acesso específica indicada anteriormente. Hábitos têm ilustração, cor, marcação de hoje e resumos mensal/anual. Correções de outros dias e exclusões pedem confirmação; encerrar um hábito preserva seu histórico.
 
 Pressão admite várias medições diárias; peso/gordura, uma por data. O modo histórico usa médias diárias e amplia os dois gráficos para linhas completas; voltar ao padrão restaura o tamanho normal. Os toggles de BPM/% gordura funcionam nos dois modos. Somente o ponto fica dourado quando há comentário em alguma medida representada, inclusive na média diária. Ocultar uma série não impede registrar seus valores.
