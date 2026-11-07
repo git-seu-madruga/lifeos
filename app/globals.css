@@ -857,3 +857,5 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 .vehicle-consumption-metric .vehicle-consumption-up{color:#62c9a0}.vehicle-consumption-metric .vehicle-consumption-down{color:#ec6c70}
 
 @media(max-width:340px){.ref-drawers{grid-template-columns:1fr}}
+
+.finance-history-scroll{overflow-x:auto;max-width:100%}.finance-history-table{border-collapse:collapse;width:100%;min-width:1060px;font-size:12px}.finance-history-table th{text-align:left;color:var(--muted);font-size:11px;font-weight:600;white-space:nowrap}.finance-history-table th,.finance-history-table td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}.finance-history-table td:first-child,.finance-history-table td:nth-child(4){white-space:nowrap}.finance-history-table td:nth-child(3){min-width:150px;max-width:320px;overflow-wrap:anywhere}.finance-history-table small{display:block;margin-top:5px}.finance-history-actions{display:flex;gap:8px;white-space:nowrap}.finance-history-actions button{font-size:12px;padding:5px 8px}

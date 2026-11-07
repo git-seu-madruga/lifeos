@@ -178,6 +178,12 @@ Acompanhamento registra refeições, água, sono e atividade de forma independen
 
 As receitas calculam energia por ingredientes e peso pronto; gramas e ml não são intercambiáveis. O indicador de qualidade considera alimentação, água e exercício conforme `lib/nutrition.js`, sem nota quando não há calorias. Café da manhã, Almoço, Lanche e Jantar aparecem mesmo vazios; Ceia/Outros aparecem com lançamentos. No celular em paisagem, os cartões ficam dois a dois.
 
+### Tabela de lançamentos financeiros
+
+A tabela abaixo dos cards acompanha o mês/ano/período selecionado. Mostra data do lançamento, tipo (Entrada/Saída), categoria, valor, inserido em, modificado em, inserido por e modificado por, com ações de editar/excluir e as confirmações existentes. Ordena por data do lançamento decrescente e, no mesmo dia, inclusão mais recente primeiro. No celular, a tabela permite rolagem horizontal.
+
+O servidor registra autoria a partir da sessão autenticada. `LifeOS Inserido por` (Texto) e `LifeOS Inserido em` (Data) são criados automaticamente somente em Lançamentos financeiros; o autor original não muda em edições. Último editor/data continuam nos campos existentes. Metadados retornam após salvar sem sobrescrever edições em curso nem participar do diff editável. Reenvio idêntico não altera autoria/data de modificação. Registros antigos usam a data de criação original do Notion quando disponível e mostram “Não informado” para autoria desconhecida. A tabela mostra o estado atual e a última edição; exclusões seguem o fluxo existente, sem uma trilha permanente de versões.
+
 ### Veículos
 
 Garagem, categorias e lançamentos são compartilhados. Abastecimentos e despesas têm fluxos separados. A quilometragem atual para alertas considera o maior valor válido do cadastro e dos lançamentos, inclusive abastecimentos e manutenções. O servidor impede odômetros incoerentes por data.
@@ -197,7 +203,7 @@ Importação CSV fica no painel de Veículos: baixe o modelo do tipo desejado, s
 | Área | Comportamento |
 | --- | --- |
 | Compras | Blocos de listas e itens reordenáveis; check remove item, sem histórico de concluídos. Busca também no conteúdo dos itens restantes, sem diferenciar acentos/caixa |
-| Finanças | Entradas/saídas, categorias, observações, períodos e Sankey; categorias podem ser aposentadas sem apagar lançamentos |
+| Finanças | Entradas/saídas, categorias, observações, períodos e Sankey; categorias podem ser aposentadas sem apagar lançamentos; tabela no fim da página com data, tipo, categoria, valor, inclusão/última modificação e autoria, com editar/excluir |
 | Aniversários | Datas com ano opcional, idade quando conhecida, observações e destaque dourado da aba para hoje e os seis dias seguintes |
 | Entretenimento | Leituras, jogos, séries e filmes; filtros, avaliação, capas, comentários e resumos. Concluir exige data; consultas externas dependem dos respectivos catálogos |
 | Recados | Um envio por remetente/dia em Brasília, título opcional e confirmação antes de enviar; após envio é somente leitura. Editor rico, imagens no corpo e catálogo completo de emojis; até 12.000 caracteres. Apenas o destinatário confirma leitura. O coração avisa sobre recebido de hoje não lido |
