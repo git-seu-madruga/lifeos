@@ -168,6 +168,8 @@ Referência Geral e Algum dia usam a mesma largura disponível e espaçamentos d
 
 ### Bem-estar, hábitos e alimentação
 
+A escala esquerda da pressão usa apenas as sistólicas e diastólicas exibidas: limite inferior no múltiplo de 5 imediatamente abaixo do menor valor e superior no imediatamente acima do maior. Valores já múltiplos de 5 avançam ao próximo limite externo (70 a 130 → escala de 65 a 135). A regra vale no gráfico de 12 dias e no histórico, sem alterar a escala de BPM.
+
 O rodapé do gráfico de pressão mostra as médias de sistólica, diastólica e BPM dos dias efetivamente exibidos no formato `Média: 129/68 mmHg, 57 bpm`, arredondado para inteiros como os valores do gráfico. O modo padrão considera os últimos 12 dias com medições; Histórico considera todo o período mostrado. Cada dia tem o mesmo peso, usando os valores das médias diárias plotadas. Ocultar BPM também oculta sua média.
 
 Bem-estar reúne registros pessoais, medidas e hábitos; o ciclo usa a regra de acesso específica indicada anteriormente. Hábitos têm ilustração, cor, marcação de hoje e resumos mensal/anual. Correções de outros dias e exclusões pedem confirmação; encerrar um hábito preserva seu histórico.
@@ -180,9 +182,9 @@ As receitas calculam energia por ingredientes e peso pronto; gramas e ml não s�
 
 ### Tabela de lançamentos financeiros
 
-A tabela abaixo dos cards acompanha o mês/ano/período selecionado. Mostra data do lançamento, tipo (Entrada/Saída), categoria, valor, inserido em, modificado em, inserido por e modificado por, com ações de editar/excluir e as confirmações existentes. Ordena por data do lançamento decrescente e, no mesmo dia, inclusão mais recente primeiro. No celular, a tabela permite rolagem horizontal.
+A tabela abaixo dos cards acompanha o mês/ano/período selecionado. Mostra data do lançamento, tipo (Entrada/Saída), categoria, valor, inserido em, modificado em, inserido por e modificado por, com ações de editar/excluir e as confirmações existentes. Ordena por data do lançamento decrescente e, no mesmo dia, inclusão mais recente primeiro. No celular, a tabela permite rolagem horizontal. O Sankey tem uma régua de zoom de 50% a 200%, com ajuste contínuo de 1% e Redefinir para 100%. A escolha fica salva neste navegador, sem alterar dados ou sincronizar com o Notion. O SVG muda sua largura e altura no fluxo da página, de modo que os cards e a tabela abaixo acompanham o redimensionamento; ampliações podem usar rolagem horizontal.
 
-O servidor registra autoria a partir da sessão autenticada. `LifeOS Inserido por` (Texto) e `LifeOS Inserido em` (Data) são criados automaticamente somente em Lançamentos financeiros; o autor original não muda em edições. Último editor/data continuam nos campos existentes. Metadados retornam após salvar sem sobrescrever edições em curso nem participar do diff editável. Reenvio idêntico não altera autoria/data de modificação. Registros antigos usam a data de criação original do Notion quando disponível e mostram “Não informado” para autoria desconhecida. A tabela mostra o estado atual e a última edição; exclusões seguem o fluxo existente, sem uma trilha permanente de versões.
+O servidor registra autoria a partir da sessão autenticada. `LifeOS Inserido por` (Texto) e `LifeOS Inserido em` (Data) são criados automaticamente somente em Lançamentos financeiros; o autor original não muda em edições. A primeira inclusão deixa Modificado em/por vazios. Uma edição real preenche `LifeOS Modificado em` (Data, automático) e usa o último editor autenticado; os campos genéricos de último salvamento continuam independentes. Metadados retornam após salvar sem sobrescrever edições em curso nem participar do diff editável. Reenvio idêntico não altera autoria/data de modificação. Registros antigos usam a data de criação original do Notion quando disponível e mostram “Não informado” para autoria desconhecida. A tabela mostra o estado atual e a última edição; exclusões seguem o fluxo existente, sem uma trilha permanente de versões.
 
 ### Veículos
 
