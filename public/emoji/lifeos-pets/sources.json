@@ -1,0 +1,188 @@
+{
+  "collection": "LifeOS · Animais de estimação",
+  "origin": "Original images generated with OpenAI image generation for LifeOS; independent of Microsoft Fluent Emoji",
+  "created": "2026-11-13",
+  "processing": "Exported as 128x128 WebP quality 86, transparency retained, metadata removed; static local files",
+  "assets": [
+    {
+      "id": "art-pet-dog-blue-heeler",
+      "file": "dog-blue-heeler.webp",
+      "description": "Blue heeler · mancha unilateral",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "Input image 1 is an animal identity reference only. Make a single head-and-upper-chest puppy emoji faithfully resembling this specific blue heeler puppy. Blue-gray and white speckled fluffy fur, rounded puppy muzzle, black nose, big dark brown eyes, ears softly folded out sideways, warm tan inside ears and cheeks. MOST IMPORTANT: large dark black patch around the eye on the RIGHT SIDE OF THE IMAGE (puppy's own left eye), dark patch extends to that ear; the eye on the LEFT SIDE OF THE IMAGE remains surrounded by blue-gray white speckled fur. White/speckled bridge and muzzle. Small pale pink bow just above the dark patch, pale pink bowtie under chin. Front facing, sweet inquisitive expression. Preserve asymmetrical markings and puppy proportions from photo. Exclude human, hand, arms, smartwatch, background and photo watermark.",
+      "sha256": "4d95a781771970089b5e5a44c715811ac799568dc33c3b4b14519036814deeae",
+      "bytes": 6280
+    },
+    {
+      "id": "art-pet-dog-golden-retriever",
+      "file": "dog-golden-retriever.webp",
+      "description": "Golden retriever",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "A golden retriever dog HEAD and small upper chest, front facing: soft golden fur, floppy ears, broad friendly muzzle, black nose, smiling mouth, dark brown eyes. No collar or accessories.",
+      "sha256": "e23b5764dfa9f6f29bec111a8176106287d790e6ba092b19a0e75d63c769a2f3",
+      "bytes": 6716
+    },
+    {
+      "id": "art-pet-cockatiel-wild",
+      "file": "cockatiel-wild.webp",
+      "description": "Calopsita silvestre",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "One full-body wild-type gray cockatiel standing upright in a slight three-quarter front view: slate gray body and wings, clearly yellow face and raised yellow-gray crest, bright orange cheek patches on both sides, clear white wing panels, long slender gray tail fully visible, small gray beak and pink-gray feet. Anatomically a cockatiel, NOT a cockatoo or generic parrot. No perch or accessories.",
+      "sha256": "b21f3050cacd1e37e52204f5d500dd8efffe67d66a592af919f2ea62e4b4264a",
+      "bytes": 5046
+    },
+    {
+      "id": "art-pet-cockatiel-albino",
+      "file": "cockatiel-albino.webp",
+      "description": "Calopsita albina",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "One full-body albino cockatiel (whiteface lutino), standing upright in a slight three-quarter front view: entirely snow-white body, wings, face, long white tail and raised white crest; subtle pale pink/red eyes, pale pink beak and feet. No yellow, no gray, NO orange cheeks. Anatomically a cockatiel, NOT a cockatoo. No perch or accessories.",
+      "sha256": "7c14056f1c4c62294f107a127a71e9afe3c467dba0d3260cd11cdd78dd284038",
+      "bytes": 4534
+    },
+    {
+      "id": "art-pet-dog-blue-heeler-upright",
+      "file": "dog-blue-heeler-upright.webp",
+      "description": "Blue heeler · orelhas em pé",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "Input image 1 is animal identity reference. One front-facing head and small upper-chest emoji closely resembling this specific blue heeler: upright large pointed ears, silver blue-gray and white densely speckled fur, long medium gray muzzle, black nose, calm alert dark-brown eyes, pale neck. CRUCIAL large black eye patch on the RIGHT SIDE OF THE IMAGE (dog own left eye) extending upward to base of that ear, LEFT SIDE OF THE IMAGE remains silver-white and speckled. Preserve the distinct asymmetry and youthful heeler anatomy. No ribbons, no bowtie, no collar, no human, no leash, no grass, no flowers, no scene.",
+      "sha256": "eda400b9c2cf5da7f3b11c15ec18e9349d81ede53c2357ccbf3ca28dd562c7b9",
+      "bytes": 6678
+    },
+    {
+      "id": "art-pet-dog-dachshund",
+      "file": "dog-dachshund.webp",
+      "description": "Dachshund",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "Dachshund dog HEAD and small upper chest, front facing: elongated narrow muzzle, long floppy ears, smooth black and warm tan fur, tan eyebrow spots and cheeks, black nose, friendly brown eyes. No collar.",
+      "sha256": "2bbbfe479c017d7d378e03d51b0de2415fb0dbef462302717a310ff44e977e24",
+      "bytes": 5954
+    },
+    {
+      "id": "art-pet-cockatiel-pearl",
+      "file": "cockatiel-pearl.webp",
+      "description": "Calopsita pérola",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "One full-body pearl cockatiel upright slight three-quarter front view, wings folded: intricate cream-yellow scalloped pearl speckles across gray wings and back, pale yellow face and raised crest, vivid orange cheek patches, long pale gray/yellow tail fully contained, little gray beak and pink-gray feet. Pearl scalloping highly visible on folded wings. Cockatiel slender silhouette, not a cockatoo. No accessories or perch.",
+      "sha256": "973305bd87a45586f067c4e95c154bc9566f9a3b61f1b10bba5458ca8e4fadee",
+      "bytes": 5188
+    },
+    {
+      "id": "art-pet-cockatiel-lutino",
+      "file": "cockatiel-lutino.webp",
+      "description": "Calopsita lutino",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "One full-body lutino cockatiel upright slight three-quarter front view: pale buttery yellow and cream-white body, bright pale yellow face and tall crest, vivid orange cheek patches, long cream-yellow tail fully visible, small pink beak and pink feet, ruby-dark eyes. NO gray or brown plumage. Slender cockatiel silhouette, not a cockatoo. No perch or accessories.",
+      "sha256": "48047062bbe629dc572ae81e546e23a829305465f7c64e19653733bf21226820",
+      "bytes": 4864
+    },
+    {
+      "id": "art-pet-dog-husky",
+      "file": "dog-husky.webp",
+      "description": "Husky siberiano",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "Husky siberian dog HEAD and small upper chest, front facing. Symmetrical gray-and-white fur mask, pointed upright ears, bright icy blue eyes, white cheeks and muzzle, gray forehead, black nose, friendly alert expression. No collar or accessories.",
+      "sha256": "e9fb16d1bfe2ac28a5b00f9453ccbf7890c9d114c5e5cc00b7cfc206c6354d95",
+      "bytes": 6586
+    },
+    {
+      "id": "art-pet-dog-beagle",
+      "file": "dog-beagle.webp",
+      "description": "Beagle",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "Beagle dog HEAD and small upper chest, front facing. Long floppy warm brown ears, brown head sides, characteristic white stripe down forehead and muzzle, black on crown/back of neck, expressive gentle brown eyes, black nose. No accessories.",
+      "sha256": "9c65b28b64ff2a17a645cd4a43cd041075e075ff5c917945643bc6d1677e6faa",
+      "bytes": 6200
+    },
+    {
+      "id": "art-pet-dog-poodle",
+      "file": "dog-poodle.webp",
+      "description": "Poodle",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "Apricot toy poodle dog HEAD and small upper chest, front facing. Soft fluffy tight curly apricot caramel fur, rounded head silhouette, curly floppy ears, slender poodle muzzle, dark expressive eyes, black nose. Recognizable poodle, no bows, no collar.",
+      "sha256": "fadfee436cf1649f9cfe84db41084d35bb3086730b098fb1af90dac5bce9cf4a",
+      "bytes": 8456
+    },
+    {
+      "id": "art-pet-dog-shih-tzu",
+      "file": "dog-shih-tzu.webp",
+      "description": "Shih-tzu",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "Shih tzu dog HEAD and small upper chest, front facing. Compact flat rounded face with very short muzzle, white and warm brown silky fluffy fur, long soft floppy ears, white forehead blaze, dark large eyes, small black nose. Fur brushed away from eyes for clarity, no topknot bow, no collar.",
+      "sha256": "c5ef6a8b259f8ce9f46cfade35fd328dea2f414e7ca887ad978c4a1789b975d0",
+      "bytes": 7634
+    },
+    {
+      "id": "art-pet-cockatiel-whiteface",
+      "file": "cockatiel-whiteface.webp",
+      "description": "Calopsita cara-branca",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "One full-body whiteface gray cockatiel upright slight three-quarter front view. Slate-gray body, crisp pure white face and cheeks, raised gray-white crest, white wing panels, long gray tail fully contained, charcoal eyes, gray beak, pink-gray feet. NO yellow pigment and NO orange cheek patches anywhere. Slender cockatiel anatomy, not a cockatoo. No perch or accessories.",
+      "sha256": "967077d4d778cff1fb8e27df52e9fba29bc84d2dc67230c59fed783f4cf33917",
+      "bytes": 4282
+    },
+    {
+      "id": "art-pet-cockatiel-pied",
+      "file": "cockatiel-pied.webp",
+      "description": "Calopsita arlequim",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "One full-body pied cockatiel upright slight three-quarter front view. Large irregular clear pale-yellow patches mixed with slate-gray patches over body and folded wings, yellow face and raised yellow-gray crest, orange cheeks, long tail patchworked yellow and gray fully contained. NOT fine pearl scalloping: conspicuous large irregular pied patches. Small gray beak and pink-gray feet, slender cockatiel anatomy. No perch or accessories.",
+      "sha256": "0026fa8d9ba90df0ec0b38c453f6001d26a3056ceb5c260522bc32f3ac3cf73a",
+      "bytes": 5016
+    },
+    {
+      "id": "art-pet-cockatiel-cinnamon",
+      "file": "cockatiel-cinnamon.webp",
+      "description": "Calopsita canela",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "One full-body cinnamon cockatiel upright slight three-quarter front view. Warm soft cinnamon taupe-brown body and folded wings instead of gray, cream white wing patches, pale yellow face and raised yellow-taupe crest, orange cheek patches, long warm brown tail fully contained. Brownish-dark eyes, soft beige-gray beak, pink feet, slender cockatiel silhouette. No perch or accessories.",
+      "sha256": "0e6a055c41d0f105916100c9baf933979e012743bb3fca1706c8f6483011f6d1",
+      "bytes": 5028
+    },
+    {
+      "id": "art-pet-cockatiel-whiteface-pearl",
+      "file": "cockatiel-whiteface-pearl.webp",
+      "description": "Calopsita pérola cara-branca",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "One full-body whiteface pearl cockatiel upright slight three-quarter front view. White face, raised white-gray crest, delicately scalloped pearl pattern of pure white/cream scales on gray back and folded wings, long silver-gray white tail fully contained. No yellow, no orange cheek patches. Clear visibly patterned wings distinguish from plain gray whiteface. Black eyes, gray beak and pink-gray feet. Slender cockatiel, not cockatoo, no perch or accessories.",
+      "sha256": "e198fc71dc9231e31c7946204fe4e1944b4c7f159442bfea6377fa0a94131c3d",
+      "bytes": 4686
+    },
+    {
+      "id": "art-pet-dog-labrador-black",
+      "file": "dog-labrador-black.webp",
+      "description": "Labrador preto",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "Black labrador retriever dog HEAD and small upper chest, front facing: shiny short black fur with soft gray highlights for readability on dark UI, broad gentle muzzle, floppy ears, deep warm brown eyes, black nose, friendly slightly open mouth showing a pink tongue. No collar or accessories.",
+      "sha256": "554ed9ceafece7140a68114ce1aaa45aebaec1cbc31a5ca36664a87b9d973fa1",
+      "bytes": 4904
+    },
+    {
+      "id": "art-pet-dog-german-shepherd",
+      "file": "dog-german-shepherd.webp",
+      "description": "Pastor-alemão",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "German shepherd dog HEAD and small upper chest, front facing: large upright pointed ears, warm tan fur with classic black muzzle and black saddle crown markings, tan cheeks, almond brown eyes, black nose, friendly confident expression. Clear shepherd silhouette. No collar or accessories.",
+      "sha256": "86c002ee352e42742701f002d8eceda2d2ad56c52256afd1988395adf856a956",
+      "bytes": 6308
+    },
+    {
+      "id": "art-pet-cat-tabby",
+      "file": "cat-tabby.webp",
+      "description": "Gato rajado",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "Friendly gray tabby cat HEAD and small upper chest, front facing: soft silver-gray fur, dark charcoal M stripes on forehead, striped cheeks, large gentle green eyes, small pink nose, white muzzle, upright triangular ears, distinct fine whiskers. No collar or accessories.",
+      "sha256": "26ae331008fa85372cd1d8c4fe1cfab30750649455f70e1f38923aab120442f4",
+      "bytes": 6606
+    },
+    {
+      "id": "art-pet-rabbit-white",
+      "file": "rabbit-white.webp",
+      "description": "Coelho branco",
+      "origin": "AI-generated original illustration for LifeOS, transparent background",
+      "prompt": "Cute white rabbit HEAD and small upper chest, front facing: two long upright ears with soft pink inner ears, rounded white fluffy cheeks, small pale pink nose, gentle dark eyes, tiny whiskers. Clean distinctive bunny silhouette. No collar or accessories.",
+      "sha256": "ccca300e3c077642148f26edd8031943aee5f4e3055bb043872a3d70f0308da1",
+      "bytes": 5052
+    }
+  ]
+}

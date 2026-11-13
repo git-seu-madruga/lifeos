@@ -206,7 +206,7 @@ Importação CSV fica no painel de Veículos: baixe o modelo do tipo desejado, s
 | --- | --- |
 | Compras | Blocos de listas e itens reordenáveis; check remove item, sem histórico de concluídos. Busca também no conteúdo dos itens restantes, sem diferenciar acentos/caixa |
 | Finanças | Entradas/saídas, categorias, observações, períodos e Sankey; categorias podem ser aposentadas sem apagar lançamentos; tabela no fim da página com data, tipo, categoria, valor, inclusão/última modificação e autoria, com editar/excluir |
-| Aniversários | Datas com ano opcional, idade quando conhecida, foto do dispositivo ou emoji circular ao lado do nome; observações somente no painel lateral. Fotos usam anexos do Notion (envio de até 4 MB após otimização). Destaque dourado da aba para hoje e os seis dias seguintes |
+| Aniversários | Datas com ano opcional, idade quando conhecida, foto do dispositivo ou emoji circular ao lado do nome; observações somente no painel lateral, com aviso ao fechar com alterações não salvas. Fotos usam anexos do Notion (envio de até 4 MB após otimização). Destaque dourado da aba para hoje e os seis dias seguintes |
 | Entretenimento | Leituras, jogos, séries e filmes; filtros, avaliação, capas, comentários e resumos. Concluir exige data; consultas externas dependem dos respectivos catálogos |
 | Recados | Um envio por remetente/dia em Brasília, título opcional e confirmação antes de enviar; após envio é somente leitura. Editor rico, imagens no corpo e catálogo completo de emojis; até 12.000 caracteres. Apenas o destinatário confirma leitura. O coração avisa sobre recebido de hoje não lido |
 
@@ -219,6 +219,10 @@ O catálogo compartilhado tem 359 Fluent Emoji 3D e 17 ilustrações próprias d
 Licenças e procedência ficam nas pastas dos assets em `public/emoji/`; preserve-as. As ilustrações próprias são independentes da Microsoft. A fonte nutricional TACO está documentada em `lib/data/TACO-FONTE.md`; imagens e dados externos não devem ser confundidos com arquivos hospedados no Notion. Prévia de site e fotos externas não equivalem a uma cópia do site no backup.
 
 Fontes: [Fluent Emoji](https://github.com/microsoft/fluentui-emoji), [TACO](https://nepa.unicamp.br/publicacoes/tabela-taco-excel/), [Open Food Facts](https://world.openfoodfacts.org/), [Open Library](https://openlibrary.org/dev/docs/api/search), [TVmaze](https://www.tvmaze.com/api), [IGDB](https://api-docs.igdb.com/) e [TMDB](https://developer.themoviedb.org/docs/authentication-application). Dados do Open Food Facts usam ODbL e fotos dos colaboradores, CC BY-SA 3.0; preserve os créditos apresentados na interface.
+
+### Emojis de animais de estimação
+
+O catálogo compartilhado pelos seletores inclui 20 novas artes na categoria **Animais de estimação**: cães de diferentes raças (incluindo blue heeler filhote e com orelhas em pé), oito variações de calopsitas, gato rajado e coelho. As miniaturas são WebP locais com transparência; funcionam em Aniversários, Hábitos, áreas e demais campos que usam o pacote completo. Buscar pelo animal, raça ou cor localiza as variações. A origem e os prompts estão em `public/emoji/lifeos-pets/sources.json`; as fotografias de referência não são distribuídas.
 
 ## Backup e restauração
 
