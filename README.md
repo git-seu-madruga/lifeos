@@ -206,7 +206,7 @@ Importação CSV fica no painel de Veículos: baixe o modelo do tipo desejado, s
 | --- | --- |
 | Compras | Blocos de listas e itens reordenáveis; check remove item, sem histórico de concluídos. Busca também no conteúdo dos itens restantes, sem diferenciar acentos/caixa |
 | Finanças | Entradas/saídas, categorias, observações, períodos e Sankey; categorias podem ser aposentadas sem apagar lançamentos; tabela no fim da página com data, tipo, categoria, valor, inclusão/última modificação e autoria, com editar/excluir |
-| Aniversários | Datas com ano opcional, idade quando conhecida, foto do dispositivo ou emoji circular ao lado do nome; observações somente no painel lateral, com aviso ao fechar com alterações não salvas. Fotos usam anexos do Notion (envio de até 4 MB após otimização). Destaque dourado da aba para hoje e os seis dias seguintes |
+| Aniversários | Datas com ano opcional, idade quando conhecida, foto do dispositivo ou emoji circular ao lado do nome; observações somente no painel lateral, com aviso ao fechar com alterações não salvas. Clicar na foto/emoji abre uma ampliação; clicar no nome abre o cadastro. Fotos usam anexos do Notion (envio de até 4 MB após otimização). Destaque dourado da aba para hoje e os seis dias seguintes |
 | Entretenimento | Leituras, jogos, séries e filmes; filtros, avaliação, capas, comentários e resumos. Concluir exige data; consultas externas dependem dos respectivos catálogos |
 | Recados | Um envio por remetente/dia em Brasília, título opcional e confirmação antes de enviar; após envio é somente leitura. Editor rico, imagens no corpo e catálogo completo de emojis; até 12.000 caracteres. Apenas o destinatário confirma leitura. O coração avisa sobre recebido de hoje não lido |
 

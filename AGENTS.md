@@ -110,6 +110,7 @@ Next.js 15, React 19, App Router, Notion, Upstash Redis, autenticação Google e
 ## Aniversários
 
 - Observações aparecem somente no painel lateral do contato. Lista e destaques mostram retrato circular ao lado do nome: foto em `attachments` (no máximo uma imagem) ou emoji válido do catálogo em `icon`; sem ambos, iniciais. Trocar para emoji remove foto, escolher foto limpa emoji; não migrar contatos em massa.
+- Clique no círculo com foto/emoji abre popup de ampliação, sem abrir nem salvar o cadastro; nome/detalhes continuam abrindo o editor. Usar botões irmãos, nunca interativos aninhados. A ampliação também funciona sobre o formulário aberto e fecha apenas sua própria camada, preservando o rascunho e o aviso de descarte. Sem retrato, iniciais continuam passivas.
 - Fechar/cancelar/clicar fora do painel com alterações não salvas exige confirmação de descarte, incluindo foto/emoji. Recusar conserva os campos; Salvar não pede descarte, e contato intocado ou alterações revertidas fecham sem aviso. Preparação de foto continua bloqueando o fechamento.
 - Schema Contatos adiciona Ícone (Texto) e Foto (Arquivos e mídia) automaticamente. Fotos passam pelo upload autorizado existente, diff incremental, hidratação, drafts cifrados e backup genérico; leitura usa a rota autenticada kind=contacts, mantendo o compartilhamento atual. Não persistir URL temporária/base64 como foto.
 
