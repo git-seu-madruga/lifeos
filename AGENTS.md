@@ -105,6 +105,11 @@ Next.js 15, React 19, App Router, Notion, Upstash Redis, autenticação Google e
 - Promover ideia cria cópia confirmada de texto/anexos e mantém original. Atualizar URLs antes da cópia; destino antes de marcador na ideia. Não converter automaticamente o documento rico nessa integração sem pedido. Retentativas não duplicam destino; mudanças posteriores da origem não podem ser descartadas por replay.
 - Diário pesquisa texto de todas as datas por termos sem acentos/caixa, com todos os termos, data e trecho destacado por offsets Unicode. Durante busca recolhe calendário; resultado abre leitura bloqueada, preserva consulta e retorno. Sem HTML de usuário/regex derivada da consulta ou consulta remota; não indexar bytes de anexos.
 
+## Aniversários
+
+- Observações aparecem somente no painel lateral do contato. Lista e destaques mostram retrato circular ao lado do nome: foto em `attachments` (no máximo uma imagem) ou emoji válido do catálogo em `icon`; sem ambos, iniciais. Trocar para emoji remove foto, escolher foto limpa emoji; não migrar contatos em massa.
+- Schema Contatos adiciona Ícone (Texto) e Foto (Arquivos e mídia) automaticamente. Fotos passam pelo upload autorizado existente, diff incremental, hidratação, drafts cifrados e backup genérico; leitura usa a rota autenticada kind=contacts, mantendo o compartilhamento atual. Não persistir URL temporária/base64 como foto.
+
 ## Bem-estar, hábitos e alimentação
 
 - Pressão permite múltiplas medidas/dia e média; peso/gordura permite uma por data. Histórico usa médias diárias, mantém toggles BPM/gordura e ocupa uma linha por gráfico; voltar restaura largura e fontes normais com ResizeObserver. Ponto dourado indica comentário em qualquer medida representada; cores das séries não mudam.

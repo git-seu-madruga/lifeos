@@ -58,7 +58,7 @@ Os nomes e tipos abaixo correspondem ao schema do código. **Texto** significa `
 | Diário | `NOTION_DIARY_DATABASE_ID` | **Nome** (Título); **Data** (Data); **Conteúdo** (Texto); **Documento** (Texto; automático); **Anexos** (Arquivos) |
 | Categorias financeiras | `NOTION_FINANCE_CATEGORIES_DATABASE_ID` | **Inativa** (Caixa de seleção; automático); **Nome** (Título); **Tipo** (Selecionar) |
 | Lançamentos financeiros | `NOTION_FINANCE_TRANSACTIONS_DATABASE_ID` | **Nome** (Título); **Categoria** (Relação); **Data** (Data); **Valor** (Número); **Observação** (Texto; automático) |
-| Aniversários | `NOTION_CONTACTS_DATABASE_ID` | **Nome** (Título); **Dia** (Número); **Mês** (Número); **Ano de nascimento** (Número); **Observações** (Texto; automático) |
+| Aniversários | `NOTION_CONTACTS_DATABASE_ID` | **Nome** (Título); **Dia** (Número); **Mês** (Número); **Ano de nascimento** (Número); **Observações** (Texto; automático); **Ícone** (Texto; automático); **Foto** (Arquivos e mídia; automático) |
 | Compras | `NOTION_SHOPPING_DATABASE_ID` | **Nome** (Título); **Contexto** (Selecionar); **Itens** (Texto) |
 | Hábitos | `NOTION_HABITS_DATABASE_ID` | **Encerrado** (Caixa de seleção; automático); **Nome** (Título); **Contexto** (Selecionar); **Cor** (Texto); **Ícone** (Texto); **Início** (Data) |
 | Registros de hábitos | `NOTION_HABIT_LOGS_DATABASE_ID` | **Nome** (Título); **Hábito** (Relação); **Data** (Data) |
@@ -206,7 +206,7 @@ Importação CSV fica no painel de Veículos: baixe o modelo do tipo desejado, s
 | --- | --- |
 | Compras | Blocos de listas e itens reordenáveis; check remove item, sem histórico de concluídos. Busca também no conteúdo dos itens restantes, sem diferenciar acentos/caixa |
 | Finanças | Entradas/saídas, categorias, observações, períodos e Sankey; categorias podem ser aposentadas sem apagar lançamentos; tabela no fim da página com data, tipo, categoria, valor, inclusão/última modificação e autoria, com editar/excluir |
-| Aniversários | Datas com ano opcional, idade quando conhecida, observações e destaque dourado da aba para hoje e os seis dias seguintes |
+| Aniversários | Datas com ano opcional, idade quando conhecida, foto do dispositivo ou emoji circular ao lado do nome; observações somente no painel lateral. Fotos usam anexos do Notion (envio de até 4 MB após otimização). Destaque dourado da aba para hoje e os seis dias seguintes |
 | Entretenimento | Leituras, jogos, séries e filmes; filtros, avaliação, capas, comentários e resumos. Concluir exige data; consultas externas dependem dos respectivos catálogos |
 | Recados | Um envio por remetente/dia em Brasília, título opcional e confirmação antes de enviar; após envio é somente leitura. Editor rico, imagens no corpo e catálogo completo de emojis; até 12.000 caracteres. Apenas o destinatário confirma leitura. O coração avisa sobre recebido de hoje não lido |
 

@@ -7,7 +7,7 @@ export async function GET(request) {
     const user=await authorizeLive(request);
     const { searchParams } = new URL(request.url);
     const kind = searchParams.get('kind'), id = searchParams.get('id'), index = Number(searchParams.get('index'));
-    if (!['inbox','reference','someday','projects','tasks','diary','media','recados'].includes(kind) || !/^[\da-f-]{32,36}$/i.test(id || '') || !Number.isInteger(index) || index < 0) throw new AppError('Anexo inválido.');
+    if (!['contacts','inbox','reference','someday','projects','tasks','diary','media','recados'].includes(kind) || !/^[\da-f-]{32,36}$/i.test(id || '') || !Number.isInteger(index) || index < 0) throw new AppError('Anexo inválido.');
     const { page, source } = await ownedPage(kind,id,user);
     if(kind==='inbox'&&(page.in_trash||page.archived))throw new AppError('A entrada foi excluída.',404);
     const list = page.properties[source.fields.attachments.name]?.files || [];

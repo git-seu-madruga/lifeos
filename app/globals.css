@@ -751,7 +751,7 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 /* Birthday reminder colors only the tab icon, preserving its shape and spacing. */
 .tabs .tab-icon.birthday-notice,.tabs .tab-icon.vehicle-notice,.tabs .tab-icon.followup-notice{color:#ffc857;filter:drop-shadow(0 0 4px #ffc85740)}
 
-.birthday-contact-notes{display:block;color:var(--muted);font-size:11px;line-height:1.5;white-space:pre-wrap;overflow-wrap:anywhere;margin-top:5px;max-width:420px}
+
 
 /* These layers preserve the existing backdrop gesture guard and mobile return flow. */
 .overlay.sd-mobile-layer,.overlay.sd-area-layer{display:grid;place-items:center;padding:14px;z-index:1100;background:#080b11c9;backdrop-filter:blur(5px)}
@@ -864,3 +864,21 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 .finance-history-scroll{overflow-x:auto;max-width:100%}.finance-history-table{border-collapse:collapse;width:100%;min-width:1060px;font-size:12px}.finance-history-table th{text-align:left;color:var(--muted);font-size:11px;font-weight:600;white-space:nowrap}.finance-history-table th,.finance-history-table td{padding:12px 10px;border-bottom:1px solid var(--line);vertical-align:top}.finance-history-table td:first-child,.finance-history-table td:nth-child(4){white-space:nowrap}.finance-history-table td:nth-child(3){min-width:150px;max-width:320px;overflow-wrap:anywhere}.finance-history-table small{display:block;margin-top:5px}.finance-history-actions{display:flex;gap:8px;white-space:nowrap}.finance-history-actions button{font-size:12px;padding:5px 8px}
 
 .finance-zoom-controls{display:flex;align-items:center;justify-content:flex-end;gap:10px;flex-wrap:wrap;margin:8px 0}.finance-zoom-controls label{display:flex;align-items:center;gap:9px;font-size:12px;color:var(--muted)}.finance-zoom-controls input[type=range]{width:clamp(130px,22vw,260px);height:24px;margin:0;accent-color:var(--blue);cursor:pointer}.finance-zoom-controls output{min-width:38px;text-align:right;font-variant-numeric:tabular-nums}.finance-zoom-controls button{font-size:11px;padding:5px 8px}.finance-graph{transition:width .08s linear,min-width .08s linear}.finance-graph-scroll{min-width:0}@media(prefers-reduced-motion:reduce){.finance-graph{transition:none}}
+
+/* Retrato opcional e observações somente no painel do contato. */
+.birthday-person{display:inline-flex;align-items:center;gap:10px;min-width:0;text-align:left}
+.birthday-row .birthday-person{color:inherit;font-size:inherit}
+.birthday-avatar{display:inline-flex;align-items:center;justify-content:center;flex:none;overflow:hidden;border-radius:50%;border:1px solid var(--line);background:var(--panel);color:var(--muted);font-size:13px;font-weight:600}
+.birthday-avatar>img{width:100%;height:100%;object-fit:cover}
+.birthday-avatar>img.habit-art{width:72%;height:72%;object-fit:contain}
+.birthday-open{padding:0;background:none;border:0;color:inherit;font:inherit;cursor:pointer}
+.birthday-open strong{font-weight:500}
+.birthday-open:focus-visible{outline:2px solid var(--accent,#9bc1ff);outline-offset:4px;border-radius:8px}
+.birthday-photo-editor{display:flex;align-items:center;gap:14px;margin:20px 0}
+.birthday-photo-actions{display:flex;gap:8px;flex-wrap:wrap;min-width:0}
+.birthday-photo-actions label{display:inline-flex;align-items:center;cursor:pointer}
+.birthday-photo-actions input[type=file]{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden}
+.birthday-photo-actions label:focus-within{outline:2px solid var(--accent,#9bc1ff);outline-offset:3px}
+.birthday-photo-actions label:has(input:disabled){opacity:.5;cursor:wait}
+.birthday-panel .illustration-picker{margin-bottom:20px}
+.birthday-panel .finance-form{grid-template-columns:1fr}
