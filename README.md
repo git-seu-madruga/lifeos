@@ -149,6 +149,8 @@ O cadeado azul protege a tarefa contra edição acidental. Ambos os usuários au
 
 Ative **Acompanhamento programado** abaixo dos campos comuns para transformar a tarefa em follow-up. Ela permanece em **On hold / Follow-up**, inclusive quando ligada a um projeto. O prazo comum é informativo para o acompanhamento; não há encerramento automático, histórico próprio, comentários separados ou comandos de pausa/retomada.
 
+A próxima consulta usa a mesma apresentação dos prazos das tarefas comuns: Hoje, Amanhã, nome do dia da semana de dois a sete dias à frente e DD/MM após sete dias. Datas vencidas mostram os dias de atraso.
+
 | Programação | Próxima consulta após marcar como feita |
 | --- | --- |
 | Após cada consulta | Conta o intervalo a partir do dia efetivo da consulta |

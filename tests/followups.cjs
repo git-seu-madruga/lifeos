@@ -49,7 +49,15 @@ try{
  let many=base('2025-01-01',{every:1});for(let i=0;i<205;i++)many=f.completeFollowup(many,many.recurrence.next);assert.ok(!('history' in many.recurrence));assert.ok(!('total' in many.recurrence));assert.equal(f.validateFollowup(many),'');
  assert.ok(f.validateFollowup({...done,recurrence:{...done.recurrence,lastCheck:{...done.recurrence.lastCheck,note:'Not allowed'}}}));
  assert.equal(f.hasFollowupNotice([{...task,project:'p'}],[{id:'p',status:'paused'}],'2026-10-30'),false);assert.equal(f.hasFollowupNotice([{...task,project:'p'}],[{id:'p',status:'active'}],'2026-10-30'),true);assert.equal(f.taskVisibleOutsideProject(ordinary,[]),true);
- assert.equal(f.followupDateInfo(task,'2026-10-31').text,'1d atrasado');assert.equal(f.followupDateInfo(task,'2026-10-30').text,'Hoje');
+ // Shared date presentation, including the seven-day boundary and year rollover.
+ for(const [next,text,tone] of [
+  ['2026-11-13','1d atrasada','late'],['2026-11-14','Hoje','today'],
+  ['2026-11-15','Amanhã','soon'],['2026-11-16','Segunda-feira','soon'],
+  ['2026-11-21','Sábado','soon'],['2026-11-22','22/11','muted']
+ ])assert.deepEqual(f.followupDateInfo(base(next),'2026-11-14'),{text,tone});
+ assert.deepEqual(f.followupDateInfo(base('2027-01-01'),'2026-12-30'),{text:'Sexta-feira',tone:'soon'});
+ assert.deepEqual(f.followupDateInfo(base('2027-01-07'),'2026-12-30'),{text:'07/01',tone:'muted'});
+ assert.deepEqual(f.followupDateInfo({...legacy,recurrence:{...legacy.recurrence,state:'ended'}},'2026-10-31'),{text:'Encerrado',tone:'muted'});
  let slots=[],cursor=0;React.useState=initial=>{const i=cursor++;if(!(i in slots))slots[i]=typeof initial==='function'?initial():initial;return [slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value;}];};React.useMemo=fn=>fn();React.useRef=value=>({current:value});React.useEffect=()=>{};
  const walk=(node,result=[])=>{if(Array.isArray(node))node.forEach(n=>walk(n,result));else if(node?.props){result.push(node);walk(node.props.children,result);}return result;};
  const View=require(path.join(folder,'components/TasksView')).default,today=f.followupToday();

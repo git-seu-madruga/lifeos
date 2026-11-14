@@ -2,7 +2,7 @@
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict');
 const swc=require('next/dist/build/swc'),React=require('react');
 const folder=path.resolve('.client-test');fs.mkdirSync(path.join(folder,'lib'),{recursive:true});
-for(const name of ['wellness.js','habits.js','inboxAttachments.js','followups.js','tasks.js','diary.js','startup.js','reference.js','illustrations.js','someday.js','vehicleImportRunner.js','vehicles.js','useNotionState.js','editingGuard.js','notionDiff.js','entryDrafts.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
+for(const name of ['dates.js','wellness.js','habits.js','inboxAttachments.js','followups.js','tasks.js','diary.js','startup.js','reference.js','illustrations.js','someday.js','vehicleImportRunner.js','vehicles.js','useNotionState.js','editingGuard.js','notionDiff.js','entryDrafts.js','storage.js','api.js','finance.js'])fs.writeFileSync(path.join(folder,'lib',name),swc.transformSync(fs.readFileSync(path.join('lib',name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript'},target:'es2022'},module:{type:'commonjs'}}).code);
 require('fake-indexeddb/auto');
 const windowListeners=new Map(),documentListeners=new Map();
 const listen=(dispatchers,listeners,name,fn)=>{if(!listeners.has(name))listeners.set(name,new Set());listeners.get(name).add(fn);dispatchers.set(name,event=>{for(const listener of [...(listeners.get(name)||[])])listener(event);});};
