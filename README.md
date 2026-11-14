@@ -166,6 +166,8 @@ Algum dia abre gavetas das áreas existentes. **Mostrar todos** fica ao lado de 
 
 Referência Geral é uma biblioteca privada de materiais de consulta, com categorias independentes, pesquisa, favoritos, editor rico e anexos. Não é uma lista de tarefas, projetos ou ideias futuras.
 
+Entradas de Algum dia e Referência Geral só gravam edições ao clicar em **Salvar ideia** ou **Salvar material**. Voltar, fechar ou trocar de aba com alterações pendentes pede confirmação para descartá-las; cancelar mantém o editor aberto. Fechar/recarregar o navegador usa o aviso nativo quando disponível. Favoritos nos cards e gerenciamento de áreas/categorias mantêm suas ações próprias. Salve a ideia antes de transformá-la em tarefa/projeto.
+
 Referência Geral e Algum dia usam a mesma largura disponível e espaçamentos de gavetas/cards. Em ambas, favoritos, Mostrar todos e gerenciamento ficam na barra da pesquisa, à direita no desktop e em uma única linha de botões abaixo da pesquisa nas telas menores. Os catálogos e as funções de cada aba permanecem independentes.
 
 ### Bem-estar, hábitos e alimentação

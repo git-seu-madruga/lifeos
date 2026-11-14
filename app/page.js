@@ -19,6 +19,7 @@ const ReferenceView=dynamic(()=>import('../components/ReferenceView'),{loading:L
 const SomedayView=dynamic(()=>import('../components/SomedayView'),{loading:LoadingView});
 const AreaManager=dynamic(()=>import('../components/AreaManager'));
 
+import {confirmLeaveEditors} from '../lib/editingGuard';
 import {startupGroupForTab} from '../lib/startup';
 import {hasFollowupNotice} from '../lib/followups';
 import { patchTask } from "../lib/tasks";
@@ -61,7 +62,8 @@ const uid = (p) => p + Date.now().toString(36) + Math.random().toString(36).slic
 export default function Home() {
   const [pageActionsHost,setPageActionsHost]=useState(null);
   const [context, setContext] = useState("all");
-  const [tabId, setTabId] = useState(NAV[0].id);
+  const [tabId, setTabIdState] = useState(NAV[0].id);
+  function setTabId(id){if(id!==tabId&&!confirmLeaveEditors())return false;setTabIdState(id);return true;}
   const [tabOrder,setTabOrder] = useState(NAV.map(tab=>tab.id));
   const [orderReady,setOrderReady] = useState(false);
   const [dragged,setDragged] = useState(null);
@@ -256,7 +258,7 @@ export default function Home() {
             </svg>
           </button>
           <span className="refreshed" title={refreshedAt?.toLocaleString("pt-BR")}>{time && `Dados atualizados às ${time}`}</span>
-          {sessionsOpen&&<QrSessions onClose={()=>setSessionsOpen(false)}/>}<AccountMenu onLock={remote.lockQr} onSessions={()=>setSessionsOpen(true)} user={remote.user} onLogout={()=>remote.logout().catch(()=>{})} onBackup={()=>setBackupOpen(true)}/>
+          {sessionsOpen&&<QrSessions onClose={()=>setSessionsOpen(false)}/>}<AccountMenu onLock={remote.lockQr} onSessions={()=>setSessionsOpen(true)} user={remote.user} onLogout={()=>{if(confirmLeaveEditors())remote.logout().catch(()=>{});}} onBackup={()=>setBackupOpen(true)}/>
         </div>
       </header>
       {remote.user?.temporary&&<p className="temporary-session-note">Sessão temporária · expira às {new Date(remote.user.expiresAt).toLocaleTimeString('pt-BR')} · rascunhos apenas na memória. Aguarde “Salvo no Notion” antes de sair.</p>}
@@ -325,7 +327,7 @@ export default function Home() {
         ) : tabId === "referencia" ? (
           <ReferenceView records={remote.reference||[]} setRecords={remote.setReference} configured={remote.referenceConfigured} onFlush={remote.flush}/>
         ) : tabId === "algumdia" ? (
-          <SomedayView records={remote.someday||[]} setRecords={remote.setSomeday} configured={remote.somedayConfigured} context={context} onManageAreas={()=>setAreasOpen(true)} onPromote={remote.promoteSomeday} openRequest={somedayOpen} onOpenHandled={()=>setSomedayOpen(null)}/>
+          <SomedayView records={remote.someday||[]} setRecords={remote.setSomeday} configured={remote.somedayConfigured} onFlush={remote.flush} context={context} onManageAreas={()=>setAreasOpen(true)} onPromote={remote.promoteSomeday} openRequest={somedayOpen} onOpenHandled={()=>setSomedayOpen(null)}/>
         ) : tabId === "diario" ? (
           <DiaryView entries={remote.diary || []} setEntries={remote.setDiary} configured={remote.diaryConfigured} openRequest={diaryOpen} onOpenHandled={()=>setDiaryOpen(null)}/>
         ) : tabId === "entretenimento" ? (
