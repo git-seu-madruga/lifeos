@@ -1,4 +1,5 @@
 const assert=require('node:assert/strict'),fs=require('fs'),path=require('path'),swc=require('next/dist/build/swc'),React=require('react');
+const recipeTable=require('./recipe-table.cjs');
 const root=fs.mkdtempSync(path.join(process.cwd(),'.explicit-save-test-'));
 for(const dir of ['lib','components']){fs.mkdirSync(path.join(root,dir));for(const name of fs.readdirSync(dir))if(name.endsWith('.js'))fs.writeFileSync(path.join(root,dir,name),swc.transformSync(fs.readFileSync(path.join(dir,name),'utf8'),{filename:name,jsc:{parser:{syntax:'ecmascript',jsx:true},transform:{react:{runtime:'automatic'}},target:'es2022'},module:{type:'commonjs'}}).code);}
 const saved={useState:React.useState,useRef:React.useRef,useEffect:React.useEffect},oldWindow=global.window;
@@ -36,7 +37,7 @@ const text=node=>typeof node==='string'?node:typeof node==='number'?String(node)
   allow=true;detail.props.onClose();assert.ok(!render().some(n=>n.type===detail.type));assert.equal(writes,0);assert.equal(records[1].attachments.length,0);
   detail=open();assert.equal(detail.props.record.name,'Original');const cleanPrompts=prompts;detail.props.onClose();render();assert.equal(prompts,cleanPrompts,'Untouched closes without warning');
   detail=open();detail.props.onPatch(record.id,{name:'Rascunho'});render();detail=render().find(n=>n.type===detail.type);detail.props.onPatch(record.id,{name:'Original'});render();const revertedPrompts=prompts;detail.props.onClose();render();assert.equal(prompts,revertedPrompts,'Reverted edit closes without warning');
-  detail=open();detail.props.onPatch(record.id,{name:'Salvo'});render();detail=render().find(n=>n.type===detail.type);await detail.props.onSave();render();assert.equal(records[1].name,'Salvo');assert.equal(writes,1);assert.equal(flushes,1);
+  detail=open();detail.props.onPatch(record.id,{name:'Salvo',data:{doc:{type:'doc',content:[recipeTable()]}}});render();detail=render().find(n=>n.type===detail.type);await detail.props.onSave();render();assert.equal(records[1].name,'Salvo');assert.deepEqual(records[1].data.doc.content[0],recipeTable(),'Explicit save retains merged recipe table');assert.equal(writes,1);assert.equal(flushes,1);
   h.unmount();assert.equal(guard.confirmLeaveEditors(),true,'Unmount cleans navigation guard');
  }
  // Save conflicts and transport failures preserve the editor. Upload callbacks can

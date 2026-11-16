@@ -1,5 +1,6 @@
 // Contratos da integração, sem acessar o workspace real.
 const fs=require('fs'),path=require('path'),assert=require('node:assert/strict'),{randomUUID}=require('node:crypto');
+const recipeTable=require('./recipe-table.cjs');
 const root=process.cwd(),temp=path.join(root,'.test-build');
 const swc=require('next/dist/build/swc');
 for(const folder of ['lib','app/api']) {
@@ -184,6 +185,7 @@ global.fetch=async(url,options={})=>{
  // Rich diary persists structured formatting independently of its searchable plain text.
  const richDiary=structuredClone(state),richEntry=richDiary.diary[0];
  richEntry.doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Dia especial',marks:[{type:'bold'}]}]},{type:'ideaImage',attrs:{attachmentId:richEntry.attachments[0].name,alt:'Recordação'}},{type:'ideaBookmark',attrs:{id:'diary-link',url:'https://example.com/consulta',title:'Consulta',description:'Descrição',image:''}}]};
+ richEntry.doc.content.push(recipeTable());
  richEntry.text=require(path.join(temp,'lib/diary')).diaryText(richEntry);
  await synchronize(state,richDiary);({state}=await notionLib.readSnapshot());assert.deepEqual(state.diary[0].doc,richEntry.doc);assert.equal(state.diary[0].text,richEntry.text);assert.ok(state.diary[0].attachments[0].pageId);assert.equal(state.diary[0].attachments[0].kind,'diary');
  const replayRich=structuredClone(richDiary);await synchronize(richDiary,replayRich);
@@ -567,6 +569,7 @@ global.fetch=async(url,options={})=>{
   const A={id:'google:ideas-A',email:'primary.example@gmail.com',name:'Principal'},B={id:'google:ideas-B',email:'secondary.example@gmail.com',name:'Secundária'};
   const save=async(base,next,user=A)=>{const d=compactSyncState(base,next);return synchronize(d.base,d.next,user,async()=>{},true);};
   let state=(await notionLib.readSnapshot(false,A)).state;const area=makeArea('Criação'),idea=makeIdea(area);idea.name='Uma possibilidade';idea.attachments=[{id:'image-id',name:'stable.png',notion:{type:'external',external:{url:'https://files.notion.test/idea.png'}}}];idea.data.doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Anotações com formatação',marks:[{type:'bold'}]}]},{type:'ideaImage',attrs:{attachmentId:'stable.png',alt:'Esboço'}}]};
+  idea.data.doc.content.push(recipeTable());
   const desired={...state,someday:[area,idea]};await save(state,desired);await save(state,desired);
   state=(await notionLib.readSnapshot(false,A)).state;assert.equal(state.someday.length,2);assert.equal(state.somedayConfigured,true);assert.ok(state.someday.every(r=>!validateSomeday(r)));assert.equal((await notionLib.readSnapshot(false,B)).state.someday.length,0);
   let loaded=state.someday.find(r=>r.type==='idea'),loadedArea=state.someday.find(r=>r.type==='area');
@@ -611,6 +614,7 @@ global.fetch=async(url,options={})=>{
   const save=async(base,next,user=A)=>{const d=compactSyncState(base,next);return synchronize(d.base,d.next,user,async()=>{},true);};
   let state=(await notionLib.readSnapshot(false,A)).state;
   const category=makeReferenceCategory('Documentos'),material=makeReferenceMaterial(category);material.name='Manual de consulta';material.data.doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Texto importante',marks:[{type:'bold'}]}]},{type:'ideaImage',attrs:{attachmentId:'manual.png',alt:'Figura do manual'}},{type:'ideaBookmark',attrs:{id:'url',url:'https://example.com/manual',title:'Documentação',description:'Fonte',image:''}}]};
+  material.data.doc.content.push(recipeTable());
   material.attachments=[{id:'ref-attach',name:'manual.png',uploadId:'upload-ref',uploadProof:auth.seal({user:A.id,uploadId:'upload-ref',exp:Date.now()+100000})}];
   const desired={...state,reference:[category,material]},beforeCalls=calls.length;await save(state,desired);await save(state,desired);
   assert.ok(calls.slice(beforeCalls).filter(c=>c.route.includes('/query')).every(c=>c.route.includes(sourceIds.reference)),'Alterar biblioteca não consulta outras coleções');
@@ -763,7 +767,7 @@ global.fetch=async(url,options={})=>{
   const base={projects:[],tasks:[],inbox:[],diary:[]},next={...base,projects:[{id:'rich-project',name:'Projeto rico',status:'active',context:'personal',area:'',due:null,shared:false,milestones:[],description:'',attachments:[]}],tasks:[{id:'rich-task',title:'Tarefa rica',status:'todo',priority:'medium',context:'personal',shared:false,responsible:'',project:'rich-project',milestone:null,notes:'',attachments:[]}]};
   for(const kind of ['projects','tasks']){
    const item=next[kind][0],uploadId='rich-'+kind,name='planning-inline-'+kind+'.webp';item.attachments=[{id:uploadId,name,uploadId,uploadProof:auth.seal({user:A.id,uploadId,exp:Date.now()+100000})}];
-   item.doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Planejar com carinho',marks:[{type:'bold'}]},{type:'ideaEmoji',attrs:{id:'art-3d-filament-green'}}]},{type:'ideaImage',attrs:{attachmentId:name,alt:'Imagem da descrição'}}]};item[kind==='tasks'?'notes':'description']=text(item.doc);
+   item.doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Planejar com carinho',marks:[{type:'bold'}]},{type:'ideaEmoji',attrs:{id:'art-3d-filament-green'}}]},{type:'ideaImage',attrs:{attachmentId:name,alt:'Imagem da descrição'}}]};item.doc.content.push(recipeTable());item[kind==='tasks'?'notes':'description']=text(item.doc);
   }
   const result=await synchronize(base,next,A);await synchronize(base,next,A);
   const loaded={projects:[],tasks:[],inbox:[],diary:[]};
@@ -787,7 +791,7 @@ global.fetch=async(url,options={})=>{
   const service=require(path.join(temp,'lib/server/recados')),today=require(path.join(temp,'lib/recados')).recadoToday();
   const imageApi=require(path.join(temp,'app/api/recados/image/route')),form=new FormData();form.append('file',new File([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+aX1cAAAAASUVORK5CYII=','base64')],'colada.png',{type:'image/png'}));
   const uploadResponse=await imageApi.POST(new Request('https://lifeos.test/api/recados/image',{method:'POST',headers:{origin:'https://lifeos.test',cookie:auth.sessionCookie(A).split(';')[0]},body:form}));assert.equal(uploadResponse.status,200);const uploaded=await uploadResponse.json();
-  const doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Com carinho',marks:[{type:'bold'}]},{type:'ideaEmoji',attrs:{id:'art-3d-filament-rainbow'}}]},{type:'ideaImage',attrs:{attachmentId:'colada.png',alt:'Imagem colada'}}]},input={date:today,title:'Recado rico',doc,text:require(path.join(temp,'lib/someday')).ideaText(doc),attachments:[uploaded]};
+  const doc={type:'doc',content:[{type:'paragraph',content:[{type:'text',text:'Com carinho',marks:[{type:'bold'}]},{type:'ideaEmoji',attrs:{id:'art-3d-filament-rainbow'}}]},{type:'ideaImage',attrs:{attachmentId:'colada.png',alt:'Imagem colada'}},recipeTable()]},input={date:today,title:'Recado rico',doc,text:require(path.join(temp,'lib/someday')).ideaText(doc),attachments:[uploaded]};
   const first=await service.sendRecado(A,input);assert.deepEqual(first.doc,doc);assert.ok(sources.recados.properties.Documento);assert.equal(first.attachments[0].pageId,first.id);assert.equal(first.attachments[0].kind,'recados');assert.equal((await service.sendRecado(A,input)).id,first.id);
   const received=(await service.listRecados(B,today.slice(0,7))).items.find(item=>item.id===first.id);assert.deepEqual(received.doc,doc);assert.equal(received.text,input.text);const read=await service.markRecadoRead(B,first.id);assert.deepEqual(read.doc,doc);assert.equal(read.read,true);
   const GET=require(path.join(temp,'app/api/notion/attachment/route')).GET,address='https://lifeos.test/api/notion/attachment?kind=recados&id='+first.id+'&index=0&name=colada.png';

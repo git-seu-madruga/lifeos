@@ -168,6 +168,8 @@ Referência Geral é uma biblioteca privada de materiais de consulta, com catego
 
 Entradas de Algum dia e Referência Geral só gravam edições ao clicar em **Salvar ideia** ou **Salvar material**. Voltar, fechar ou trocar de aba com alterações pendentes pede confirmação para descartá-las; cancelar mantém o editor aberto. Fechar/recarregar o navegador usa o aviso nativo quando disponível. Favoritos nos cards e gerenciamento de áreas/categorias mantêm suas ações próprias. Salve a ideia antes de transformá-la em tarefa/projeto.
 
+O botão **Tabela** está disponível em todos os editores de texto rico (Algum dia, Referência Geral, Diário, Recados e descrições de Projetos/Tarefas). Escolha linhas, colunas e cabeçalho; ao entrar na tabela, aparecem ações para adicionar/remover linhas e colunas, mesclar células selecionadas, separá-las e excluir a tabela. **Mesclar linha (título)** une as células da linha atual sem precisar arrastar a seleção no celular. **Texto após tabela** permite continuar o modo de preparo fora dela. Limites por tabela: 50 linhas, 12 colunas e 300 posições de células; tabelas aninhadas não são aceitas. As tabelas integram o documento existente no Notion e aparecem também na leitura bloqueada, sem exigir novos bancos ou variáveis.
+
 Referência Geral e Algum dia usam a mesma largura disponível e espaçamentos de gavetas/cards. Em ambas, favoritos, Mostrar todos e gerenciamento ficam na barra da pesquisa, à direita no desktop e em uma única linha de botões abaixo da pesquisa nas telas menores. Os catálogos e as funções de cada aba permanecem independentes.
 
 ### Bem-estar, hábitos e alimentação

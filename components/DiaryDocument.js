@@ -26,6 +26,12 @@ export default function DiaryDocument({doc,attachments=[],kind='diary'}){
    const a=node.attrs||{},url=safeIdeaUrl(a.url);if(!url)return null;
    return <div className="sd-bookmark" key={key}><a href={url} target="_blank" rel="noopener noreferrer">{safeIdeaUrl(a.image)&&<img src={'/api/notion/link-preview?image='+encodeURIComponent(a.image)} alt="" loading="lazy"/>}<span><strong>{a.title||url}</strong>{a.description&&<small>{a.description}</small>}<em>{new URL(url).hostname}</em></span></a></div>;
   }
+  if(node.type==='table'){const columns=(node.content?.[0]?.content||[]).reduce((sum,cell)=>sum+(Number.isInteger(cell.attrs?.colspan)&&cell.attrs.colspan>0&&cell.attrs.colspan<=12?cell.attrs.colspan:1),0);return <div className="tableWrapper" key={key}><table className="lifeos-rich-table" style={{minWidth:Math.max(280,Math.min(columns,12)*80)}}><tbody>{children}</tbody></table></div>;}
+  if(node.type==='tableRow')return <tr key={key}>{children}</tr>;
+  if(node.type==='tableCell'||node.type==='tableHeader'){
+   const a=node.attrs||{},colSpan=Number.isInteger(a.colspan)&&a.colspan>0&&a.colspan<=12?a.colspan:1,rowSpan=Number.isInteger(a.rowspan)&&a.rowspan>0&&a.rowspan<=50?a.rowspan:1;
+   return React.createElement(node.type==='tableHeader'?'th':'td',{key,colSpan,rowSpan,...(['left','center','right'].includes(a.align)?{style:{textAlign:a.align}}:{})},...children);
+  }
   const tag={paragraph:'p',heading:node.attrs?.level===3?'h3':'h2',bulletList:'ul',orderedList:'ol',listItem:'li',blockquote:'blockquote',hardBreak:'br',horizontalRule:'hr'}[node.type];
   if(node.type==='paragraph'&&!children.length)return <p key={key}><br/></p>;
   if(tag)return React.createElement(tag,{key,...(node.type==='orderedList'?{start:node.attrs?.start||1}:{})},...children);

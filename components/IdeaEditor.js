@@ -8,6 +8,8 @@ import {api} from '../lib/api';
 import {emptyIdeaDoc,safeIdeaUrl,ideaUid} from '../lib/someday';
 import IllustrationPicker from './IllustrationPicker';
 import {ILLUSTRATIONS,illustrationById} from '../lib/illustrations';
+import {richTableKit,richTableGuard,mergeTitleRow,tableDimensions,validTableSize,paragraphAfterTable} from '../lib/richTableEditor';
+import {TABLE_LIMITS} from '../lib/richTables';
 import {prepareIdeaImage} from '../lib/ideaImages';
 
 const AttachmentContext=createContext([]);
@@ -15,7 +17,7 @@ export const ideaFileUrl=file=>file?.previewUrl|| (file?.pageId?'/api/notion/att
 
 export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onError,label="Anotações da ideia",autoFocus=false,imagePrefix='',emojiPicker=false,disabled=false,uploadEndpoint='/api/notion/upload',retainImageFiles=false,maxImages=100}){
  const latest=useRef({attachments,onChange,onImage,onBusy,onError,imagePrefix,uploadEndpoint,retainImageFiles,maxImages,disabled});latest.current={attachments,onChange,onImage,onBusy,onError,imagePrefix,uploadEndpoint,retainImageFiles,maxImages,disabled};
- const editorRef=useRef(null),alive=useRef(true),input=useRef(null),jobs=useRef(0),[revision,setRevision]=useState(0),[emojiOpen,setEmojiOpen]=useState(false);
+ const editorRef=useRef(null),alive=useRef(true),input=useRef(null),jobs=useRef(0),[revision,setRevision]=useState(0),[emojiOpen,setEmojiOpen]=useState(false),[tableOpen,setTableOpen]=useState(false),[tableRows,setTableRows]=useState(4),[tableCols,setTableCols]=useState(3),[tableHeader,setTableHeader]=useState(true);
  useEffect(()=>{alive.current=true;return()=>{alive.current=false;};},[]);
  const applyFiles=async(editor,files,pos)=>{
   if(!editor||editor.isDestroyed||latest.current.disabled)return;
@@ -47,6 +49,7 @@ export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onEr
   editable:!disabled,
   autofocus:autoFocus?'end':false,
   extensions:[
+   richTableKit,richTableGuard(message=>latest.current.onError?.(message)),
    Node.create({name:'ideaEmoji',group:'inline',inline:true,atom:true,addAttributes(){return {id:{default:''}};},parseHTML(){return [{tag:'img[data-lifeos-emoji]',getAttrs:el=>({id:el.getAttribute('data-lifeos-emoji')})}];},renderHTML({node}){const art=illustrationById(node.attrs.id);return ['img',{'data-lifeos-emoji':art?.id||'',class:'sd-inline-emoji',src:art?.src||'',alt:art?.label||'Emoji',title:art?.label||'Emoji',width:28,height:28}];}}),
    StarterKit.configure({heading:{levels:[2,3]},codeBlock:false,code:false,link:{openOnClick:true,protocols:['https'],defaultProtocol:'https',isAllowedUri:url=>!!safeIdeaUrl(url),HTMLAttributes:{target:'_blank',rel:'noopener noreferrer'}},trailingNode:false}),
    Node.create({name:'ideaImage',group:'block',atom:true,draggable:false,addAttributes(){return {attachmentId:{default:''},alt:{default:''}};},parseHTML(){return [{tag:'figure[data-idea-image]'}];},renderHTML({HTMLAttributes}){return ['figure',mergeAttributes(HTMLAttributes,{'data-idea-image':''})];},addNodeView(){return ReactNodeViewRenderer(({node,deleteNode})=>{
@@ -73,15 +76,29 @@ export default function IdeaEditor({doc,attachments,onChange,onImage,onBusy,onEr
  useEffect(()=>{if(editor&&!editor.isDestroyed)editor.setEditable(!disabled,false);},[disabled,editor]);
  useEffect(()=>{if(editor&&!editor.isDestroyed&&JSON.stringify(editor.getJSON())!==JSON.stringify(doc||emptyIdeaDoc()))editor.commands.setContent(doc||emptyIdeaDoc(),{emitUpdate:false});},[doc,editor]);
  if(!editor)return <p className="muted">Abrindo editor…</p>;
+ const table=tableDimensions(editor);
  const tool=(label,action,active=false)=> <button type="button" disabled={disabled} key={label} title={label} aria-label={label} aria-pressed={active} onMouseDown={e=>e.preventDefault()} onClick={action}>{label}</button>;
  return <div className="sd-editor">
   <div className="sd-editor-tools" role="toolbar" aria-label="Formatação das anotações">
    {tool('Negrito',()=>editor.chain().focus().toggleBold().run(),editor.isActive('bold'))}{tool('Itálico',()=>editor.chain().focus().toggleItalic().run(),editor.isActive('italic'))}
    {tool('Lista',()=>editor.chain().focus().toggleBulletList().run(),editor.isActive('bulletList'))}{tool('Título',()=>editor.chain().focus().toggleHeading({level:2}).run(),editor.isActive('heading'))}
    {tool('Imagem',()=>input.current.click())}{tool('Link',()=>{const url=window.prompt('Cole um endereço HTTPS para adicionar a prévia:');if(url&&!safeIdeaUrl(url))latest.current.onError('Use um endereço HTTPS válido.');else if(url)preview(editor,url);})}
+   <button type="button" disabled={disabled} aria-expanded={tableOpen} onMouseDown={e=>e.preventDefault()} onClick={()=>setTableOpen(open=>!open)}>Tabela</button>
    {emojiPicker&&tool('Emojis',()=>setEmojiOpen(open=>!open),emojiOpen)}
    <input hidden ref={input} type="file" accept="image/jpeg,image/png,image/webp,image/gif" multiple onChange={e=>{applyFiles(editor,Array.from(e.target.files||[]));e.target.value='';}}/>
   </div>
+  {tableOpen&&<div className="sd-table-tools" role="group" aria-label="Controles de tabela">
+   {!table?<><label>Linhas<input type="number" min="1" max={TABLE_LIMITS.rows} value={tableRows} disabled={disabled} onChange={e=>setTableRows(e.target.value)}/></label><label>Colunas<input type="number" min="1" max={TABLE_LIMITS.columns} value={tableCols} disabled={disabled} onChange={e=>setTableCols(e.target.value)}/></label><label className="sd-table-header-choice"><input type="checkbox" checked={tableHeader} disabled={disabled} onChange={e=>setTableHeader(e.target.checked)}/>Cabeçalho</label><button type="button" className="ghost" disabled={disabled||!validTableSize(Number(tableRows),Number(tableCols))} onMouseDown={e=>e.preventDefault()} onClick={()=>{if(disabled)return;editor.chain().focus().insertTable({rows:Number(tableRows),cols:Number(tableCols),withHeaderRow:tableHeader}).run();setTableOpen(false);}}>Inserir tabela</button><small>Até 50 linhas, 12 colunas e 300 células.</small></>:<>
+    {[
+     ['Linha acima','addRowBefore'],['Linha abaixo','addRowAfter'],['Coluna à esquerda','addColumnBefore'],['Coluna à direita','addColumnAfter'],
+     ['Excluir linha','deleteRow'],['Excluir coluna','deleteColumn'],['Mesclar células','mergeCells'],['Separar célula','splitCell'],['Cabeçalho da linha','toggleHeaderRow']
+    ].map(([label,command])=><button type="button" className="ghost" key={command} disabled={disabled||!editor.can()[command]()||(command.startsWith('addRow')&&!validTableSize(table.rows+1,table.columns))||(command.startsWith('addColumn')&&!validTableSize(table.rows,table.columns+1))} onMouseDown={e=>e.preventDefault()} onClick={()=>{if(!disabled)editor.chain().focus()[command]().run();}}>{label}</button>)}
+    <button type="button" className="ghost" disabled={disabled||!mergeTitleRow(editor,false)} onMouseDown={e=>e.preventDefault()} onClick={()=>{if(!disabled){editor.commands.focus();mergeTitleRow(editor);}}}>Mesclar linha (título)</button>
+    <button type="button" className="ghost" disabled={disabled} onMouseDown={e=>e.preventDefault()} onClick={()=>{if(!disabled){editor.commands.focus();paragraphAfterTable(editor);}}}>Texto após tabela</button>
+    <button type="button" className="danger" disabled={disabled} onMouseDown={e=>e.preventDefault()} onClick={()=>{if(!disabled&&window.confirm('Excluir esta tabela e todo o conteúdo dela?'))editor.chain().focus().deleteTable().run();}}>Excluir tabela</button>
+    <small>Selecione células para mesclar ou use “Mesclar linha” para criar um título.</small>
+   </>}
+  </div>}
   {emojiPicker&&emojiOpen&&<IllustrationPicker ids={ILLUSTRATIONS.map(art=>art.id)} onChange={id=>{if(!disabled)editor.chain().focus().insertContent({type:'ideaEmoji',attrs:{id}}).run();setEmojiOpen(false);}}/>}
   <AttachmentContext.Provider value={attachments}><EditorContent editor={editor}/></AttachmentContext.Provider>
   <small className="sd-editor-hint">Cole imagens ou links. Enter cria um parágrafo; Shift + Enter quebra a linha.</small>
