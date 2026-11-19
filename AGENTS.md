@@ -12,7 +12,7 @@ Estas orientações valem para todo o repositório. Pedidos posteriores do usuá
 
 ## Estrutura e dependências
 
-Next.js 15, React 19, App Router, Notion, Upstash Redis, autenticação Google e PWA; Tiptap 3 com versões exatas. Preserve `package.json`/lockfile, a menos que a atualização de dependências faça parte do pedido.
+Next.js 16 (Turbopack), React 19, App Router, Notion, Upstash Redis, autenticação Google e PWA; Tiptap 3 com versões exatas. Preserve `package.json`/lockfile, a menos que a atualização de dependências faça parte do pedido.
 
 | Local | Responsabilidade |
 | --- | --- |

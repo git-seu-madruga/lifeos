@@ -256,6 +256,8 @@ Para atualizar o APK, preserve `applicationId`, chave de assinatura e use `versi
 
 ## Desenvolvimento e diagnóstico
 
+Use Node.js 24, a mesma versão usada nas verificações do GitHub. O Next.js 16 usa Turbopack na compilação.
+
 | Comando | Finalidade |
 | --- | --- |
 | `npm ci` | Instalar as dependências fixadas pelo lockfile |
