@@ -8,9 +8,46 @@ const auth=require(path.join(root,'lib/server/auth')),google=require(path.join(r
  const popupFlow=google.startGoogle(true),popupData=auth.unseal(popupFlow.cookie.split(';')[0].split('=')[1]);assert.equal(popupData.popup,true);assert.equal(google.googlePopupFlow(new Request(process.env.LIFEOS_APP_URL+'/api/auth/google/callback?state='+popupData.state,{headers:{cookie:popupFlow.cookie.split(';')[0]}})),true);assert.equal(google.googlePopupFlow(new Request(process.env.LIFEOS_APP_URL+'/api/auth/google/callback?state=wrong',{headers:{cookie:popupFlow.cookie.split(';')[0]}})),false);
  const {googleCompletion}=require(path.join(root,'lib/server/googleCompletion'));const completion=googleCompletion(process.env.LIFEOS_APP_URL,'</script><script>alert(1)</script>');assert.ok(completion.body.includes('postMessage'));assert.ok(completion.body.includes('window.close()'));assert.ok(completion.body.includes("localStorage.setItem('lifeos-login-complete'"));assert.ok(completion.headers['Content-Security-Policy'].includes("frame-ancestors 'none'"));assert.equal(completion.body.includes('</script><script>alert(1)'),false);assert.equal(completion.body.includes('lifeos_google_session'),false);
  const payload={sub:'10001',email:'primary.example@gmail.com',email_verified:true,name:'Principal',nonce:data.nonce};assert.equal(google.validateGooglePayload(payload,data.nonce).id,'google:10001');assert.throws(()=>google.validateGooglePayload({...payload,email:'stranger@gmail.com'},data.nonce),error=>error.status===403);assert.throws(()=>google.validateGooglePayload({...payload,email_verified:false},data.nonce),error=>error.status===401);assert.throws(()=>google.validateGooglePayload(payload,'wrong-nonce'),error=>error.status===401);
- const originalGet=OAuth2Client.prototype.getToken,originalVerify=OAuth2Client.prototype.verifyIdToken;let verifyArgs;
- OAuth2Client.prototype.getToken=async args=>{assert.equal(args.codeVerifier,data.verifier);return {tokens:{id_token:'verified-by-library-mock'}};};OAuth2Client.prototype.verifyIdToken=async args=>{verifyArgs=args;return {getPayload:()=>payload};};
- try{const request=new Request(process.env.LIFEOS_APP_URL+'/api/auth/google/callback?code=test-code&state='+data.state,{headers:{cookie}}),result=await google.finishGoogle(request);assert.equal(verifyArgs.audience,process.env.GOOGLE_CLIENT_ID);const sessionRequest=new Request(process.env.LIFEOS_APP_URL+'/api/notion',{headers:{cookie:result.cookie.split(';')[0]}});assert.equal(auth.authorize(sessionRequest).email,payload.email);assert.equal(auth.authenticated(new Request(sessionRequest.url,{headers:{cookie:result.cookie.split(';')[0]+'tampered'}})),false);await assert.rejects(()=>google.finishGoogle(new Request(process.env.LIFEOS_APP_URL+'/api/auth/google/callback?code=test&state=wrong',{headers:{cookie}})),error=>error.status===401);assert.throws(()=>auth.authorize(new Request(sessionRequest.url,{headers:{cookie:result.cookie.split(';')[0],'X-LifeOS-User':'google:someone-else'}})),error=>error.status===401);}finally{OAuth2Client.prototype.getToken=originalGet;OAuth2Client.prototype.verifyIdToken=originalVerify;}
+ // Simulate Google's HTTP responses, then let the real OAuth library verify the signature and claims.
+ const {generateKeyPairSync,sign}=require('node:crypto');
+ const {privateKey,publicKey}=generateKeyPairSync('rsa',{modulusLength:2048});
+ const certificate=publicKey.export({type:'spki',format:'pem'});
+ const now=Math.floor(Date.now()/1000);
+ function token(claims, signingKey=privateKey){
+  const header={alg:'RS256',typ:'JWT',kid:'test-key'};
+  const body={iss:'https://accounts.google.com',aud:process.env.GOOGLE_CLIENT_ID,iat:now,exp:now+300,...claims};
+  const unsigned=[header,body].map(value=>Buffer.from(JSON.stringify(value)).toString('base64url')).join('.');
+  return unsigned+'.'+sign('RSA-SHA256',Buffer.from(unsigned),signingKey).toString('base64url');
+ }
+ const originalGet=OAuth2Client.prototype.getToken,originalCerts=OAuth2Client.prototype.getFederatedSignonCertsAsync;
+ let idToken=token(payload);
+ OAuth2Client.prototype.getToken=async ({codeVerifier})=>{
+  assert.equal(codeVerifier,data.verifier);
+  return {tokens:{id_token:idToken}};
+ };
+ OAuth2Client.prototype.getFederatedSignonCertsAsync=async()=>({certs:{'test-key':certificate},format:'PEM'});
+ try{
+  const origin=process.env.LIFEOS_APP_URL;
+  const callback=(state=data.state)=>new Request(origin+'/api/auth/google/callback?code=test-code&state='+state,{headers:{cookie}});
+  for(const account of [payload,{...payload,sub:'10002',email:'secondary.example@gmail.com'}]){
+   idToken=token(account);
+   const result=await google.finishGoogle(callback());
+   const session=result.cookie.split(';')[0];
+   const request=new Request(origin+'/api/notion',{headers:{cookie:session}});
+   assert.equal(auth.authorize(request).email,account.email);
+   assert.equal(auth.authenticated(new Request(request.url,{headers:{cookie:session+'tampered'}})),false);
+   assert.throws(()=>auth.authorize(new Request(request.url,{headers:{cookie:session,'X-LifeOS-User':'google:someone-else'}})),error=>error.status===401);
+  }
+  await assert.rejects(()=>google.finishGoogle(callback('wrong')),error=>error.status===401);
+  idToken=token({...payload,aud:'other-client'});
+  await assert.rejects(()=>google.finishGoogle(callback()),/audience|recipient/i);
+  const otherKey=generateKeyPairSync('rsa',{modulusLength:2048}).privateKey;
+  idToken=token(payload,otherKey);
+  await assert.rejects(()=>google.finishGoogle(callback()),/signature/i);
+ }finally{
+  OAuth2Client.prototype.getToken=originalGet;
+  OAuth2Client.prototype.getFederatedSignonCertsAsync=originalCerts;
+ }
  const expired=auth.seal({id:'google:10001',email:payload.email,exp:Date.now()-1});assert.equal(auth.authenticated(new Request(process.env.LIFEOS_APP_URL,{headers:{cookie:'lifeos_google_session='+expired}})),false);assert.equal(auth.authenticated(new Request(process.env.LIFEOS_APP_URL,{headers:{cookie:'lifeos_session=old-password-cookie'}})),false);assert.throws(()=>auth.checkOrigin(new Request(process.env.LIFEOS_APP_URL,{headers:{origin:'https://evil.test'}})),error=>error.status===403);
- console.log('PASSOU: OAuth com state, nonce e PKCE; apenas duas contas; sessão assinada; expiração; troca de usuário e ausência de acesso por senha.');
+ console.log('PASSOU: OAuth com assinatura RSA, audience, state, nonce e PKCE; apenas duas contas; sessão assinada; expiração; troca de usuário e ausência de acesso por senha.');
 }finally{fs.rmSync(root,{recursive:true,force:true});}})().catch(error=>{console.error(error);process.exitCode=1;});
