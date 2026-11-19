@@ -54,5 +54,39 @@ try{
  }finally{Object.assign(React,original);if(previousWindow===undefined)delete global.window;else global.window=previousWindow;}
  const enlarged=renderToStaticMarkup(React.createElement(Avatar,{person,expanded:true,size:360}));assert.ok(enlarged.includes('birthday-portrait'));assert.ok(enlarged.includes('/emoji/fluent-expanded/star.webp'));
  }
+ {
+ const calendarContacts=[
+  {...known,id:'dec',name:'Bia',day:31,month:12},
+  {...unknown,id:'jan',name:'Caio',day:1,month:1},
+  {...known,id:'today',name:'Ána',day:19,month:11},
+ ];
+ const date=new Date(2026,10,19,12);
+ const order=(key,direction)=>b.birthdayContactRows(calendarContacts,{key,direction},date).map(row=>row.person.id);
+ assert.deepEqual(order('birthday','ascending'),['jan','today','dec']);
+ assert.deepEqual(order('birthday','descending'),['dec','today','jan']);
+ assert.deepEqual(order('next','ascending'),['today','dec','jan'],'Upcoming dates cross the year boundary');
+ assert.deepEqual(order('next','descending'),['jan','dec','today']);
+ assert.deepEqual(calendarContacts.map(person=>person.id),['dec','jan','today'],'Sorting leaves the source order intact');
+
+ const original={useState:React.useState,useEffect:React.useEffect};
+ let slots=[],index=0;
+ React.useState=initial=>{const n=index++;if(!(n in slots))slots[n]=initial;return [slots[n],value=>{slots[n]=typeof value==='function'?value(slots[n]):value;}];};
+ React.useEffect=()=>{};
+ const render=()=>{index=0;return View({contacts:calendarContacts,configured:true,setContacts(){throw Error('Sorting must not persist any contact');}});};
+ const names=()=>find(render(),node=>node.type==='tbody').props.children.map(row=>row.key);
+ const click=label=>find(render(),node=>node.type==='button'&&node.props.className==='birthday-sort'&&node.props.children[0]===label).props.onClick();
+ try{
+  assert.deepEqual(names(),['today','dec','jan']);
+  click('Nome');assert.deepEqual(names(),['jan','dec','today']);
+  click('Nascimento / aniversário');assert.deepEqual(names(),['jan','today','dec']);
+  click('Nascimento / aniversário');assert.deepEqual(names(),['dec','today','jan']);
+  assert.equal(find(render(),node=>node.type==='th'&&node.key==='birthday').props['aria-sort'],'descending');
+  click('Próximo aniversário');
+  assert.equal(find(render(),node=>node.type==='th'&&node.key==='next').props['aria-sort'],'ascending');
+  click('Próximo aniversário');
+  assert.equal(find(render(),node=>node.type==='th'&&node.key==='next').props['aria-sort'],'descending');
+  slots=[];assert.deepEqual(names(),['today','dec','jan'],'A new mount resets the order after tab navigation or reload');
+ }finally{Object.assign(React,original);}
+ }
  console.log('PASSOU: aniversários com ano opcional, idade, virada de ano, 29/02, busca, validação do Inbox e renderização da nova aba.');
 }finally{fs.rmSync(folder,{recursive:true,force:true});}
