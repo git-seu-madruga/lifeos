@@ -50,9 +50,13 @@ try{
   const render=()=>{index=0;return Chart({type:'pressure',records:days,pressureReadings:readings,fullHistory,onHistoryChange:value=>fullHistory=value});};
   const walk=(n,out=[])=>{if(Array.isArray(n))n.forEach(v=>walk(v,out));else if(n?.props){out.push(n);walk(n.props.children,out);}return out;};
   const click=label=>walk(render()).find(n=>n.type==='button'&&[n.props.children,n.props['aria-label']].includes(label)).props.onClick({stopPropagation(){}});
+  const modeSwitch=()=>walk(render()).filter(n=>n.props.role==='switch');
   try{
    assert.ok(walk(render()).some(n=>n.type==='circle'));
-   click('Distribuição');
+   assert.equal(modeSwitch().length,1);
+   assert.equal(modeSwitch()[0].props['aria-checked'],false);
+   click('Distribuição no gráfico de pressão');
+   assert.equal(modeSwitch()[0].props['aria-checked'],true);
    let histogram=walk(render()).find(n=>n.type?.name==='PressureHistogram');
    assert.equal(histogram.props.days.length,12);
    const Histogram=require(path.join(root,'components/PressureHistogram')).default;
@@ -72,7 +76,8 @@ try{
    histogram=walk(render()).find(n=>n.type?.name==='PressureHistogram');
    assert.equal(histogram.props.days.length,13);
    assert.equal(histogram.props.fullHistory,true);
-   click('Médias');
+   click('Distribuição no gráfico de pressão');
+   assert.equal(modeSwitch()[0].props['aria-checked'],false);
    assert.ok(walk(render()).some(n=>n.type==='circle'));
   }finally{React.useState=original;}
  }
