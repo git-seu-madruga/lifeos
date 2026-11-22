@@ -1,0 +1,56 @@
+import {useState} from 'react';
+import {pressureHistogram} from '../lib/measurementChart';
+
+const countLabel = count => `${count} ${count === 1 ? 'medição' : 'medições'}`;
+const rangeLabel = start => `${start}–<${start+5}`;
+
+export default function PressureHistogram({readings=[],days,series,fullHistory}) {
+ const [selected,setSelected] = useState(null);
+ const {total,histograms} = pressureHistogram(readings,days,series);
+ const maxCount = Math.max(1,...histograms.flatMap(metric=>metric.bins.map(bin=>bin.count)));
+ const step = Math.ceil(maxCount / 4);
+ const ceiling = step * Math.ceil(maxCount / step);
+ const ticks = Array.from({length: ceiling / step + 1},(_,index)=>index*step);
+ const currentMetric = histograms.find(metric=>metric.key===selected?.key);
+ const currentBin = currentMetric?.bins.find(bin=>bin.start===selected.start);
+ const top = 8, bottom = 88, left = 42, right = 8;
+ const y = count => bottom - count / ceiling * (bottom-top);
+
+ return <div className="well-pressure-distribution">
+  <p className="muted small well-chart-period">
+   {fullHistory?'Histórico completo · ':'Últimos '}{days.length} dias com medições · {countLabel(total)}
+  </p>
+  <p className="muted small well-chart-period">Contagem por faixa. O limite superior fica na faixa seguinte.</p>
+  {histograms.map(metric=>{
+   const width = Math.max(300, left+right+metric.bins.length*50);
+   const slot = (width-left-right)/Math.max(1,metric.bins.length);
+   return <section key={metric.key} className="well-pressure-histogram">
+    <h3><i style={{background:metric.color}}/>{metric.label} · {metric.unit}</h3>
+    {metric.bins.length ? <div className="well-histogram-scroll">
+     <svg viewBox={`0 0 ${width} 115`} style={{minWidth:width}} role="group" aria-label={`Distribuição de ${metric.label} por faixa em ${metric.unit}`}>
+      {ticks.map(tick=><g key={tick}>
+       <line x1={left} x2={width-right} y1={y(tick)} y2={y(tick)} stroke="#ffffff25"/>
+       <text x={left-6} y={y(tick)+4} textAnchor="end">{tick}</text>
+      </g>)}
+      {metric.bins.map(({start,count},index)=>{
+       const x = left + (index+.5)*slot;
+       const label = `${metric.label}, ${rangeLabel(start)} ${metric.unit}: ${countLabel(count)}`;
+       function select(){setSelected({key:metric.key,start});}
+       return <g key={start} role="button" tabIndex={0} aria-label={label}
+        aria-pressed={selected?.key===metric.key&&selected.start===start}
+        onClick={select} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select();}}}>
+        <rect className="well-histogram-target" x={x-slot/2} y={top} width={slot} height={bottom-top+23} fill="transparent"/>
+        <rect x={x-slot*.43} y={y(count)} width={slot*.86} height={bottom-y(count)} fill={metric.color}/>
+        <text x={x} y={bottom+19} textAnchor="middle">{rangeLabel(start)}</text>
+        <title>{label}</title>
+       </g>;
+      })}
+     </svg>
+    </div>:<p className="muted small">Nenhuma medição nesta série.</p>}
+   </section>;
+  })}
+  <p className="small well-chart-detail" aria-live="polite">{currentBin
+   ? `${currentMetric.label} · ${rangeLabel(currentBin.start)} ${currentMetric.unit} · ${countLabel(currentBin.count)}`
+   : 'Toque em uma faixa para ver a contagem.'}</p>
+ </div>;
+}

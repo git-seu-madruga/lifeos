@@ -911,3 +911,15 @@ body[data-qr-locked=true]>:not(.qr-lock-screen){visibility:hidden!important;poin
 .sd-prose .selectedCell:after{content:"";position:absolute;inset:0;background:#68a9ff35;pointer-events:none;border:1px solid #8bbdff}
 .sd-prose table .sd-inline-image img{max-width:100%}
 @media(max-width:600px){.sd-table-tools{gap:5px}.sd-table-tools button{min-height:36px}.sd-prose td,.sd-prose th{padding:6px}}
+
+.well-chart-controls { flex-wrap: wrap; justify-content: flex-end; }
+.well-pressure-mode { display: inline-flex; gap: 3px; }
+.well-pressure-mode .well-chart-toggle[aria-pressed="true"] { color: #81bdff; border-color: currentColor; }
+.well-pressure-histogram { margin-top: 14px; }
+.well-pressure-histogram h3 { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 12px; }
+.well-pressure-histogram h3 i { width: 8px; height: 8px; border-radius: 2px; }
+.well-histogram-scroll { overflow-x: auto; scrollbar-width: thin; }
+.well-histogram-scroll svg { max-height: 145px; }
+.well-histogram-scroll svg [role="button"] { cursor: pointer; }
+.well-histogram-scroll svg [role="button"]:focus-visible .well-histogram-target,
+.well-histogram-scroll svg [aria-pressed="true"] .well-histogram-target { fill: #ffffff18; }

@@ -180,6 +180,8 @@ O rodapé do gráfico de pressão mostra as médias de sistólica, diastólica e
 
 Bem-estar reúne registros pessoais, medidas e hábitos; o ciclo usa a regra de acesso específica indicada anteriormente. Hábitos têm ilustração, cor, marcação de hoje e resumos mensal/anual. Correções de outros dias e exclusões pedem confirmação; encerrar um hábito preserva seu histórico.
 
+No card de pressão, **Distribuição** conta cada medição individual em faixas de 5 mmHg para sistólica e diastólica e de 5 bpm para frequência cardíaca. Por exemplo, 125 mmHg entra na faixa de 125 até menos de 130 mmHg. **Médias** volta ao gráfico diário. As duas visualizações usam os últimos 12 dias com medições ou todo o período com **Histórico**, e permitem ocultar BPM.
+
 Pressão admite várias medições diárias; peso/gordura, uma por data. O modo histórico usa médias diárias e amplia os dois gráficos para linhas completas; voltar ao padrão restaura o tamanho normal. Os toggles de BPM/% gordura funcionam nos dois modos. Somente o ponto fica dourado quando há comentário em alguma medida representada, inclusive na média diária. Ocultar uma série não impede registrar seus valores.
 
 Acompanhamento registra refeições, água, sono e atividade de forma independente dos registros de Bem-estar. Busca local TACO, alimentos próprios, favoritos e receitas são privados; produtos Open Food Facts usam busca explícita online. Porções conhecidas começam em uma porção; sem porção, em 100 g/ml. Histórico guarda os dados nutricionais usados no lançamento; editar um alimento não reescreve o passado.

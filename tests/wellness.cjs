@@ -31,6 +31,47 @@ try{
  const withoutBpm=renderToStaticMarkup(React.createElement(Chart,{type:'pressure',records:[{...pressure,data:{systolic:130,diastolic:70,bpm:null}},another]}));assert.match(footer(withoutBpm),/128\/74 mmHg, 66 bpm/,'Absent values never count as zero');
  assert.doesNotMatch(renderToStaticMarkup(React.createElement(Chart,{type:'body',records:[body]})),/Média:/);
  {const original=React.useState;let slot=0;React.useState=initial=>[slot++===0?'period-0':false,()=>{}];try{const hiddenMarkup=renderToStaticMarkup(React.createElement(Chart,{type:'pressure',records:period}));assert.match(hiddenMarkup,/well-chart-detail/);assert.match(footer(hiddenMarkup),/Média: 126\/66 mmHg/);assert.doesNotMatch(footer(hiddenMarkup),/bpm/,'Hidden BPM also hides its average');}finally{React.useState=original;}}
+ // Counts come from raw readings, including repeated readings on the same selected day.
+ const {pressureHistogram,CHART_SERIES}=require(path.join(root,'lib/measurementChart'));
+ const readings=[...period,{...pressure,date:period[0].date},{...another,date:period[0].date}];
+ const days=dailyPressure(readings);
+ const recent=pressureHistogram(readings,days.slice(0,12),CHART_SERIES.pressure);
+ assert.equal(recent.total,14);
+ assert.deepEqual(recent.histograms[0].bins,[{start:120,count:6},{start:125,count:6},{start:130,count:2}]);
+ assert.ok(recent.histograms.every(metric=>metric.bins.reduce((sum,bin)=>sum+bin.count,0)===14));
+ const all=pressureHistogram(readings,days,CHART_SERIES.pressure);
+ assert.equal(all.total,15);
+ assert.deepEqual(all.histograms[0].bins.at(-2),{start:295,count:0});
+ assert.deepEqual(all.histograms[0].bins.at(-1),{start:300,count:1});
+ {
+  const original=React.useState,slots=[];
+  let index=0,fullHistory=false;
+  React.useState=initial=>{const i=index++;if(!(i in slots))slots[i]=initial;return [slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value;}];};
+  const render=()=>{index=0;return Chart({type:'pressure',records:days,pressureReadings:readings,fullHistory,onHistoryChange:value=>fullHistory=value});};
+  const walk=(n,out=[])=>{if(Array.isArray(n))n.forEach(v=>walk(v,out));else if(n?.props){out.push(n);walk(n.props.children,out);}return out;};
+  const click=label=>walk(render()).find(n=>n.type==='button'&&[n.props.children,n.props['aria-label']].includes(label)).props.onClick({stopPropagation(){}});
+  try{
+   assert.ok(walk(render()).some(n=>n.type==='circle'));
+   click('Distribuição');
+   let histogram=walk(render()).find(n=>n.type?.name==='PressureHistogram');
+   assert.equal(histogram.props.days.length,12);
+   const Histogram=require(path.join(root,'components/PressureHistogram')).default;
+   React.useState=original;
+   const markup=renderToStaticMarkup(React.createElement(Histogram,histogram.props));
+   assert.match(markup,/120–&lt;125 mmHg: 6 medições/);
+   assert.match(markup,/14 medições/);
+   React.useState=initial=>{const i=index++;if(!(i in slots))slots[i]=initial;return [slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value;}];};
+   click('Mostrar BPM no gráfico');
+   histogram=walk(render()).find(n=>n.type?.name==='PressureHistogram');
+   assert.deepEqual(histogram.props.series.map(s=>s.key),['systolic','diastolic']);
+   walk(render()).find(n=>n.props?.title==='Mostrar a distribuição de todas as medições').props.onClick({stopPropagation(){}});
+   histogram=walk(render()).find(n=>n.type?.name==='PressureHistogram');
+   assert.equal(histogram.props.days.length,13);
+   assert.equal(histogram.props.fullHistory,true);
+   click('Médias');
+   assert.ok(walk(render()).some(n=>n.type==='circle'));
+  }finally{React.useState=original;}
+ }
  const View=require(path.join(root,'components/WellnessView')).default;
  const html=renderToStaticMarkup(React.createElement(View,{remote:{user:{id:'test',cycleSubject:'secondary.example@gmail.com'},wellness:[pressure,body],cycle:[],setWellness(){},habits:[],habitLogs:[],habitsConfigured:true,wellnessConfigured:true,cycleConfigured:true}}));
  for(const label of ['Ciclo','Pressão e BPM','Peso e gordura','Seu progresso','Mostrar hábitos encerrados','Atualize quando houver uma nova medição'])assert.ok(html.includes(label),label);
@@ -77,7 +118,7 @@ try{
  const {bodyDateConflict}=require(path.join(root,'lib/wellness'));
  assert.equal(bodyDateConflict([body],{...body,id:'another'}),true);assert.equal(bodyDateConflict([body],body),false);assert.equal(bodyDateConflict([body],pressure),false);
  assert.equal(measurementScales([pressure],'pressure',false).right,null);assert.equal(measurementScales([body],'body',false).right,null);
- {const old=React.useState;let slot=0;const slots=[null,true];React.useState=()=>{const i=slot++;return [slots[i],v=>slots[i]=typeof v==='function'?v(slots[i]):v];};const walk=(n,out=[])=>{if(Array.isArray(n))n.forEach(v=>walk(v,out));else if(n?.props){out.push(n);walk(n.props.children,out);}return out;};try{for(const type of ['pressure','body']){slots[1]=true;const render=()=>{slot=0;return Chart({type,records:[type==='pressure'?pressure:{...body,data:{...body.data,fat:20}}]});};let tree=render();const count=walk(tree).filter(n=>n.type==='circle').length;walk(tree).find(n=>n.type==='button').props.onClick({stopPropagation(){}});tree=render();assert.equal(slots[1],false);assert.equal(walk(tree).filter(n=>n.type==='circle').length,count-1);assert.ok(!walk(tree).some(n=>n.type==='text'&&n.props.fill==='#f69cbc'));walk(tree).find(n=>n.type==='button').props.onClick({stopPropagation(){}});assert.equal(walk(render()).filter(n=>n.type==='circle').length,count);}}finally{React.useState=old;}}
+ {const old=React.useState;let slot=0;const slots=[null,true];React.useState=()=>{const i=slot++;return [slots[i],v=>slots[i]=typeof v==='function'?v(slots[i]):v];};const walk=(n,out=[])=>{if(Array.isArray(n))n.forEach(v=>walk(v,out));else if(n?.props){out.push(n);walk(n.props.children,out);}return out;};try{for(const type of ['pressure','body']){slots[1]=true;const render=()=>{slot=0;return Chart({type,records:[type==='pressure'?pressure:{...body,data:{...body.data,fat:20}}]});};let tree=render();const count=walk(tree).filter(n=>n.type==='circle').length;walk(tree).find(n=>n.type==='button'&&n.props.className==='ghost well-chart-toggle'&&n.props['aria-label']).props.onClick({stopPropagation(){}});tree=render();assert.equal(slots[1],false);assert.equal(walk(tree).filter(n=>n.type==='circle').length,count-1);assert.ok(!walk(tree).some(n=>n.type==='text'&&n.props.fill==='#f69cbc'));walk(tree).find(n=>n.type==='button'&&n.props.className==='ghost well-chart-toggle'&&n.props['aria-label']).props.onClick({stopPropagation(){}});assert.equal(walk(render()).filter(n=>n.type==='circle').length,count);}}finally{React.useState=old;}}
  // Full history keeps every available day and the secondary-axis toggle is independent.
  {const old=React.useState;let slot=0;const slots=[null,true];React.useState=initial=>{const i=slot++;if(slots[i]===undefined)slots[i]=initial;return [slots[i],v=>slots[i]=typeof v==='function'?v(slots[i]):v];};
  const walk=(n,out=[])=>{if(Array.isArray(n))n.forEach(v=>walk(v,out));else if(n?.props){out.push(n);walk(n.props.children,out);}return out;};
@@ -94,7 +135,7 @@ try{
   assert.ok(nodes.filter(n=>n.type==='polyline').every(n=>n.props.stroke!=='#e8bd5a'),'Linhas conservam as cores');
   const circles=nodes.filter(n=>n.type==='circle');assert.ok(circles[0].props.cx<circles[14].props.cx,'Primeira medição à esquerda');
   assert.ok(nodes.some(n=>n.type==='text'&&n.props.children==='01/01/2026'));
-  nodes.find(n=>n.type==='button'&&!n.props.className.includes('well-history-toggle')).props.onClick({stopPropagation(){}});
+  nodes.find(n=>n.type==='button'&&n.props.className==='ghost well-chart-toggle'&&n.props['aria-label']).props.onClick({stopPropagation(){}});
   tree=render();assert.equal(walk(tree).filter(n=>n.type==='circle').length,15*(seriesCount-1));
   walk(tree).find(n=>n.type==='circle'&&n.props.fill==='#e8bd5a').props.onClick({stopPropagation(){}});
   assert.ok(walk(render()).some(n=>n.props.className==='well-chart-comment small'&&n.props.children==='Comentário importante'));
