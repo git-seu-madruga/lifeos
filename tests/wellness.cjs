@@ -58,7 +58,11 @@ try{
    const Histogram=require(path.join(root,'components/PressureHistogram')).default;
    React.useState=original;
    const markup=renderToStaticMarkup(React.createElement(Histogram,histogram.props));
-   assert.match(markup,/120–&lt;125 mmHg: 6 medições/);
+   assert.match(markup,/de 120 a menos de 125 mmHg: 6 medições/);
+   const axes=[...markup.matchAll(/class="well-histogram-axis" aria-hidden="true">(.*?)<\/g><\/svg>/g)];
+   const axisLabels=axis=>[...axis.matchAll(/<text [^>]+>(\d+)<\/text>/g)].map(match=>Number(match[1]));
+   assert.equal(axes.length,3);
+   assert.deepEqual(axisLabels(axes[0][1]),[120,125,130,135]);
    assert.match(markup,/14 medições/);
    React.useState=initial=>{const i=index++;if(!(i in slots))slots[i]=initial;return [slots[i],value=>{slots[i]=typeof value==='function'?value(slots[i]):value;}];};
    click('Mostrar BPM no gráfico');
