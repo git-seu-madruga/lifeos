@@ -119,6 +119,8 @@ Abas já liberadas podem ser usadas enquanto outras carregam. A sincronização 
 
 Datas aparecem como DD/MM/AAAA, meses como MM/AAAA. Campos de dia/mês completam o ano ao concluir. O dia padrão segue Brasília quando o formulário está no modo automático; datas escolhidas manualmente e formulários em preenchimento são preservados. As abas podem ser reordenadas; no mobile, a ordenação usa seleção da origem e do destino.
 
+Em um navegador sem ordem salva, o LifeOS abre em **Tarefas**. A ordem padrão é Tarefas, Projetos, Diário, Finanças, Aniversários, Compras, Bem-estar, Entretenimento, Veículos, Acompanhamento, Algum dia, Referência Geral e Recados.
+
 ### Inbox e conversões
 
 O Inbox mantém texto simples, colagem de imagens e um clipe discreto para escolher arquivos. Limites: 4 MB por arquivo e 100 anexos por entrada. Não há editor rico no Inbox nem envio de arquivos por arrastar para o campo. Imagens têm miniatura, painel de ampliação, ajuste/100% e abertura em outra aba; outros arquivos pedem abertura em outra aba, sujeita ao formato e ao navegador.
