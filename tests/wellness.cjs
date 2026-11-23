@@ -62,7 +62,18 @@ try{
    const Histogram=require(path.join(root,'components/PressureHistogram')).default;
    React.useState=original;
    const markup=renderToStaticMarkup(React.createElement(Histogram,histogram.props));
+   const recentMeans=histogram.props.recentMeans;
    assert.match(markup,/de 120 a menos de 125 mmHg: 6 medições/);
+   for(const [metric,start,unit] of [['Sistólica',125,'mmHg'],['Diastólica',65,'mmHg'],['BPM',55,'bpm']]){
+    assert.match(markup,new RegExp(`aria-label="${metric}, de ${start} a menos de ${start+5} ${unit}: [^"]+Faixa da média recente"`));
+   }
+   assert.equal((markup.match(/stroke="#e8bd5a"/g)||[]).length,3);
+   const gapReadings=[120,130].map(systolic=>({...pressure,data:{systolic}}));
+   const gapMarkup=renderToStaticMarkup(React.createElement(Histogram,{
+    days:[pressure],readings:gapReadings,series:[CHART_SERIES.pressure[0]],recentMeans:{systolic:125}
+   }));
+   assert.match(gapMarkup,/de 125 a menos de 130 mmHg: 0 medições · Faixa da média recente/);
+   assert.match(gapMarkup,/<line [^>]+stroke="#e8bd5a"/);
    const axes=[...markup.matchAll(/class="well-histogram-axis" aria-hidden="true">(.*?)<\/g><\/svg>/g)];
    const axisLabels=axis=>[...axis.matchAll(/<text [^>]+>(\d+)<\/text>/g)].map(match=>Number(match[1]));
    assert.equal(axes.length,3);
@@ -76,6 +87,7 @@ try{
    histogram=walk(render()).find(n=>n.type?.name==='PressureHistogram');
    assert.equal(histogram.props.days.length,13);
    assert.equal(histogram.props.fullHistory,true);
+   assert.deepEqual(histogram.props.recentMeans,{systolic:recentMeans.systolic,diastolic:recentMeans.diastolic});
    click('Distribuição no gráfico de pressão');
    assert.equal(modeSwitch()[0].props['aria-checked'],false);
    assert.ok(walk(render()).some(n=>n.type==='circle'));

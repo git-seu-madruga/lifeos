@@ -3,8 +3,9 @@ import {pressureHistogram} from '../lib/measurementChart';
 
 const countLabel = count => `${count} ${count === 1 ? 'medição' : 'medições'}`;
 const rangeLabel = (start,unit) => `de ${start} a menos de ${start+5} ${unit}`;
+const meanOutline = '#e8bd5a';
 
-export default function PressureHistogram({readings=[],days,series,fullHistory}) {
+export default function PressureHistogram({readings=[],days,series,fullHistory,recentMeans}) {
  const [selected,setSelected] = useState(null);
  const {total,histograms} = pressureHistogram(readings,days,series);
  const maxCount = Math.max(1,...histograms.flatMap(metric=>metric.bins.map(bin=>bin.count)));
@@ -21,7 +22,9 @@ export default function PressureHistogram({readings=[],days,series,fullHistory})
    {fullHistory?'Histórico completo · ':'Últimos '}{days.length} dias com medições · {countLabel(total)}
   </p>
   <p className="muted small well-chart-period">Cada barra conta as medições entre dois números do eixo. O valor da direita entra na faixa seguinte.</p>
+  <p className="muted small well-chart-period">Dourado indica a faixa da média dos últimos 12 dias com medições.</p>
   {histograms.map(metric=>{
+   const mean = recentMeans?.[metric.key];
    const width = Math.max(300, left+right+metric.bins.length*38);
    const slot = (width-left-right)/Math.max(1,metric.bins.length);
    const boundaries = metric.bins.map(bin=>bin.start);
@@ -36,13 +39,17 @@ export default function PressureHistogram({readings=[],days,series,fullHistory})
       </g>)}
       {metric.bins.map(({start,count},index)=>{
        const x = left + (index+.5)*slot;
-       const label = `${metric.label}, ${rangeLabel(start,metric.unit)}: ${countLabel(count)}`;
+       const isMean = Number.isFinite(mean) && mean >= start && mean < start+5;
+       const label = `${metric.label}, ${rangeLabel(start,metric.unit)}: ${countLabel(count)}${isMean?' · Faixa da média recente':''}`;
+       const barLeft = x-slot*.43, barWidth = slot*.86;
        function select(){setSelected({key:metric.key,start});}
        return <g key={start} role="button" tabIndex={0} aria-label={label}
         aria-pressed={selected?.key===metric.key&&selected.start===start}
         onClick={select} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select();}}}>
         <rect className="well-histogram-target" x={x-slot/2} y={top} width={slot} height={bottom-top} fill="transparent"/>
-        <rect x={x-slot*.43} y={y(count)} width={slot*.86} height={bottom-y(count)} fill={metric.color}/>
+        <rect x={barLeft} y={y(count)} width={barWidth} height={bottom-y(count)} fill={metric.color}
+         stroke={isMean?meanOutline:undefined} strokeWidth={isMean?2:undefined}/>
+        {isMean&&count===0&&<line x1={barLeft} x2={barLeft+barWidth} y1={bottom} y2={bottom} stroke={meanOutline} strokeWidth={2}/>}
         <title>{label}</title>
        </g>;
       })}
