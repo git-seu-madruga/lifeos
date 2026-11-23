@@ -26,12 +26,28 @@ try{
  const expectedOrder=['earlier-date','old','new','doing','hold-old','hold-new','closed-new','closed-old'];
  assert.deepEqual(tree().filter(e=>e.type==='li').map(e=>e.key),expectedOrder,'Status e data antes da inclusão; concluídas continuam mais recentes primeiro');
  sub='projeto';assert.deepEqual(tree().filter(e=>e.type==='li').map(e=>e.key),expectedOrder,'Mesma ordem na visualização por projeto');sub='status';tasks=priorTasks;
+ const namedProject={...projects[0],id:'nadia-project',name:'Entrega da Nádia',status:'active'};
+ projects.push(namedProject);
+ tasks=[fixture('title-match','todo',null,1,{title:'Ligar para Nadia'}),fixture('project-match','todo',null,2,{project:namedProject.id}),fixture('other','todo',null,3)];
+ const searchTasks=value=>tree().find(e=>e.type==='input'&&e.props.type==='search').props.onChange({target:{value}});
+ for(const value of ['Nádia','Nadia','nadia','nádia','  NA\u0301DIA  ']){
+  searchTasks(value);
+  assert.deepEqual(tree().filter(e=>e.type==='li').map(e=>e.key),['title-match','project-match']);
+ }
+ searchTasks('');projects.pop();tasks=priorTasks;
  const Fields=require(path.join(folder,'components/SharingFields')).default;let patch;walk(Fields({item:{},user,onChange:p=>patch=p})).find(e=>e.type==='input').props.onChange({target:{checked:true}});assert.equal(patch.responsible,user.email,'Responsável inicial é o usuário logado');
  const shared={shared:true,responsible:user.email,_ownerEmail:'primary.example@gmail.com'};let message='',approve=false;global.window={confirm:value=>{message=value;return approve;}};patch=undefined;
  const unshare=()=>walk(Fields({item:shared,user,onChange:p=>patch=p})).find(e=>e.type==='input').props.onChange({target:{checked:false}});
  unshare();assert.equal(patch,undefined,'Cancelar mantém compartilhamento');assert.ok(message.includes('Principal'),'Confirmação informa proprietário original, não responsável');approve=true;unshare();assert.equal(patch.shared,false);assert.equal(patch.responsible,'');
  const projectFields=walk(Fields({item:shared,user,project:true,onChange:p=>patch=p}));assert.ok(!projectFields.some(e=>e.type==='select'),'Projeto não possui responsável');patch=undefined;approve=false;projectFields.find(e=>e.type==='input').props.onChange({target:{checked:false}});assert.equal(patch,undefined);assert.ok(message.includes('todas as suas tarefas')&&message.includes('Principal'));approve=true;projectFields.find(e=>e.type==='input').props.onChange({target:{checked:false}});assert.deepEqual(patch,{shared:false});
  const ProjectView=require(path.join(folder,'components/ProjectsView')).default;slots=[];
+ const searches=[namedProject,{...namedProject,id:'other',name:'Outro projeto'},{...namedProject,id:'paused',status:'paused'},{...namedProject,id:'work',context:'work'}];
+ const projectSearchTree=()=>{index=0;return walk(ProjectView({user,tasks,projects:searches,context:'personal',sub:'ativos'}));};
+ for(const value of ['Nádia','Nadia','nadia','nádia']){
+  projectSearchTree().find(e=>e.props['aria-label']==='Buscar projetos').props.onChange({target:{value}});
+  assert.deepEqual(projectSearchTree().filter(e=>e.props.className==='pcard').map(e=>e.key),[namedProject.id]);
+ }
+ slots=[];
  let projectList=[{...projects[0],status:'active',area:'',due:null,description:'',attachments:[]}];const projectTree=()=>{index=0;return walk(ProjectView({user,tasks,setTasks:fn=>tasks=fn(tasks),projects:projectList,setProjects:fn=>projectList=fn(projectList),context:'all',sub:'ativos',selected:'p',onSelect(){}}));};
  const taskCount=tasks.length;let quick=projectTree();assert.equal(quick.find(e=>e.props['aria-label']==='Responsável pela nova tarefa').props.value,'','Linha não pré-seleciona o usuário');
  quick.find(e=>e.props['aria-label']==='Título da nova tarefa').props.onChange({target:{value:'Tarefa atribuída'}});quick=projectTree();assert.equal(quick.find(e=>e.type==='button'&&e.props.children==='+ Tarefa').props.disabled,true);quick.find(e=>e.type==='button'&&e.props.children==='+ Tarefa').props.onClick();assert.equal(tasks.length,taskCount,'Sem responsável não cria tarefa, inclusive por Enter');

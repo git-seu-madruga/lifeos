@@ -1,6 +1,7 @@
 "use client";
 import {followupToday,followupDue,followupChecked,followupLabel,followupDateInfo,taskVisibleOutsideProject} from '../lib/followups';
 import {useDateRollover} from '../lib/useDateRollover';
+import {normalizeSearchText} from "../lib/searchText";
 import PageActions from "./PageActions";
 import SharedBadge from "./SharedBadge";
 import LinkText, {TextLinks} from "./LinkText";
@@ -67,10 +68,10 @@ export default function TasksView({ user, tasks, setTasks, projects, context, su
   const projEff = visibleProjects.some((p) => p.id === proj) ? proj : "all";
 
   const filtered = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = normalizeSearchText(query).trim();
     return scoped
       .filter((t) => projEff === "all" || (t.project || "") === projEff)
-      .filter((t) => !q || t.title.toLowerCase().includes(q) || pn(t.project).toLowerCase().includes(q));
+      .filter((t) => !q || normalizeSearchText(t.title).includes(q) || normalizeSearchText(pn(t.project)).includes(q));
   }, [scoped, projects, projEff, query]);
 
   const groups = useMemo(() => {

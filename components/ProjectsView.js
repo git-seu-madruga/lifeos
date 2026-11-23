@@ -1,5 +1,6 @@
 "use client";
 import {normalizeAreaName} from "../lib/someday";
+import {normalizeSearchText} from "../lib/searchText";
 import {followupToday,followupDue,followupChecked,followupDateInfo} from '../lib/followups';
 import {useDateRollover} from '../lib/useDateRollover';
 import PageActions from "./PageActions";
@@ -47,6 +48,7 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
   const [descriptionBusy,setDescriptionBusy]=useState(false);
   const [taskBusy,setTaskBusy]=useState(false);
   const [openId, setOpenId] = useState(null);
+  const [query, setQuery] = useState("");
   const [today,setToday]=useState(followupToday);useDateRollover(today,setToday);
   const [createdProjectId,setCreatedProjectId]=useState(null);
   useEffect(()=>()=>setProjects(previous=>previous.filter(project=>!project._untouchedDraft)),[setProjects]);
@@ -109,13 +111,18 @@ export default function ProjectsView({ user, tasks, setTasks, projects, setProje
 
   // ---------- Lista de projetos ----------
   if (!project) {
-    const shown = projects.filter((p) => !p._untouchedDraft && p.status === SUB_STATUS[sub] && (context === "all" || p.context === context));
+    const search = normalizeSearchText(query).trim();
+    const shown = projects.filter((p) => !p._untouchedDraft && p.status === SUB_STATUS[sub] &&
+      (context === "all" || p.context === context) && normalizeSearchText(p.name).includes(search));
     return (
       <section key="project-list">
         <PageActions>
           <button className="ghost" onClick={addProject}>+ Novo projeto</button>
         </PageActions>
-        {shown.length === 0 && <p className="empty">Nenhum projeto nesta guia.</p>}
+        <div className="controls">
+          <input className="search" type="search" placeholder="Buscar projetos…" value={query} onChange={(e) => setQuery(e.target.value)} aria-label="Buscar projetos" />
+        </div>
+        {shown.length === 0 && <p className="empty">{search ? "Nenhum projeto encontrado nesta guia." : "Nenhum projeto nesta guia."}</p>}
         <div className="pcards">
           {shown.map((p) => {
             const s = progress(tasks.filter((t) => t.project === p.id));

@@ -121,6 +121,8 @@ Datas aparecem como DD/MM/AAAA, meses como MM/AAAA. Campos de dia/mês completam
 
 Em um navegador sem ordem salva, o LifeOS abre em **Tarefas**. A ordem padrão é Tarefas, Projetos, Diário, Finanças, Aniversários, Compras, Bem-estar, Entretenimento, Veículos, Acompanhamento, Algum dia, Referência Geral e Recados.
 
+As buscas locais ignoram maiúsculas, minúsculas e acentos. Em **Projetos**, a busca filtra o nome dos projetos na guia e no contexto atuais. Em **Tarefas**, a busca verifica o título da tarefa e o nome do projeto vinculado.
+
 ### Inbox e conversões
 
 O Inbox mantém texto simples, colagem de imagens e um clipe discreto para escolher arquivos. Limites: 4 MB por arquivo e 100 anexos por entrada. Não há editor rico no Inbox nem envio de arquivos por arrastar para o campo. Imagens têm miniatura, painel de ampliação, ajuste/100% e abertura em outra aba; outros arquivos pedem abertura em outra aba, sujeita ao formato e ao navegador.
