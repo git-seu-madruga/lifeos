@@ -67,7 +67,8 @@ try{
    for(const [metric,start,unit] of [['Sistólica',125,'mmHg'],['Diastólica',65,'mmHg'],['BPM',55,'bpm']]){
     assert.match(markup,new RegExp(`aria-label="${metric}, de ${start} a menos de ${start+5} ${unit}: [^"]+Faixa da média recente"`));
    }
-   assert.equal((markup.match(/stroke="#e8bd5a"/g)||[]).length,3);
+   assert.equal((markup.match(/<rect [^>]+fill="#e8bd5a"/g)||[]).length,3);
+   assert.doesNotMatch(markup,/<rect [^>]+stroke="#e8bd5a"/);
    const gapReadings=[120,130].map(systolic=>({...pressure,data:{systolic}}));
    const gapMarkup=renderToStaticMarkup(React.createElement(Histogram,{
     days:[pressure],readings:gapReadings,series:[CHART_SERIES.pressure[0]],recentMeans:{systolic:125}

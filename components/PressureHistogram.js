@@ -3,7 +3,7 @@ import {pressureHistogram} from '../lib/measurementChart';
 
 const countLabel = count => `${count} ${count === 1 ? 'medição' : 'medições'}`;
 const rangeLabel = (start,unit) => `de ${start} a menos de ${start+5} ${unit}`;
-const meanOutline = '#e8bd5a';
+const meanColor = '#e8bd5a';
 
 export default function PressureHistogram({readings=[],days,series,fullHistory,recentMeans}) {
  const [selected,setSelected] = useState(null);
@@ -47,9 +47,8 @@ export default function PressureHistogram({readings=[],days,series,fullHistory,r
         aria-pressed={selected?.key===metric.key&&selected.start===start}
         onClick={select} onKeyDown={event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();select();}}}>
         <rect className="well-histogram-target" x={x-slot/2} y={top} width={slot} height={bottom-top} fill="transparent"/>
-        <rect x={barLeft} y={y(count)} width={barWidth} height={bottom-y(count)} fill={metric.color}
-         stroke={isMean?meanOutline:undefined} strokeWidth={isMean?2:undefined}/>
-        {isMean&&count===0&&<line x1={barLeft} x2={barLeft+barWidth} y1={bottom} y2={bottom} stroke={meanOutline} strokeWidth={2}/>}
+        <rect x={barLeft} y={y(count)} width={barWidth} height={bottom-y(count)} fill={isMean?meanColor:metric.color}/>
+        {isMean&&count===0&&<line x1={barLeft} x2={barLeft+barWidth} y1={bottom} y2={bottom} stroke={meanColor} strokeWidth={2}/>}
         <title>{label}</title>
        </g>;
       })}
