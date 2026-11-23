@@ -180,7 +180,7 @@ A escala esquerda da pressão usa apenas as sistólicas e diastólicas exibidas:
 
 O rodapé do gráfico de pressão mostra as médias de sistólica, diastólica e BPM dos dias efetivamente exibidos no formato `Média: 129/68 mmHg, 57 bpm`, arredondado para inteiros como os valores do gráfico. O modo padrão considera os últimos 12 dias com medições; Histórico considera todo o período mostrado. Cada dia tem o mesmo peso, usando os valores das médias diárias plotadas. Ocultar BPM também oculta sua média.
 
-Bem-estar reúne registros pessoais, medidas e hábitos; o ciclo usa a regra de acesso específica indicada anteriormente. Hábitos têm ilustração, cor, marcação de hoje e resumos mensal/anual. Correções de outros dias e exclusões pedem confirmação; encerrar um hábito preserva seu histórico.
+Bem-estar começa com Hábitos, seguido de Pressão e BPM e Peso e gordura. Hábitos têm ilustração, cor, marcação de hoje e resumos mensal/anual. Correções de outros dias e exclusões pedem confirmação; encerrar um hábito preserva seu histórico.
 
 No card de pressão, **Distribuição** conta cada medição individual em faixas de 5 mmHg para sistólica e diastólica e de 5 bpm para frequência cardíaca. Os números do eixo marcam os limites entre as faixas. Por exemplo, 125 mmHg entra na barra entre 125 e 130 mmHg. Selecione uma barra para ver a faixa completa e a contagem. O dourado identifica a faixa que contém a média dos últimos 12 dias com medições, calculada a partir das médias diárias, mesmo no histórico completo. Use a chave **Médias / Distribuição** para alternar entre o gráfico diário e o histograma. As duas visualizações usam os últimos 12 dias com medições ou todo o período com **Histórico**, e permitem ocultar BPM.
 
