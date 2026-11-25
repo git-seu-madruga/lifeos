@@ -26,7 +26,7 @@ import { patchTask } from "../lib/tasks";
 
 
 import { useEffect, useRef, useState } from "react";
-import { NAV, INBOX_TARGETS } from "../lib/nav";
+import { NAV, INBOX_TARGETS, normalizeHiddenTabs } from "../lib/nav";
 import { useNotionState } from "../lib/useNotionState";
 import { InstallApp } from "../components/PwaProvider";
 import Brand from '../components/Brand';
@@ -65,6 +65,7 @@ export default function Home() {
   const [tabId, setTabIdState] = useState(NAV[0].id);
   function setTabId(id){if(id!==tabId&&!confirmLeaveEditors())return false;setTabIdState(id);return true;}
   const [tabOrder,setTabOrder] = useState(NAV.map(tab=>tab.id));
+  const [tabVisibility,setTabVisibility] = useState(null);
   const [orderReady,setOrderReady] = useState(false);
   const [dragged,setDragged] = useState(null);
   const draggedTab = useRef(null);
@@ -74,7 +75,9 @@ export default function Home() {
   useEffect(()=>{
     let order=NAV.map(tab=>tab.id);
     try { order=normalizeTabOrder((JSON.parse(localStorage.getItem('lifeos-tab-order'))||[]).map(id=>id==='habitos'?'bemestar':id),order); } catch {}
-    setTabOrder(order);setTabId(order[0]);setOrderReady(true);
+    setTabOrder(order);
+    setTabId(order[0]);
+    setOrderReady(true);
   },[]);
   useEffect(()=>{if(orderReady)try{localStorage.setItem('lifeos-tab-order',JSON.stringify(tabOrder));}catch{}},[tabOrder,orderReady]);
   function reorderTab(from,to){setTabOrder(order=>moveTab(order,from,to));}
@@ -97,6 +100,42 @@ export default function Home() {
   const [selected, setSelected] = useState(null);
   const [areasOpen,setAreasOpen]=useState(false);
   const remote = useNotionState({progressive:true,tabOrder});
+  const visibilityUserId=remote.authenticated&&remote.user?.id||null;
+  const visibilityReady=tabVisibility?.userId===visibilityUserId;
+  const visibilityKey=visibilityUserId&&`lifeos-hidden-tabs:${visibilityUserId}`;
+  const hiddenTabs=visibilityReady?tabVisibility.hidden:[];
+  const visibleTabs=orderedTabs.filter(tab=>!hiddenTabs.includes(tab.id));
+  const visibleTabOrder=visibleTabs.map(tab=>tab.id);
+  useEffect(()=>{
+    if(!visibilityUserId) {
+      if(tabVisibility) setTabVisibility(null);
+      return;
+    }
+    if(!orderReady||visibilityReady) return;
+    let hidden=[];
+    try { hidden=normalizeHiddenTabs(JSON.parse(localStorage.getItem(visibilityKey)),tabOrder); } catch {}
+    setTabVisibility({userId:visibilityUserId,hidden});
+    setTabIdState(tabOrder.find(id=>!hidden.includes(id)));
+  },[visibilityUserId,visibilityKey,orderReady,visibilityReady,tabOrder,tabVisibility]);
+  function saveTabVisibility(hidden) {
+    setTabVisibility({userId:visibilityUserId,hidden});
+    try { localStorage.setItem(visibilityKey,JSON.stringify(hidden)); } catch {}
+  }
+  function toggleTabVisibility(id) {
+    if(hiddenTabs.includes(id)) {
+      saveTabVisibility(hiddenTabs.filter(hidden=>hidden!==id));
+      return;
+    }
+    if(visibleTabOrder.length<=1) return;
+    if(tabId===id) {
+      if(!setTabId(visibleTabOrder.find(tab=>tab!==id))) return;
+      setSelected(null);
+    }
+    saveTabVisibility([...hiddenTabs,id]);
+    setTouchReorder(false);
+    setReorderSource(null);
+    setDragged(null);
+  }
   const tabLoaded=remote.isTabReady?remote.isTabReady(tabId):true;
   useEffect(()=>{remote.prioritizeTab?.(tabId);},[tabId,remote.prioritizeTab]);
   useAppBackNavigation(remote.authenticated === true,remote.ready);
@@ -218,6 +257,7 @@ export default function Home() {
   if(!orderReady || remote.authenticated === null) return <p className="empty">Carregando LifeOS…</p>;
   if(!remote.authenticated) return <Login onQrLogin={remote.qrLoginComplete} onLogin={remote.login} configured={remote.configured} initialError={remote.error} />;
   if(remote.qrLocked&&!ready)return <QrLock onUnlock={remote.unlockQr} onExit={remote.endQr}/>;
+  if(visibilityUserId&&!visibilityReady) return <p className="empty">Carregando LifeOS…</p>;
   if(!ready) return <main className="login-shell"><div className="login-card"><h1><Brand/></h1><p>{remote.loading ? "Conectando ao Notion…" : "Não foi possível carregar os bancos."}</p>{remote.error && <p className="date-error" role="alert">{remote.error}</p>}<button className="primary" onClick={remote.load} disabled={remote.loading}>Tentar novamente</button><button className="ghost" onClick={()=>remote.logout().catch(()=>{})}>Sair</button></div></main>;
 
 
@@ -258,13 +298,13 @@ export default function Home() {
             </svg>
           </button>
           <span className="refreshed" title={refreshedAt?.toLocaleString("pt-BR")}>{time && `Dados atualizados às ${time}`}</span>
-          {sessionsOpen&&<QrSessions onClose={()=>setSessionsOpen(false)}/>}<AccountMenu onLock={remote.lockQr} onSessions={()=>setSessionsOpen(true)} user={remote.user} onLogout={()=>{if(confirmLeaveEditors())remote.logout().catch(()=>{});}} onBackup={()=>setBackupOpen(true)}/>
+          {sessionsOpen&&<QrSessions onClose={()=>setSessionsOpen(false)}/>}<AccountMenu onLock={remote.lockQr} onSessions={()=>setSessionsOpen(true)} user={remote.user} onLogout={()=>{if(confirmLeaveEditors())remote.logout().catch(()=>{});}} onBackup={()=>setBackupOpen(true)} tabs={visibilityReady?orderedTabs:[]} hiddenTabs={hiddenTabs} onToggleTab={toggleTabVisibility}/>
         </div>
       </header>
       {remote.user?.temporary&&<p className="temporary-session-note">Sessão temporária · expira às {new Date(remote.user.expiresAt).toLocaleTimeString('pt-BR')} · rascunhos apenas na memória. Aguarde “Salvo no Notion” antes de sair.</p>}
 
       <div className="tabs-row" inert={backupOpen||remote.maintenance}><nav className={"tabs"+(touchReorder?" reordering":"")} aria-label="Seções">
-        {orderedTabs.map((t) => (
+        {visibleTabs.map((t) => (
           <span key={t.id} className="tab-wrap">
             {t.sep && <span className="tab-sep" aria-hidden="true" />}
             <button
@@ -277,7 +317,7 @@ export default function Home() {
               onDragOver={e=>{if(draggedTab.current){e.preventDefault();e.dataTransfer.dropEffect='move';}}}
               onDrop={e=>{e.preventDefault();if(draggedTab.current)reorderTab(draggedTab.current,t.id);draggedTab.current=null;setDragged(null);}}
               onDragEnd={()=>{draggedTab.current=null;setDragged(null);}}
-              onKeyDown={e=>{if(e.altKey && ['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();const target=tabOrder[tabOrder.indexOf(t.id)+(e.key==='ArrowLeft'?-1:1)];if(target)reorderTab(t.id,target);}}}
+              onKeyDown={e=>{if(e.altKey && ['ArrowLeft','ArrowRight'].includes(e.key)){e.preventDefault();const target=visibleTabOrder[visibleTabOrder.indexOf(t.id)+(e.key==='ArrowLeft'?-1:1)];if(target)reorderTab(t.id,target);}}}
               aria-pressed={touchReorder?reorderSource===t.id:undefined}
               aria-describedby={touchReorder?"tab-order-help":undefined}
               aria-current={t.id === tabId ? "page" : undefined}
@@ -288,7 +328,7 @@ export default function Home() {
             </button>
           </span>
         ))}
-      </nav>{touchMode&&<button className={"icon-btn tab-order-toggle"+(touchReorder?" on":"")} aria-label={touchReorder?"Concluir ordem das abas":"Ordenar abas"} aria-pressed={touchReorder} title={touchReorder?"Concluir ordem das abas":"Ordenar abas"} onClick={toggleTabOrder}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{touchReorder?<path d="m4 12 5 5L20 6"/>:<><path d="M4 8h16M4 16h16m-3-11 3 3-3 3M7 13l-3 3 3 3"/></>}</svg></button>}</div>{touchReorder&&<p className="muted small" id="tab-order-help" role="status">{reorderSource?`Toque na aba antes da qual deseja colocar ${NAV.find(item=>item.id===reorderSource)?.label}. Toque novamente na selecionada para desmarcar.`:"Toque na aba que deseja mover e depois na aba antes da qual ela deve entrar."} Deslize a barra para ver as outras abas. Toque no ✓ para concluir.</p>}
+      </nav>{touchMode&&visibleTabOrder.length>1&&<button className={"icon-btn tab-order-toggle"+(touchReorder?" on":"")} aria-label={touchReorder?"Concluir ordem das abas":"Ordenar abas"} aria-pressed={touchReorder} title={touchReorder?"Concluir ordem das abas":"Ordenar abas"} onClick={toggleTabOrder}><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">{touchReorder?<path d="m4 12 5 5L20 6"/>:<><path d="M4 8h16M4 16h16m-3-11 3 3-3 3M7 13l-3 3 3 3"/></>}</svg></button>}</div>{touchReorder&&<p className="muted small" id="tab-order-help" role="status">{reorderSource?`Toque na aba antes da qual deseja colocar ${NAV.find(item=>item.id===reorderSource)?.label}. Toque novamente na selecionada para desmarcar.`:"Toque na aba que deseja mover e depois na aba antes da qual ela deve entrar."} Deslize a barra para ver as outras abas. Toque no ✓ para concluir.</p>}
 
       {backupOpen&&remote.user?.isLegacyOwner&&<BackupView onClose={()=>setBackupOpen(false)} beforeStart={remote.flush} onStatus={remote.setMaintenance} onFinished={()=>{remote.checkMaintenance();refresh();}}/>}
       {remote.maintenance&&!backupOpen&&<div className="backup-warning" role="status"><h2>Backup ou restauração em andamento</h2><p>As edições estão temporariamente bloqueadas para os dois usuários. Seus textos pendentes foram preservados.</p><p>O aplicativo verificará a liberação enquanto esta tela estiver visível.</p></div>}

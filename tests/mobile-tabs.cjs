@@ -29,4 +29,30 @@ assert.ok(page.includes('draggable={!touchMode&&!touchReorder}'));
 assert.ok(page.includes('data-expanded={t.id===tabId||touchReorder}'));
 assert.ok(css.includes('.tabs.reordering .tab{touch-action:auto}'));
 assert.ok(css.includes('-webkit-overflow-scrolling:touch')&&css.includes('scrollbar-width:none'));
+const {normalizeHiddenTabs}=loadDomain(require('node:path').resolve('lib/nav.js'));
+assert.deepEqual(normalizeHiddenTabs(['tarefas','tarefas','desconhecida'],original),['tarefas']);
+assert.deepEqual(normalizeHiddenTabs(original,original),[]);
+assert.deepEqual(normalizeHiddenTabs('tarefas',original),[]);
+const toggleVisibilityBody=page.match(/function toggleTabVisibility\(id\) \{([\s\S]*?)\n  \}/)[1];
+let hiddenTabs=[],allowLeave=true;
+const toggleVisibility=id=>Function('id','hiddenTabs','visibleTabOrder','tabId','saveTabVisibility','setTabId','setSelected','setTouchReorder','setReorderSource','setDragged',toggleVisibilityBody)(
+ id,hiddenTabs,original.filter(tab=>!hiddenTabs.includes(tab)),active,tabs=>hiddenTabs=tabs,
+ tab=>{if(!allowLeave)return false;active=tab;return true;},v=>detail=v,v=>ordering=v,v=>source=v,v=>dragged=v);
+active='tarefas';detail='project';allowLeave=false;toggleVisibility('tarefas');
+assert.deepEqual(hiddenTabs,[]);assert.equal(active,'tarefas');assert.equal(detail,'project');
+allowLeave=true;toggleVisibility('tarefas');
+assert.deepEqual(hiddenTabs,['tarefas']);assert.equal(active,'projetos');assert.equal(detail,null);
+toggleVisibility('tarefas');assert.deepEqual(hiddenTabs,[]);assert.equal(active,'projetos');
+hiddenTabs=original.filter(id=>id!==active);toggleVisibility(active);
+assert.deepEqual(hiddenTabs,['tarefas','diario','financas']);
+const keyForUser=Function('visibilityUserId','return '+page.match(/const visibilityKey=([^;]+);/)[1]);
+const savedVisibility=page.match(/function saveTabVisibility\(hidden\) \{([\s\S]*?)\n  \}/)[1];
+const stored=new Map();
+const localStore={setItem:(key,value)=>stored.set(key,value),getItem:key=>stored.get(key)??null};
+const saveForUser=(id,hidden)=>Function('hidden','visibilityUserId','visibilityKey','setTabVisibility','localStorage',savedVisibility)(
+ hidden,id,keyForUser(id),()=>{},localStore);
+saveForUser('google:user1',['tarefas']);
+saveForUser('google:user2',['diario']);
+assert.deepEqual(JSON.parse(localStore.getItem(keyForUser('google:user1'))),['tarefas']);
+assert.deepEqual(JSON.parse(localStore.getItem(keyForUser('google:user2'))),['diario']);
 console.log('PASSOU: reordenação mobile por dois toques, inserção antes em ambas as direções, seleção/desmarcação, confirmação, navegação normal e rolagem nativa sem captura.');

@@ -121,6 +121,8 @@ Datas aparecem como DD/MM/AAAA, meses como MM/AAAA. Campos de dia/mês completam
 
 Em um navegador sem ordem salva, o LifeOS abre em **Tarefas**. A ordem padrão é Tarefas, Projetos, Diário, Finanças, Aniversários, Compras, Bem-estar, Entretenimento, Veículos, Acompanhamento, Algum dia, Referência Geral e Recados.
 
+Em **Menu da conta → Abas visíveis**, marque as seções que deseja ver na barra de navegação. Cada conta tem sua própria preferência no navegador e mantém pelo menos uma aba visível. Reexibir uma aba recupera sua posição na ordem configurada.
+
 As buscas locais ignoram maiúsculas, minúsculas e acentos. Em **Projetos**, a busca filtra o nome dos projetos na guia e no contexto atuais. Em **Tarefas**, a busca verifica o título da tarefa e o nome do projeto vinculado.
 
 ### Inbox e conversões

@@ -10,4 +10,14 @@ try{
  let tree=render();all(tree,n=>n.props?.className==='account-trigger')[0].props.onClick();tree=render();const lock=all(tree,n=>n.props?.role==='menuitem'&&text(n).includes('Bloquear sessão'));assert.equal(lock.length,1);lock[0].props.onClick();assert.equal(locked,1);assert.equal(exited,0);assert.equal(all(render(),n=>n.props?.role==='menu').length,0,'Fecha menu ao bloquear');
  user={...user,temporary:false};slots=[];tree=render();all(tree,n=>n.props?.className==='account-trigger')[0].props.onClick();tree=render();assert.equal(all(tree,n=>text(n).includes('Bloquear sessão')&&n.props?.role==='menuitem').length,0);assert.equal(all(tree,n=>n.props?.role==='menuitem'&&text(n)==='Computadores autorizados').length,1);all(tree,n=>n.props?.role==='menuitem'&&text(n)==='Sair')[0].props.onClick();assert.equal(exited,1);
  console.log('PASSOU: menu oferece bloqueio manual somente na sessão temporária, fecha ao bloquear e preserva sair/gestão do login Google.');
+ const tabs=[{id:'tarefas',label:'Tarefas'},{id:'diario',label:'Diário'}];
+ let hiddenTabs=['diario'];
+ const settings=()=>{cursor=0;return Menu({user,tabs,hiddenTabs,onToggleTab:id=>{hiddenTabs=hiddenTabs.includes(id)?hiddenTabs.filter(tab=>tab!==id):[...hiddenTabs,id];}});};
+ all(settings(),n=>n.props?.className==='account-trigger')[0].props.onClick();
+ assert.equal(all(settings(),n=>n.props?.role==='menuitemcheckbox').length,0);
+ all(settings(),n=>n.props?.role==='menuitem'&&text(n)==='Abas visíveis')[0].props.onClick();
+ const choices=()=>all(settings(),n=>n.props?.role==='menuitemcheckbox');
+ assert.deepEqual(choices().map(n=>[n.props['aria-checked'],n.props.disabled]),[[true,true],[false,false]]);
+ choices()[1].props.onClick();
+ assert.deepEqual(choices().map(n=>[n.props['aria-checked'],n.props.disabled]),[[true,false],[true,false]]);
 }finally{Object.assign(React,original);fs.rmSync(root,{recursive:true,force:true});}
